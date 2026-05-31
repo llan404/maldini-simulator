@@ -37,6 +37,18 @@
             </div>
         </div>
 
+        <!-- 赛季结束选择弹窗 -->
+        <div id="season-end-modal" class="modal hidden">
+            <div class="modal-content ending-content">
+                <h2>下一个赛季</h2>
+                <p id="season-end-text">管理层递来了新合同，他们希望你能担任下一个赛季的体育总监。</p>
+                <div class="season-end-actions">
+                    <button id="season-end-resign">辞职！</button>
+                    <button id="season-end-continue">继续！</button>
+                </div>
+            </div>
+        </div>
+
         <!-- 随机事件弹窗 -->
         <div id="random-event-modal" class="modal hidden">
             <div class="modal-content">
@@ -52,17 +64,17 @@
             <h2>选择难度</h2>
             <div class="difficulty-option">
                 <h3>小试马刀</h3>
-                <p>您将体验一个赛季的任期。（可以看到所有事件带来的数值变化）</p>
+                <p>您将体验一个赛季的任期。（胜率较高）</p>
                 <button class="select-difficulty" data-difficulty="easy">选择</button>
             </div>
             <div class="difficulty-option">
                 <h3>舍我其谁</h3>
-                <p>您将体验更为复杂的经营过程。（仅能看到部分事件的数值变化）</p>
+                <p>您将体验更为复杂的经营过程。（胜率中等）</p>
                 <button class="select-difficulty" data-difficulty="medium">选择</button>
             </div>
             <div class="difficulty-option">
                 <h3>未竟之事</h3>
-                <p>您将体验最困难、最现实的版本。（没有任何提示）</p>
+                <p>您将体验最困难、最现实的版本。（胜率较低）</p>
                 <button class="select-difficulty" data-difficulty="hard">选择</button>
             </div>
         </div>
