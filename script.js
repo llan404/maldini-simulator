@@ -331,6 +331,7 @@ const teams = [
 
 let currentRandomEvents = [];
 let randomEventIndex = 0;
+let randomEventsActive = false;
 
 const categoryStrength = {
     strong: 0.95,
@@ -787,6 +788,9 @@ const warningEvent = {
 };
 
 function showRandomEvents() {
+    // 防止重复触发多次随机事件流
+    if (randomEventsActive) return;
+    randomEventsActive = true;
     randomEventModal.classList.remove('warning');
     currentRandomEvents = selectRandomEvents();
     randomEventIndex = 0;
@@ -821,6 +825,7 @@ function showNextRandomEvent() {
     if (randomEventIndex >= currentRandomEvents.length) {
         // 所有随机事件处理完毕
         randomEventModal.classList.add('hidden');
+        randomEventsActive = false;
         resetAfterMatch();
         return;
     }
