@@ -1,0 +1,570 @@
+/* 全局样式 */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #F5F5DC; /* 米白色 */
+    color: #8B0000; /* 不刺眼的红色 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+    width: 100vw;
+    overflow-x: hidden;
+}
+
+#game-container {
+    width: 100%;
+    max-width: 540px;
+    padding: 20px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+h1 {
+    color: #8B0000;
+    margin-bottom: 20px;
+}
+
+/* 模态弹窗 */
+.modal {
+    display: flex;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #F5F5DC;
+    padding: 20px;
+    border: 2px solid #8B0000;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.modal-content.ending-content {
+    background-color: #F5F5DC;
+    border: 4px solid #000000;
+    border-radius: 0;
+    color: #000000;
+    padding: 30px;
+    position: relative;
+}
+
+.modal-content.ending-content h2 {
+    color: #000000;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1.8em;
+}
+
+.modal-content.ending-content p {
+    line-height: 1.6;
+    margin-bottom: 25px;
+    text-align: justify;
+    font-size: 1.1em;
+    color: #000000;
+}
+
+.modal-content.ending-content button {
+    background: #8B0000;
+    color: #F5F5DC;
+    border: 2px solid #000000;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: block;
+    margin: 0 auto;
+}
+
+.modal-content.ending-content button:hover {
+    background: #DC143C;
+}
+
+.modal-content p {
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+button {
+    background-color: #8B0000;
+    color: #F5F5DC;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #A52A2A; /* 更深的红色 */
+}
+
+#random-event-title {
+    border-bottom: 1px solid #000000;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+#random-event-description {
+    font-style: italic;
+}
+
+#random-event-modal.warning .modal-content {
+    border: 2px solid #003366;
+    box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.2);
+}
+
+#random-event-modal.warning #random-event-title {
+    color: #000000;
+}
+
+#random-event-modal.warning #random-event-description {
+    font-style: normal;
+    color: #000000;
+}
+
+#random-event-modal.warning #random-event-description .warning-note {
+    display: block;
+    margin-top: 10px;
+    color: #666666;
+}
+
+#random-event-modal.warning .random-event-option {
+    background-color: #003366;
+    color: #F5F5DC;
+    border: 1px solid #001F4D;
+    padding: 8px 20px;
+    border-radius: 20px;
+    width: fit-content;
+    margin: 0 auto;
+}
+
+#random-event-modal.warning .random-event-option:hover {
+    background-color: #002A5C;
+}
+
+/* 隐藏类 */
+.hidden {
+    display: none;
+}
+
+#difficulty-selection {
+    margin-top: 20px;
+}
+
+.difficulty-option {
+    background-color: #F5F5DC;
+    border: 1px solid #8B0000;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.difficulty-option h3 {
+    color: #8B0000;
+    margin: 0;
+}
+
+.difficulty-option p {
+    margin: 0;
+    flex: 1;
+    margin-right: 10px;
+}
+
+/* 随机事件选项 */
+.random-event-option {
+    display: block;
+    width: 100%;
+    background-color: #8B0000;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: left;
+    font-size: 1em;
+}
+
+.random-event-option:hover {
+    background-color: #DC143C;
+}
+
+/* 主界面 */
+#main-interface {
+    color: black;
+}
+
+.stats-box, .variables-box, .events-box {
+    border: 2px solid #8B0000;
+    border-radius: 14px;
+    margin: 10px 0;
+    padding: 14px;
+    background-color: #F5F5DC;
+}
+
+.stats-box {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.stat-card {
+    position: relative;
+    min-height: 130px;
+    background: #FBF5E8;
+    border-radius: 22px;
+    padding: 12px 13px;
+    box-shadow: 0 12px 22px rgba(0, 0, 0, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 24px 40px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card:active {
+    transform: scale(0.99);
+}
+
+.stat-card-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stat-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: rgba(139, 0, 0, 0.08);
+    color: #8B0000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.stat-card-title {
+    font-size: 0.95rem;
+    color: #5a4334;
+    font-weight: 700;
+}
+
+.stat-card-value {
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: #2d1f13;
+    line-height: 1;
+}
+
+.stat-card-status {
+    font-size: 0.88rem;
+    color: #7a6753;
+}
+
+.stat-card-progress {
+    margin-top: 6px;
+}
+
+.progress-track {
+    width: 100%;
+    height: 10px;
+    background: #ECE4D9;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    transition: width 0.4s ease, background 0.4s ease;
+}
+
+.stat-card-trust .progress-bar {
+    background: linear-gradient(90deg, #7a0b0b, #bb1f26);
+}
+
+.stat-card-media .progress-bar {
+    background: linear-gradient(90deg, #6b0d1c, #9e2a42);
+}
+
+.stat-card-fans .progress-bar {
+    background: linear-gradient(90deg, #aa6110, #f0ac3d);
+}
+
+.stat-card-player .progress-bar {
+    background: linear-gradient(90deg, #2f6e2e, #7dc35b);
+}
+
+.stat-change {
+    position: absolute;
+    right: 18px;
+    top: 18px;
+    font-size: 0.95rem;
+    font-weight: 900;
+    color: #8B0000;
+    opacity: 0;
+    transform: translateY(0);
+    transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.stat-change.visible {
+    opacity: 1;
+    transform: translateY(-20px);
+}
+
+.stat span {
+    margin-top: 5px;
+}
+
+.progress-container {
+    width: 100%;
+    height: 20px;
+    background-color: #e0e0e0;
+    border: 1px solid #8B0000;
+    border-radius: 0;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: black;
+    transition: background-color 0.3s, width 0.3s;
+}
+
+.stat span {
+    margin-top: 5px;
+}
+
+.variables-box {
+    display: flex;
+    gap: 14px;
+    align-items: stretch;
+    flex-wrap: wrap;
+}
+
+.last-score-panel {
+    flex: 1 1 40%;
+    min-width: 130px;
+    background: #F5F5DC;
+    border-radius: 18px;
+    padding: 16px;
+    border: 1px solid #8B0000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+}
+
+.panel-label {
+    font-size: 0.95rem;
+    color: #7a6753;
+    font-weight: 700;
+}
+
+.last-score-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #2d1f13;
+}
+
+.summary-grid {
+    flex: 1 1 55%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    align-items: stretch;
+}
+
+.variable {
+    background: #F5F5DC;
+    border: 1px solid #8B0000;
+    border-radius: 18px;
+    padding: 14px;
+    font-size: 0.96rem;
+    color: #2d1f13;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.variable span {
+    font-weight: 700;
+}
+
+/* 保证右侧数值不出现较大间距，轮次显示为紧凑的右侧元素 */
+.variable { white-space: nowrap; }
+.variable .value { display: inline-block; min-width: 56px; text-align: right; }
+.variable .slash { color: #2d1f13; margin-left: 4px; }
+
+.events-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.events-list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, auto);
+    gap: 10px;
+    margin-bottom: 10px;
+    max-width: 800px;
+}
+
+.event-btn {
+    margin: 5px;
+    padding: 10px 15px;
+    background-color: #8B0000;
+    color: #F5F5DC;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.event-btn:hover {
+    background-color: #A52A2A;
+}
+
+.event-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+#event-options {
+    margin: 10px 0;
+    text-align: center;
+}
+
+#event-description {
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+#option-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.option-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 5px;
+}
+
+.option-btn {
+    padding: 8px 12px;
+    background-color: #8B0000;
+    color: #F5F5DC;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.option-btn:hover {
+    background-color: #A52A2A;
+}
+
+.effects-text {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+    text-align: center;
+}
+
+.decision-points {
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+#start-match {
+    padding: 10px 20px;
+    background-color: #8B0000;
+    color: #F5F5DC;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#start-match:hover {
+    background-color: #A52A2A;
+}
+
+#start-match:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* 手机适配 */
+@media (max-width: 600px) {
+    #game-container {
+        padding: 10px;
+    }
+    
+    .modal-content {
+        width: 90%;
+        padding: 15px;
+    }
+    
+    .difficulty-option {
+        padding: 10px;
+    }
+    
+    .stats-box, .variables-box, .events-box {
+        padding: 10px;
+    }
+    
+    .stats-box {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-card {
+        min-height: 140px;
+    }
+    
+    .variables-box {
+        flex-direction: column;
+    }
+    
+    .summary-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .last-score-panel {
+        flex: 1 1 100%;
+    }
+    
+    .variable {
+        font-size: 15px;
+    }
+}
