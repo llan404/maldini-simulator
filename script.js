@@ -13,7 +13,6 @@ const optionButtons = document.getElementById('option-buttons');
 
 let decisionPoints = 0;
 let lastOpponentName = '';
-let seasonEndPending = false;
 let gameStats = {
     trust: 50,
     media: 50,
@@ -227,21 +226,6 @@ const endings = {
         id: 6,
         title: "归因者",
         text: "南看台对你的态度不影响你在球员时期获得的荣誉，但却影响你在当总监时的名誉。输球的时候，球迷骂你，赢球的时候，他们问你为什么没赢更多。在这赛季的最后一场比赛，南看台挂出了要求你滚蛋的横幅。和你退役时一样，你知道这块横幅的背面会被他们用来欢迎无论是谁的下一位继任者。"
-    },
-    thriftMaster: {
-        id: 9,
-        title: "物尽其用",
-        text: "你从青年队提升球员、从小球队买来身价低的潜力股、和关系良好的球队达成租借协议，这一切只能在一定程度上节省预算，但你无法让这个数字凭空多出来几千万欧。你尝试向管理层解释预算的必要性，管理层却认为没花出去的每一分钱都可以成为利润。"
-    },
-    churchParade: {
-        id: 8,
-        title: "教堂前的巡游",
-        text: "您获得了意甲冠军！这是米兰所有球员梦寐以求的时刻，他们把你视作一切的转机，认为你才是力挽狂澜的那个人。你将如球员时代一样登上庆祝的花车，球员将你环绕时你甚至有些呼吸急促，尽情庆祝吧！"
-    },
-    seasonExit: {
-        id: 7,
-        title: "平静离开",
-        text: "你选择了辞职，AC米兰将在下一个赛季迎来新的体育总监。你将这段旅程留给了历史，带着复杂的回忆离开。"
     }
 };
 
@@ -256,56 +240,10 @@ function getTriggeredEndingKey() {
 
 function getSeasonEndingKey() {
     if (gameStats.round < 38) return null;
-    if (gameStats.ranking === 1) return 'churchParade';
-    if (gameStats.budget < 5000) return 'thriftMaster';
     if (gameStats.media > 80 && gameStats.trust < 30) return 'speculator';
     if (gameStats.fans < 30) return 'blameSeeker';
     return null;
 }
-
-function showSeasonEndPrompt() {
-    seasonEndText.textContent = '下一个赛季：管理层递来了新合同，他们希望你能担任下一个赛季的体育总监。';
-    seasonEndModal.classList.remove('hidden');
-    eventBtns.forEach(btn => {
-        btn.disabled = true;
-        btn.style.backgroundColor = '#ccc';
-    });
-    startMatchBtn.disabled = true;
-}
-
-function startNewSeason() {
-    initializeLeague();
-    gameStats.round = 0;
-    gameStats.points = 0;
-    gameStats.ranking = 1;
-    gameStats.lastScore = '0-0';
-    gameStats.southStandEventUsed = false;
-    gameStats.rebateEventCount = 0;
-    updateScoreboard();
-    decisionPoints = 0;
-    updateDecisionPoints();
-    eventBtns.forEach(btn => {
-        btn.disabled = false;
-        btn.style.backgroundColor = '#8B0000';
-    });
-    startMatchBtn.disabled = true;
-    eventOptions.classList.add('hidden');
-}
-
-seasonEndResignBtn.addEventListener('click', function() {
-    seasonEndModal.classList.add('hidden');
-    const endingKey = getSeasonEndingKey();
-    if (endingKey) {
-        showEnding(endingKey);
-    } else {
-        showEnding('seasonExit');
-    }
-});
-
-seasonEndContinueBtn.addEventListener('click', function() {
-    seasonEndModal.classList.add('hidden');
-    startNewSeason();
-});
 
 const teams = [
     { name: 'Juventus/尤文图斯', category: 'strong' },
@@ -331,7 +269,6 @@ const teams = [
 
 let currentRandomEvents = [];
 let randomEventIndex = 0;
-let randomEventsActive = false;
 
 const categoryStrength = {
     strong: 0.95,
@@ -722,10 +659,6 @@ const matchResultTitle = document.getElementById('match-result-title');
 const matchResultText = document.getElementById('match-result-text');
 const closeResultBtn = document.getElementById('close-result');
 const randomEventModal = document.getElementById('random-event-modal');
-const seasonEndModal = document.getElementById('season-end-modal');
-const seasonEndText = document.getElementById('season-end-text');
-const seasonEndResignBtn = document.getElementById('season-end-resign');
-const seasonEndContinueBtn = document.getElementById('season-end-continue');
 
 function drawOpponent() {
     let opponent = teams[Math.floor(Math.random() * teams.length)];
@@ -788,9 +721,6 @@ const warningEvent = {
 };
 
 function showRandomEvents() {
-    // 防止重复触发多次随机事件流
-    if (randomEventsActive) return;
-    randomEventsActive = true;
     randomEventModal.classList.remove('warning');
     currentRandomEvents = selectRandomEvents();
     randomEventIndex = 0;
@@ -825,7 +755,6 @@ function showNextRandomEvent() {
     if (randomEventIndex >= currentRandomEvents.length) {
         // 所有随机事件处理完毕
         randomEventModal.classList.add('hidden');
-        randomEventsActive = false;
         resetAfterMatch();
         return;
     }
@@ -897,11 +826,6 @@ function resetAfterMatch() {
 
 closeResultBtn.addEventListener('click', function() {
     matchResultModal.classList.add('hidden');
-    if (seasonEndPending) {
-        seasonEndPending = false;
-        showSeasonEndPrompt();
-        return;
-    }
     if (gameStats.media > 80 && !gameStats.warningEventShown) {
         showWarningEvent();
     } else {
@@ -950,6 +874,16 @@ startMatchBtn.addEventListener('click', function() {
         eventOptions.classList.add('hidden');
     }
     if (gameStats.round >= 38 && matchResult !== null) {
-        showSeasonEndPrompt();
+        const seasonEndingKey = getSeasonEndingKey();
+        if (seasonEndingKey) {
+            showEnding(seasonEndingKey);
+        } else {
+            alert('赛季结算：38轮已完成，进入赛季总结。');
+        }
+        eventBtns.forEach(btn => {
+            btn.disabled = true;
+            btn.style.backgroundColor = '#ccc';
+        });
+        startMatchBtn.disabled = true;
     }
 });
