@@ -23,7 +23,7 @@
         <div id="match-result-modal" class="modal hidden">
             <div class="modal-content">
                 <h2 id="match-result-title">比赛结果</h2>
-                <p id="match-result-text"></p>
+                <div id="match-result-text"></div>
                 <button id="close-result">返回</button>
             </div>
         </div>
@@ -31,7 +31,9 @@
         <!-- 结局弹窗 -->
         <div id="ending-modal" class="modal hidden">
             <div class="modal-content ending-content">
+                <div class="ending-label">结　局</div>
                 <h2 id="ending-title"></h2>
+                <div class="ending-rule"></div>
                 <p id="ending-text"></p>
                 <button id="restart-game">重新开始</button>
             </div>
@@ -137,7 +139,11 @@
             <div class="variables-box">
                 <div class="last-score-panel">
                     <div class="panel-label">上一轮比赛结果</div>
-                    <div class="last-score-value"><span id="last-score">0-0</span></div>
+                    <div class="last-score-value">
+                        <span id="last-score-home">AC Milan</span>
+                        <span id="last-score-num">-</span>
+                        <span id="last-score-away"></span>
+                    </div>
                 </div>
                 <div class="summary-grid">
                     <div class="variable">积分：<span id="points">0</span></div>
@@ -150,14 +156,14 @@
             <!-- 方框三：事件和开始比赛 -->
             <div class="events-box">
                 <div class="events-list">
-                    <button class="event-btn" data-event="1">周例会汇报</button>
-                    <button class="event-btn" data-event="2">申请预算</button>
-                    <button class="event-btn" data-event="3">新闻发布会</button>
-                    <button class="event-btn" data-event="4">深度采访</button>
-                    <button class="event-btn" data-event="5">赛前鼓励</button>
-                    <button class="event-btn" data-event="6">内部总结</button>
-                    <button class="event-btn" data-event="7">阵容意见</button>
-                    <button class="event-btn" data-event="8">合同谈判</button>
+                    <button class="event-btn" data-event="1">周例会<br>汇报</button>
+                    <button class="event-btn" data-event="2">申请<br>预算</button>
+                    <button class="event-btn" data-event="3">新闻<br>发布会</button>
+                    <button class="event-btn" data-event="4">深度<br>采访</button>
+                    <button class="event-btn" data-event="5">赛前<br>鼓励</button>
+                    <button class="event-btn" data-event="6">内部<br>总结</button>
+                    <button class="event-btn" data-event="7">阵容<br>意见</button>
+                    <button class="event-btn" data-event="8">合同<br>谈判</button>
                 </div>
                 <div id="event-options" class="hidden">
                     <p id="event-description"></p>
@@ -171,6 +177,7 @@
         </div>
     </div>
     
+    <button id="test-ending-btn">结局</button>
     <script src="script.js"></script>
 </body>
 </html>
