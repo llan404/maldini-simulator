@@ -23,8 +23,35 @@ body {
 }
 
 h1 {
-    color: #8B0000;
-    margin-bottom: 20px;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1.05rem;
+    letter-spacing: 0.08em;
+    color: #1c1916;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 24px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    border: none;
+    text-align: center;
+}
+
+h1::before, h1::after {
+    content: '';
+    display: block;
+    height: 2px;
+    width: 68%;
+    background: #8B0000;
+    margin: 0 auto;
+    border-radius: 1px;
+}
+
+h1::before {
+    margin-bottom: 12px;
+}
+
+h1::after {
+    margin-top: 12px;
 }
 
 /* 模态弹窗 */
@@ -233,6 +260,39 @@ button:hover {
     color: #2d1f13;
 }
 
+.news-effects {
+    padding: 10px 20px 8px;
+    font-size: 0.72rem;
+    color: #8a7060;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-style: italic;
+    border-top: 1px dashed #c8b89a;
+    line-height: 1.6;
+}
+
+.news-effects-label {
+    font-style: normal;
+    font-weight: 700;
+    color: #5a4530;
+}
+
+.season-end-note {
+    padding: 6px 0 10px;
+    text-align: center;
+}
+
+.season-end-note p {
+    margin: 4px 0;
+    color: #2d1f13;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.season-end-sub {
+    font-size: 0.8rem !important;
+    color: #7a6753 !important;
+}
+
 .news-footer-rule {
     height: 2px;
     background: #2d1f13;
@@ -305,29 +365,75 @@ button:hover {
 }
 
 #difficulty-selection {
-    margin-top: 20px;
+    margin-top: 8px;
+}
+
+#difficulty-selection h2 {
+    font-size: 1rem;
+    letter-spacing: 0.2em;
+    color: #1c1916;
+    font-weight: 600;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border: none;
+    text-align: center;
+    position: relative;
+}
+
+#difficulty-selection h2::after {
+    content: '';
+    display: block;
+    height: 1px;
+    width: 52%;
+    background: rgba(139, 0, 0, 0.35);
+    margin: 8px auto 0;
+    border-radius: 1px;
 }
 
 .difficulty-option {
     background-color: #F5F5DC;
-    border: 1px solid #8B0000;
+    border: 1.5px solid #8B0000;
     border-radius: 10px;
-    padding: 16px 18px;
+    padding: 14px 16px;
     margin: 10px 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 6px rgba(139, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.difficulty-option:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(139, 0, 0, 0.15);
 }
 
 .difficulty-option h3 {
     color: #8B0000;
     margin: 0;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+    min-width: 76px;
+    text-align: left;
 }
 
 .difficulty-option p {
     margin: 0;
     flex: 1;
-    margin-right: 10px;
+    color: #1c1916;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.difficulty-rate {
+    display: block;
+    font-size: 0.75rem;
+    color: #7a6753;
+    margin-top: 2px;
 }
 
 /* 随机事件选项 */
@@ -355,7 +461,7 @@ button:hover {
 }
 
 .stats-box, .variables-box, .events-box {
-    border: 2px solid #8B0000;
+    border: 2px solid #1c1916;
     border-radius: 14px;
     margin: 10px 0;
     padding: 18px;
@@ -481,12 +587,12 @@ button:hover {
     color: #8B0000;
     opacity: 0;
     transform: translateY(0);
-    transition: transform 0.5s ease, opacity 0.5s ease;
+    transition: transform 1.0s ease, opacity 1.0s ease;
 }
 
 .stat-change.visible {
     opacity: 1;
-    transform: translateY(-20px);
+    transform: translateY(-28px);
 }
 
 .stat span {
@@ -580,6 +686,8 @@ button:hover {
     padding: 14px;
     font-size: 0.96rem;
     color: #2d1f13;
+    position: relative;
+    overflow: visible;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -615,7 +723,7 @@ button:hover {
     background-color: #8B0000;
     color: #F5F5DC;
     border: none;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
     white-space: normal;
     line-height: 1.5;
@@ -642,28 +750,34 @@ button:hover {
 
 #option-buttons {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
 }
 
 .option-container {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin: 5px;
+    align-items: stretch;
+    margin: 0;
 }
 
 .option-btn {
-    padding: 8px 12px;
-    background-color: #8B0000;
-    color: #F5F5DC;
-    border: none;
+    padding: 9px 12px;
+    background-color: rgba(139, 0, 0, 0.06);
+    color: #8B0000;
+    border: 1px solid rgba(139, 0, 0, 0.28);
     border-radius: 5px;
     cursor: pointer;
+    width: 100%;
+    text-align: center;
+    font-size: 0.9rem;
+    transition: background-color 0.15s, border-color 0.15s;
 }
 
 .option-btn:hover {
-    background-color: #A52A2A;
+    background-color: rgba(139, 0, 0, 0.13);
+    border-color: rgba(139, 0, 0, 0.5);
 }
 
 .effects-text {
@@ -718,6 +832,405 @@ button:hover {
     opacity: 1;
     background: rgba(20, 20, 20, 0.8);
     color: #ddd;
+}
+
+/* 主线剧情事件卡片（同赛季简报风格） */
+#random-event-modal.mainline {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+#random-event-modal.mainline .modal-content {
+    background-color: #faf5e8;
+    border: none;
+    border-top: 3px solid #8B0000;
+    border-radius: 2px;
+    padding: 26px 24px 22px;
+    text-align: left;
+    max-height: 82vh;
+    overflow-y: auto;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
+}
+
+#random-event-modal.mainline #random-event-title {
+    color: #1c1916;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    line-height: 1.4;
+}
+
+#random-event-modal.mainline #random-event-title::before {
+    content: "主线剧情";
+    display: block;
+    font-size: 0.57rem;
+    letter-spacing: 0.44em;
+    color: #8B0000;
+    font-weight: 700;
+    font-family: Georgia, serif;
+    margin-bottom: 10px;
+}
+
+#random-event-modal.mainline #random-event-title::after {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 1px;
+    background-color: #8B0000;
+    margin: 14px 0 16px;
+}
+
+#random-event-modal.mainline #random-event-description {
+    font-size: 0.87rem;
+    color: #2d1f13;
+    line-height: 1.9;
+    text-align: justify;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-style: normal;
+    margin-bottom: 18px;
+}
+
+#random-event-modal.mainline .random-event-option {
+    background: transparent;
+    color: #7a6753;
+    border: 1px solid rgba(28, 25, 22, 0.2);
+    padding: 9px 14px;
+    border-radius: 2px;
+    font-size: 0.83rem;
+    font-weight: normal;
+    text-align: left;
+    width: 100%;
+    margin: 4px 0;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+    font-family: Georgia, serif;
+    letter-spacing: 0.02em;
+}
+
+#random-event-modal.mainline .random-event-option:hover {
+    background: rgba(139, 0, 0, 0.05);
+    border-color: rgba(139, 0, 0, 0.3);
+    color: #8B0000;
+}
+
+/* 赛季结算弹窗 */
+#season-result-modal {
+    background-color: rgba(0, 0, 0, 0.88);
+    z-index: 10;
+}
+
+#season-result-modal .modal-content.season-result-content {
+    background-color: #1c1916;
+    border: none;
+    border-top: 2px solid #C49A28;
+    border-radius: 2px;
+    padding: 26px 24px 22px;
+    width: min(92%, 375px);
+    max-width: 375px;
+    margin: 0 16px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
+    text-align: center;
+}
+
+#season-result-modal.failed .modal-content.season-result-content {
+    border-top-color: #6a6460;
+}
+
+.season-result-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.32em;
+    color: #C49A28;
+    text-align: center;
+    margin-bottom: 18px;
+    font-family: Georgia, serif;
+}
+
+#season-result-modal.failed .season-result-label {
+    color: #6a6460;
+}
+
+.season-result-content h2 {
+    color: #f0ece4;
+    margin: 0;
+    font-size: 1.55rem;
+    letter-spacing: 0.08em;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight: 700;
+}
+
+.season-result-rule {
+    width: 36px;
+    height: 1px;
+    background-color: #C49A28;
+    margin: 16px auto 18px;
+}
+
+#season-result-modal.failed .season-result-rule {
+    background-color: #6a6460;
+}
+
+.season-result-content p {
+    line-height: 1.9;
+    margin-bottom: 22px;
+    text-align: justify;
+    font-size: 0.9rem;
+    color: #b8b0a6;
+    text-indent: 1.6em;
+    font-family: Georgia, 'Times New Roman', serif;
+}
+
+#season-result-continue {
+    background: transparent;
+    color: #7a7268;
+    border: 1px solid #3a3530;
+    padding: 9px 28px;
+    border-radius: 2px;
+    font-size: 0.78rem;
+    letter-spacing: 0.16em;
+    font-weight: normal;
+    cursor: pointer;
+    transition: border-color 0.3s, color 0.3s;
+    display: block;
+    margin: 0 auto;
+    font-family: Georgia, serif;
+}
+
+#season-result-continue:hover {
+    background: transparent;
+    border-color: #C49A28;
+    color: #e0d8ce;
+}
+
+#season-result-modal.failed #season-result-continue:hover {
+    border-color: #8B0000;
+}
+
+/* 赛季任务按钮 */
+#show-tasks-btn {
+    width: 100%;
+    background: transparent;
+    color: #7a6753;
+    border: 2px solid #1c1916;
+    border-radius: 14px;
+    padding: 9px;
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    margin: 0;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+#show-tasks-btn:hover {
+    background: rgba(28, 25, 22, 0.04);
+    color: #1c1916;
+}
+
+/* 赛季任务查看弹窗 */
+#season-tasks-modal {
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 10;
+}
+
+#season-tasks-modal .modal-content.season-tasks-content {
+    background-color: #faf5e8;
+    border: none;
+    border-top: 3px solid #8B0000;
+    border-radius: 2px;
+    padding: 22px 22px 20px;
+    width: min(88%, 340px);
+    max-width: 340px;
+    text-align: left;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18);
+}
+
+#season-tasks-title {
+    color: #1c1916;
+    margin: 0;
+    font-size: 1.1rem;
+    letter-spacing: 0.06em;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.no-tasks-note {
+    font-size: 0.84rem;
+    color: #7a6753;
+    font-family: Georgia, serif;
+    font-style: italic;
+    margin: 0 0 16px;
+    line-height: 1.7;
+}
+
+#close-tasks-modal {
+    background: transparent;
+    color: #7a6753;
+    border: 1px solid rgba(28, 25, 22, 0.22);
+    padding: 8px 24px;
+    border-radius: 2px;
+    font-size: 0.76rem;
+    letter-spacing: 0.14em;
+    font-weight: normal;
+    cursor: pointer;
+    transition: border-color 0.3s, color 0.3s;
+    display: block;
+    margin: 0 auto;
+    font-family: Georgia, serif;
+}
+
+#close-tasks-modal:hover {
+    background: transparent;
+    border-color: #8B0000;
+    color: #8B0000;
+}
+
+/* 测试反馈弹窗 */
+.modal-content.test-notice-content {
+    text-align: left;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.test-notice-content h2 {
+    text-align: center;
+    font-size: 1rem;
+    color: #1c1916;
+    margin-bottom: 12px;
+}
+
+.test-notice-intro {
+    font-size: 0.84rem;
+    line-height: 1.75;
+    color: #2d1f13;
+    margin-bottom: 8px;
+}
+
+.test-notice-list {
+    font-size: 0.82rem;
+    line-height: 1.9;
+    color: #5a4334;
+    padding-left: 1.4em;
+    margin: 4px 0 10px;
+}
+
+.test-notice-contact {
+    font-size: 0.82rem;
+    line-height: 1.75;
+    color: #7a6753;
+    margin-bottom: 16px;
+}
+
+/* 赛季开幕简报弹窗 */
+#season-intro-modal {
+    background-color: rgba(0, 0, 0, 0.88);
+    z-index: 10;
+}
+
+#season-intro-modal .modal-content.season-intro-content {
+    background-color: #faf5e8;
+    border: none;
+    border-top: 3px solid #8B0000;
+    border-radius: 2px;
+    padding: 26px 24px 22px;
+    width: min(92%, 380px);
+    max-width: 380px;
+    text-align: left;
+    max-height: 82vh;
+    overflow-y: auto;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
+}
+
+.season-intro-eyebrow {
+    font-size: 0.57rem;
+    letter-spacing: 0.44em;
+    color: #8B0000;
+    font-weight: 700;
+    font-family: Georgia, serif;
+    margin-bottom: 10px;
+}
+
+#season-intro-title {
+    color: #1c1916;
+    margin: 0;
+    font-size: 1.25rem;
+    letter-spacing: 0.06em;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.season-intro-rule {
+    width: 36px;
+    height: 1px;
+    background-color: #8B0000;
+    margin: 14px 0 16px;
+}
+
+.season-intro-tasks-box {
+    background: rgba(139, 0, 0, 0.05);
+    border: 1px solid rgba(139, 0, 0, 0.2);
+    border-radius: 3px;
+    padding: 11px 14px;
+    margin-bottom: 18px;
+}
+
+.season-tasks-header {
+    font-size: 0.58rem;
+    letter-spacing: 0.3em;
+    color: #8B0000;
+    font-weight: 700;
+    font-family: Georgia, serif;
+    margin-bottom: 8px;
+}
+
+.season-task-item {
+    font-size: 0.84rem;
+    color: #2d1f13;
+    line-height: 1.9;
+    font-family: Georgia, serif;
+}
+
+#season-intro-description p {
+    font-size: 0.87rem;
+    color: #2d1f13;
+    line-height: 1.9;
+    text-align: justify;
+    font-family: Georgia, 'Times New Roman', serif;
+    text-indent: 1.6em;
+    margin: 0 0 10px;
+}
+
+#season-intro-description p:last-child {
+    margin-bottom: 22px;
+}
+
+.highlight-red {
+    color: #8B0000;
+    font-weight: 700;
+}
+
+#season-intro-continue {
+    background: transparent;
+    color: #7a6753;
+    border: 1px solid rgba(28, 25, 22, 0.25);
+    padding: 9px 28px;
+    border-radius: 2px;
+    font-size: 0.78rem;
+    letter-spacing: 0.16em;
+    font-weight: normal;
+    cursor: pointer;
+    transition: border-color 0.3s, color 0.3s;
+    display: block;
+    margin: 0 auto;
+    font-family: Georgia, serif;
+}
+
+#season-intro-continue:hover {
+    background: transparent;
+    border-color: #8B0000;
+    color: #8B0000;
 }
 
 /* 手机适配 */

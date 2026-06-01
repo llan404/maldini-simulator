@@ -30,8 +30,14 @@ let gameStats = {
     rebateEventCount: 0,
     transferEventUsed: false,
     carCrashEventUsed: false,
+    sinkOrSwimEventUsed: false,
+    bigDataEventUsed: false,
+    derbyLossEventPending: false,
     warningEventShown: false,
     gameEnded: false,
+    season: 1,
+    futureRandomEvents: [],
+    usedMainlineEvents: [],
     shownWarnings: {
         trustCrisis: false, trustCritical: false,
         mediaCrisis: false, mediaCritical: false,
@@ -74,7 +80,7 @@ const events = {
     5: {
         description: "赛前最后一次集合时，你需要对球员做出一些鼓励，你的选择是：",
         options: [
-            { text: "鼓励全队", effects: { player: 6, trust: -3 } },
+            { text: "鼓励全队", effects: { player: 6, media: -2 } },
             { text: "激励关键球员", effects: { player: 4, fans: -3, media: 3 } }
         ]
     },
@@ -219,8 +225,158 @@ const randomEvents = {
             { text: "内部低调处理，尽量别再扩大影响。", effects: { media: 3, trust: -5, budget: -400 } },
             { text: "直接罚款停训。", effects: { fans: 6, player: -5 } }
         ]
+    },
+    12: {
+        title: "汇报之争",
+        description: "你在转会决策和球队建设上几乎没有话语权，富尔拉尼要求你跟他直线汇报，卡尔迪纳莱坚持只说英语，同一个球员的引援，你做了三份报告，第一份发给富尔拉尼，第二份发给卡尔迪纳莱，第三份解释为什么这两份报告的侧重点不同，你选择：",
+        options: [
+            { text: "将富尔拉尼作为主汇报人。", effects: { trust: 5, budget: 200 } },
+            { text: "将卡尔迪纳莱作为主汇报人。", effects: { trust: 5, budget: 200 } },
+            { text: "不做单线汇报，只在他们都在场的时候说事。", effects: { media: 3 } }
+        ]
+    },
+    13: {
+        title: "断尾求生",
+        description: "球队在本赛季的预算即将见底！某个传统豪门俱乐部以一个不算太高的价格报价你们的主力前锋，如果卖掉他，在下个转会窗你们将非常被动，可是如果不卖他，很有可能你们连这个赛季末都撑不过去。你选择：",
+        options: [
+            { text: "相信球员的凝聚力，拒绝出售。", effects: { player: 3 } },
+            { text: "答应对方的报价，先解决燃眉之急再说。", effects: { player: -5, budget: 500 } },
+            { text: "只值这么点钱？要求对方提高报价。", effects: { player: -3 }, chain: { eventId: 'sinkOrSwim2', probability: 1.0 } }
+        ]
+    },
+    sinkOrSwim2: {
+        title: "断尾求生Ⅱ",
+        description: "之前报价的豪门俱乐部稍微提高了一点价格，虽然他们不知道现在你们还是否需要，在加价的基础上，他们愿意将刚买来的小将放在米兰租借两年，你选择：",
+        options: [
+            { text: "比起人我们更需要钱，继续要求抬高价格。（谈判破裂，无影响）", effects: {} },
+            { text: "敲定合同，迅速出售。", effects: { budget: 600, player: -5 } },
+            { text: "这名球员对我们来说不可替代。", effects: { player: 2 } }
+        ]
+    },
+    14: {
+        title: "票价上涨",
+        description: "管理层希望能够提高门票的价格，我们门票的收入只有其他豪门的五分之一！现在最便宜的票才五欧元，从这方面我们根本赚不到钱。你选择：",
+        options: [
+            { text: "保持现在的票价，再上涨没人来看球了。", effects: { fans: 5 } },
+            { text: "略微上调票价，毕竟翻修球场也是需要钱的。", effects: { fans: -2, budget: 200 } },
+            { text: "大幅度上调票价，豪门就要有豪门的价格！", effects: { fans: -10, trust: 2, budget: 500 } }
+        ]
+    },
+    15: {
+        title: "大数据时代",
+        description: "管理层引入了'魔球系统'来帮助决策在转会窗要如何操作，你试用了这套系统，发现漏洞百出，基本是科技公司用来骗老板钱的，你选择：",
+        options: [
+            { text: "缄口不言，转会窗时根据系统的提示操作。", effects: { trust: 5, budget: 100, player: -2 } },
+            { text: "提醒管理层现在还没有ChatGPT。", effects: { trust: -5 } },
+            { text: "询问管理层为什么不自己下载一个足球经理玩。（结局）", effects: {}, ending: 'seasonTrust' }
+        ]
+    },
+    16: {
+        title: "翻修草坪",
+        description: "草坪实在是太硬了，队医跟你沟通这样的球场很不适合球员进行高强度的跑动，并且现在球员摔伤也是个大问题。翻修一下可能会花掉一大笔预算，你选择：",
+        options: [
+            { text: "草坪都斑秃了必须要修。", effects: { budget: -200, player: 3 } },
+            { text: "还可以对付着用一段时间。", effects: { player: -2 } },
+            { text: "把账单发给国际米兰，让对方也出一部分。", effects: { budget: -100, player: 2 } }
+        ]
+    },
+    17: {
+        title: "德比失利",
+        warningStyle: true,
+        description: "输给国际米兰！这是谁都不愿意看到的事，球迷对球队的支持大幅度下降了，媒体却津津乐道，在接下来的一周，这场比赛中能被清算的还有很多。",
+        note: "（发生此事件时球迷-5，媒体+3）",
+        options: [
+            { text: "继续", effects: { fans: -5, media: 3 } }
+        ]
+    },
+    ffp1: {
+        title: "FFP的绞索Ⅰ",
+        mainline: true,
+        description: "金元足球的热量褪去后，给你们带来了数不清的烂摊子，这笔烂账之前不关你事，但要是这个赛季结束后还缠在你的脖子上，那么欧足联就要给你找大麻烦了。欧足联的审计员皮笑肉不笑地坐在你的办公室里，你选择：",
+        options: [
+            { text: "召集另一个审计团队，想方设法凑出利润来。", effects: { trust: 5, budget: -200 }, chain: { eventId: 'ffp2', probability: 1.0, minRound: 16 } },
+            { text: "私下谈谈欧足联的口风，寻求和解的可能。", effects: {}, chain: { eventId: 'ffp2', probability: 1.0, minRound: 16 } },
+            { text: "强硬宣称FFP规则不公，保护的是豪门，而非我们这种需要重建的球队。", effects: { trust: -10, media: 3, budget: -500 }, chain: { eventId: 'ffp2', probability: 0.5, minRound: 16 } }
+        ]
+    },
+    ffp2: {
+        title: "FFP的绞索Ⅱ",
+        mainline: true,
+        description: "财务团队给你的答案只有一个，靠正常经营，哪怕一线队加上教练都去卖沟子这账也平不了，你们只会陷入更深的漩涡，没钱买球员，只能不断地卖人，你选择：",
+        options: [
+            { text: "主动认罚，放弃一年欧战，获得喘息的机会。", effects: { budget: 600, fans: -7, media: -5, trust: 5 } },
+            { text: "打包三位主力球员一起买了，获得更多预算。", effects: { budget: 1000, fans: -5, player: -10 } },
+            { text: "拒绝认罚，赌欧足联不会真的禁赛两年。", effects: {}, endingChance: { endingId: 'hardClash', probability: 0.5 } }
+        ]
+    },
+    euroNight1: {
+        title: "欧联之夜Ⅰ",
+        mainline: true,
+        description: "小组赛之夜，你们踢得毫无章法，前锋暴力射门，后防却门洞大开。教练在场边心急如焚，球员们却跟无头苍蝇一样乱窜，球员时代给你的直觉让你早早看出了输赢。比赛结束，你们不可思议的在小组赛出去了，CEO给你发了条消息：\"我们要谈谈换教练的事。\"",
+        options: [
+            { text: "向媒体和管理层公开揽责，宣称是自己的问题。", effects: { trust: -5, media: 3 }, chain: { eventId: 'euroNight2', probability: 1.0, minRound: 36 } },
+            { text: "自己和教练都是一根绳的蚂蚱，等待管理层的安排。", effects: { trust: 2 }, chain: { eventId: 'euroNight2', probability: 1.0, minRound: 36 } },
+            { text: "暗示主要是教练的责任，提出想换帅。", effects: { media: 3, player: -5 }, chain: { eventId: 'euroNight2', probability: 1.0, minRound: 36 } }
+        ]
+    },
+    euroNight2: {
+        title: "欧联之夜Ⅱ",
+        mainline: true,
+        description: "上一次欧战给你们的打击还没有过去，联赛多轮不胜又来了，外界对于换帅的呼声越来越高。你看向这位米兰名宿，你和他曾是关系紧密的队友，你深知以他的性格，已经做了能为米兰做的一切，你选择：",
+        options: [
+            { text: "替他担保，认为他再干一个赛季会更好。", effects: { trust: -2 }, chain: { eventId: 'farewell', probability: 1.0, minRound: 38 } },
+            { text: "体面换帅，向媒体直言他已经做到最好。", effects: { trust: 2, media: 2 }, chain: { eventId: 'farewell', probability: 0.5, minRound: 38 } },
+            { text: "下最后通牒，给他时间证明自己。", effects: { trust: 5, player: -3 } }
+        ]
+    },
+    farewell: {
+        title: "告别",
+        mainline: true,
+        description: "他最终还是离开了，在多方压力下，拿着一只受FFP约束、临时拼凑的球队，问题或许不在他。他没有推荐下一位教练，也没有要遣散费。这是我能留给米兰的最后一笔钱了。在这位教练走后，他给你的私人账号发了一封长长的告别信，米兰对我意义非凡，我希望你能干得比我更好，衷心的、最美好的祝愿。",
+        options: [
+            { text: "了解。", effects: {} }
+        ]
     }
 };
+
+// 主线事件池 — 各赛季专属事件，仅在对应赛季内随机触发
+const mainlineEventPools = {
+    1: ['ffp1', 'euroNight1'],
+    2: [],
+    3: [],
+    4: [],
+    5: []   // 第五赛季主线事件（暂未填充）
+};
+
+// 各赛季主线事件的最早触发轮次（含）
+const mainlineRoundConstraints = {
+    1: { ffp1: 6, euroNight1: 26 }
+};
+
+// 赛季开幕简报数据
+const seasonIntros = {
+    1: {
+        title: '第一赛季·废墟上的人',
+        tasks: ['赛季末预算大于 2000w 欧', '排名不低于第 10 位'],
+        taskCheck: () => gameStats.budget > 2000 && gameStats.ranking <= 10,
+        description: [
+            '你重新回到了米兰，新资方刚刚接管AC Milan，他们和你一样处处受限。因上个财年多次违反FFP（财政公平法案），欧足联对你们展开了数次调查，要求你们在限期内达到预算平衡，否则将对你们处以禁赛两个赛季作为惩罚。',
+            '你必须立刻开始处理球队当中的问题球员，与此同时，管理层提出了要求，你需要在这个赛季内平衡好【预算】和【排名】之间的关系，好在，他们的要求并不是很高。'
+        ]
+    },
+    2: {
+        title: '第二赛季·青春风暴',
+        tasks: ['拿到欧战资格（赛季末排名不低于第 6 位）'],
+        taskCheck: () => gameStats.ranking <= 6,
+        description: [
+            '对于现在的米兰来说，买不起经验丰富的知名球星。即使是能和经纪人谈好，球员本人也会要求高薪资和战术地位。你选择将目光放在几位小将身上，遗憾的是，即使是初出茅庐的稍有潜力的小将，对米兰的预算来说也不便宜。稍有不慎，你可能就会购入天价饮水机。',
+            '你做出准确的判断，在【排名】更进一步的情况下，提升【球员状态】。'
+        ]
+    }
+};
+
+let pendingDifficulty = null;
+let pendingSeasonEndCallback = null;
 
 const endings = {
     trust: {
@@ -287,6 +443,26 @@ const endings = {
         id: 13,
         title: "米兰，米兰",
         text: "在毫无预兆的被开除后，你开车离开了俱乐部，回望球场时，你知道你和米兰的故事还没有结束。"
+    },
+    fiveSeason: {
+        id: 14,
+        title: "扫地出门",
+        text: "你接到了来自米兰的电话。"
+    },
+    surprise: {
+        id: 17,
+        title: "意外？",
+        text: "卡尔迪纳莱的电话，第一个你没接，他又打了第二个，第三个电话爆发出他怒气冲冲的声音：你被解雇了！什么？我在开玩笑，我是认真的，请立刻来米兰内洛签合同。你干的很好？是，大概吧，不过我现在决定解雇你，我当然有这个权力。因为你而续约的球员？我会处理好他们的，马上就有一位新的总监——你还没听懂吗，保罗·马尔蒂尼，你被解雇了！"
+    },
+    hardClash: {
+        id: 15,
+        title: "硬碰硬",
+        text: "和欧足联作对没有好下场，你不信这个邪，但米兰现在也不是欧冠的收视王牌了。欧足联毫不留情地给了你们禁赛两年的惩罚。你在总监的位置上还没待上两天，马上就被球迷和管理层轰了下去。运气不好，这次仅仅是运气不好。"
+    },
+    budgetCrash: {
+        id: 16,
+        title: "预算崩盘",
+        text: "这支球队还需要多少钱？管理层不止一次问你这个问题，经营球队好像一个无底洞，我们在赢球，但还要我赔钱。转播分成更是不够买主力球员的零头！你的老板拿出了各种各样的报告，竭力证明选用其中任何一份方案都不会亏钱，只会比你干得更好，你离开时，他喋喋不休的声音还在继续。"
     }
 };
 
@@ -315,6 +491,7 @@ function getSeasonEndingKey() {
 function resolveCurrentEndingKey() {
     const direct = getTriggeredEndingKey();
     if (direct) return direct;
+    if (gameStats.difficulty !== 'easy' && gameStats.season >= 5) return 'surprise';
     if (gameStats.trust < 30) return 'seasonTrust';
     if (gameStats.media < 30) return 'seasonMedia';
     if (gameStats.fans < 30) return 'seasonFans';
@@ -351,6 +528,7 @@ const teams = [
 let currentRandomEvents = [];
 let randomEventIndex = 0;
 let pendingWarnings = [];
+let isSeasonTransition = false;
 
 const categoryStrength = {
     strong: 1.0,
@@ -436,6 +614,11 @@ function updateScoreboard() {
     document.getElementById('points').textContent = gameStats.points;
     document.getElementById('ranking').textContent = gameStats.ranking;
     document.getElementById('round').textContent = Number.isFinite(gameStats.round) ? gameStats.round : 0;
+    const slashEl = document.querySelector('#round-value .slash');
+    if (slashEl) {
+        const multiSeason = gameStats.difficulty && gameStats.difficulty !== 'easy';
+        slashEl.textContent = multiSeason ? `/38 · 第${gameStats.season}季` : '/38';
+    }
     const hasMatch = gameStats.lastScore !== '';
     document.getElementById('last-score-home').textContent = hasMatch ? 'AC Milan' : '';
     document.getElementById('last-score-num').textContent = hasMatch ? gameStats.lastScore : '';
@@ -490,6 +673,9 @@ function playRound(opponentName) {
         score = `${ourGoals}:${theirGoals}`;
         opponent.points += 3;
         gameStats.consecutiveLosses += 1;
+        if (opponentName === '国际米兰') {
+            gameStats.derbyLossEventPending = true;
+        }
         if (gameStats.media > 80) {
             updateStat('fans', -10);
         } else {
@@ -501,9 +687,17 @@ function playRound(opponentName) {
     ourTeam.points = gameStats.points;
     gameStats.lastScore = score;
     gameStats.lastOpponentDisplay = opponent.name;
+
+    const prevRanking = gameStats.ranking;
+    const pointsDelta = result === 'win' ? 3 : result === 'draw' ? 1 : 0;
+
     simulateOtherMatches(opponentName);
     updateLeagueRanking();
     updateScoreboard();
+
+    if (pointsDelta > 0) showVariableChange('points', `+${pointsDelta}`, true);
+    const rankingDelta = prevRanking - gameStats.ranking;
+    if (rankingDelta !== 0) showVariableChange('ranking', rankingDelta > 0 ? `+${rankingDelta}` : `${rankingDelta}`, rankingDelta > 0);
     
     // 检查结局（比赛后统一判断触发哪一个结局）
     const endingKeyAfterMatch = getTriggeredEndingKey();
@@ -513,6 +707,11 @@ function playRound(opponentName) {
     }
     
     return { result, opponent, score };
+}
+
+// 将【文字】转为红色高亮 span，去除括号
+function formatBrackets(text) {
+    return text.replace(/【([^】]+)】/g, '<span class="highlight-red">$1</span>');
 }
 
 // 格式化effects
@@ -533,9 +732,14 @@ function formatEffects(effects) {
     return parts.join(', ');
 }
 
-// 关闭弹窗事件
+// 关闭弹窗事件 → 先显示测试反馈
 closeEventBtn.addEventListener('click', function() {
     eventModal.style.display = 'none';
+    document.getElementById('test-notice-modal').classList.remove('hidden');
+});
+
+document.getElementById('close-test-notice').addEventListener('click', function() {
+    document.getElementById('test-notice-modal').classList.add('hidden');
     difficultySelection.classList.remove('hidden');
 });
 
@@ -544,10 +748,78 @@ selectDifficultyBtns.forEach(btn => {
     btn.addEventListener('click', function() {
         const difficulty = this.getAttribute('data-difficulty');
         difficultySelection.classList.add('hidden');
-        mainInterface.classList.remove('hidden');
-        // 初始化游戏状态
-        initializeGame(difficulty);
+        showSeasonIntro(1, difficulty);
     });
+});
+
+// 显示赛季开幕简报（difficulty 传 null 表示赛季中期过渡，不重新初始化游戏）
+function showSeasonIntro(season, difficulty) {
+    const intro = seasonIntros[season];
+    if (!intro) {
+        if (difficulty !== null) {
+            mainInterface.classList.remove('hidden');
+            initializeGame(difficulty);
+        }
+        return;
+    }
+    pendingDifficulty = difficulty;
+    document.getElementById('season-intro-title').textContent = intro.title;
+
+    const tasksEl = document.getElementById('season-intro-tasks');
+    tasksEl.innerHTML = '';
+    intro.tasks.forEach(task => {
+        const div = document.createElement('div');
+        div.className = 'season-task-item';
+        div.textContent = '· ' + task;
+        tasksEl.appendChild(div);
+    });
+
+    const descEl = document.getElementById('season-intro-description');
+    descEl.innerHTML = '';
+    intro.description.forEach(para => {
+        const p = document.createElement('p');
+        p.innerHTML = formatBrackets(para);
+        descEl.appendChild(p);
+    });
+
+    document.getElementById('season-intro-modal').classList.remove('hidden');
+}
+
+document.getElementById('show-tasks-btn').addEventListener('click', function() {
+    const season = gameStats.season;
+    const intro = seasonIntros[season];
+    const titleEl = document.getElementById('season-tasks-title');
+    const listEl = document.getElementById('season-tasks-list');
+
+    if (!intro) {
+        titleEl.textContent = `第${season}赛季`;
+        listEl.innerHTML = '<p class="no-tasks-note">本赛季暂无主线任务。</p>';
+    } else {
+        titleEl.textContent = intro.title;
+        listEl.innerHTML = '';
+        intro.tasks.forEach(task => {
+            const div = document.createElement('div');
+            div.className = 'season-task-item';
+            div.textContent = '· ' + task;
+            listEl.appendChild(div);
+        });
+    }
+
+    document.getElementById('season-tasks-modal').classList.remove('hidden');
+});
+
+document.getElementById('close-tasks-modal').addEventListener('click', function() {
+    document.getElementById('season-tasks-modal').classList.add('hidden');
+});
+
+document.getElementById('season-intro-continue').addEventListener('click', function() {
+    document.getElementById('season-intro-modal').classList.add('hidden');
+    if (pendingDifficulty !== null) {
+        mainInterface.classList.remove('hidden');
+        initializeGame(pendingDifficulty);
+        pendingDifficulty = null;
+    }
+    // 赛季中期过渡：游戏状态已由 startNewSeason() 重置，直接继续
 });
 
 // 更新数值
@@ -600,8 +872,14 @@ function updateBudget(delta) {
     if (delta > 0 && gameStats.trust > 0 && gameStats.trust < 15) {
         delta = Math.floor(delta / 2);
     }
+    if (delta !== 0) {
+        showVariableChange('budget', delta > 0 ? `+${delta}万` : `${delta}万`, delta > 0);
+    }
     gameStats.budget += delta;
     document.getElementById('budget').textContent = gameStats.budget + '万欧元';
+    if (gameStats.budget < 0 && !gameStats.gameEnded) {
+        showEnding('budgetCrash');
+    }
 }
 
 function getStatusText(value) {
@@ -620,7 +898,21 @@ function showStatChange(statName, delta) {
     change.textContent = delta > 0 ? `+${delta}` : `${delta}`;
     card.appendChild(change);
     requestAnimationFrame(() => change.classList.add('visible'));
-    setTimeout(() => change.remove(), 1200);
+    setTimeout(() => change.remove(), 1400);
+}
+
+function showVariableChange(spanId, text, isPositive) {
+    const el = document.getElementById(spanId);
+    if (!el) return;
+    const container = el.closest('.variable');
+    if (!container) return;
+    const change = document.createElement('span');
+    change.className = 'stat-change';
+    change.textContent = text;
+    change.style.color = isPositive ? '#2f6e2e' : '#8B0000';
+    container.appendChild(change);
+    requestAnimationFrame(() => change.classList.add('visible'));
+    setTimeout(() => change.remove(), 1400);
 }
 
 // 更新进度条
@@ -654,7 +946,7 @@ function updateProgressBar(barId, value) {
 function initializeGame(difficulty) {
     // 初始化数值
     const initVal = difficulty === 'hard' ? 30 : 50;
-    gameStats = { trust: initVal, media: initVal, fans: initVal, player: initVal, budget: 1000, points: 0, ranking: 1, round: 0, lastScore: '', lastOpponentDisplay: '', consecutiveLosses: 0, southStandEventUsed: false, betKingEventUsed: false, rebateEventCount: 0, transferEventUsed: false, carCrashEventUsed: false, warningEventShown: false, gameEnded: false, shownWarnings: { trustCrisis: false, trustCritical: false, mediaCrisis: false, mediaCritical: false, playerCrisis: false, playerCritical: false, fansCrisis: false, fansCritical: false }, difficulty };
+    gameStats = { trust: initVal, media: initVal, fans: initVal, player: initVal, budget: 1000, points: 0, ranking: 1, round: 0, lastScore: '', lastOpponentDisplay: '', consecutiveLosses: 0, southStandEventUsed: false, betKingEventUsed: false, rebateEventCount: 0, transferEventUsed: false, carCrashEventUsed: false, sinkOrSwimEventUsed: false, bigDataEventUsed: false, derbyLossEventPending: false, warningEventShown: false, gameEnded: false, season: 1, futureRandomEvents: [], usedMainlineEvents: [], shownWarnings: { trustCrisis: false, trustCritical: false, mediaCrisis: false, mediaCritical: false, playerCrisis: false, playerCritical: false, fansCrisis: false, fansCritical: false }, difficulty };
     lastOpponentName = '';
     initializeLeague();
     updateLeagueRanking();
@@ -733,6 +1025,7 @@ eventBtns.forEach(btn => {
         });
         
         eventOptions.classList.remove('hidden');
+        eventOptions.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
 });
 
@@ -763,22 +1056,6 @@ function drawOpponent() {
 
 // 随机选择随机事件
 function selectRandomEvents() {
-    const eventIds = Object.keys(randomEvents).filter(id => {
-        if (isNaN(parseInt(id))) return false;
-        if (parseInt(id) === 3 && gameStats.betKingEventUsed) {
-            return false;
-        }
-        if (parseInt(id) === 5 && gameStats.rebateEventCount >= 2) {
-            return false;
-        }
-        if (parseInt(id) === 10 && gameStats.transferEventUsed) {
-            return false;
-        }
-        if (parseInt(id) === 11 && gameStats.carCrashEventUsed) {
-            return false;
-        }
-        return true;
-    });
     const selectedEvents = [];
 
     // 连续失利后的特殊事件优先触发
@@ -788,7 +1065,50 @@ function selectRandomEvents() {
         return selectedEvents;
     }
 
-    // 每次比赛后随机触发 0 或 1 个事件
+    // 德比失利必定触发
+    if (gameStats.derbyLossEventPending) {
+        gameStats.derbyLossEventPending = false;
+        selectedEvents.push(17);
+        return selectedEvents;
+    }
+
+    // 待触发的链式事件（满足最早轮次后60%概率触发，否则延到下一回合）
+    if (gameStats.futureRandomEvents.length > 0) {
+        const pending = gameStats.futureRandomEvents[0];
+        const eventId = typeof pending === 'object' ? pending.eventId : pending;
+        const minRound = typeof pending === 'object' ? (pending.minRound || 0) : 0;
+        if (gameStats.round >= minRound && Math.random() < 0.6) {
+            gameStats.futureRandomEvents.shift();
+            selectedEvents.push(eventId);
+        }
+        return selectedEvents;
+    }
+
+    // 主线事件池：当前赛季专属事件（满足最早轮次后50%概率触发）
+    const roundConstraints = mainlineRoundConstraints[gameStats.season] || {};
+    const currentMainlinePool = (mainlineEventPools[gameStats.season] || []).filter(id =>
+        !gameStats.usedMainlineEvents.includes(id) &&
+        gameStats.round >= (roundConstraints[id] || 0)
+    );
+    if (currentMainlinePool.length > 0 && Math.random() < 0.5) {
+        const selectedId = currentMainlinePool[Math.floor(Math.random() * currentMainlinePool.length)];
+        selectedEvents.push(selectedId);
+        return selectedEvents;
+    }
+
+    // 随机事件池（event 3 已移入主线事件池，不再进入随机池）
+    const eventIds = Object.keys(randomEvents).filter(id => {
+        const numId = parseInt(id);
+        if (isNaN(numId)) return false;
+        if (numId === 3 && gameStats.betKingEventUsed) return false;
+        if (numId === 5 && gameStats.rebateEventCount >= 2) return false;
+        if (numId === 10 && gameStats.transferEventUsed) return false;
+        if (numId === 11 && gameStats.carCrashEventUsed) return false;
+        if (numId === 13 && gameStats.sinkOrSwimEventUsed) return false;
+        if (numId === 15 && gameStats.bigDataEventUsed) return false;
+        return true;
+    });
+
     if (Math.random() < 0.5 || eventIds.length === 0) {
         return selectedEvents;
     }
@@ -811,68 +1131,70 @@ const statWarningEvents = [
         key: 'trustCrisis',
         title: '信任危机',
         description: '管理层对你的信任已经大幅度下滑，你必须做点什么来挽救这一切。',
-        note: '（每回合预算-100w欧）',
+        note: '（管理层信任度低于30，每回合预算-100w欧）',
         condition: () => gameStats.trust >= 15 && gameStats.trust < 30
     },
     {
         key: 'trustCritical',
         title: '扫地出门！',
         description: '你的同事告诉你，管理层已经在考虑用什么样的理由辞退你了。',
-        note: '（每回合预算-200w欧，获得预算时，数目减半。）',
+        note: '（管理层信任度低于15，每回合预算-200w欧，获得预算时，数目减半。）',
         condition: () => gameStats.trust > 0 && gameStats.trust < 15
     },
     {
         key: 'mediaCrisis',
         title: '米兰报的来信',
         description: '你不能什么都不跟媒体说，现在舆论不会倒向你们了。',
-        note: '（每回合球迷满意度-1）',
+        note: '（媒体声望低于30，每回合球迷满意度-1）',
         condition: () => gameStats.media >= 15 && gameStats.media < 30
     },
     {
         key: 'mediaCritical',
         title: '差评满天飞！',
         description: '一个传球失误就能让媒体大肆批判球员，这给球员也带来了不小的心理压力。',
-        note: '（每回合球迷满意度 -2，管理层信任度 -2）',
+        note: '（媒体声望低于15，每回合球迷满意度 -2，管理层信任度 -2）',
         condition: () => gameStats.media > 0 && gameStats.media < 15
     },
     {
         key: 'playerCrisis',
         title: '状态不佳',
         description: '输球已是常态，有没有考虑过换教练？',
-        note: '（每回合媒体声望 -2）',
+        note: '（球员状态低于30，每回合媒体声望 -2）',
         condition: () => gameStats.player >= 15 && gameStats.player < 30
     },
     {
         key: 'playerCritical',
         title: '根本没在踢球',
         description: '外面的赌场在下注你们究竟能连输多少场。',
-        note: '（每回合媒体声望 -3，球迷满意度 -3）',
+        note: '（球员状态低于15，每回合媒体声望 -3，球迷满意度 -3）',
         condition: () => gameStats.player > 0 && gameStats.player < 15
     },
     {
         key: 'fansCrisis',
         title: '南看台的嘘声',
         description: '球迷对你们的支持仅限于最便宜的票，远征成为了一种花钱找罪受的体验。',
-        note: '（每回合预算-100w欧）',
+        note: '（球迷满意度低于30，每回合预算-100w欧）',
         condition: () => gameStats.fans >= 15 && gameStats.fans < 30
     },
     {
         key: 'fansCritical',
         title: '冷战时刻',
         description: '球迷仍然爱着这支球队，嘴上说说，在你们获得下一场意甲冠军之前，这些球迷是不会再看你们的比赛的。',
-        note: '（每回合预算 -200，管理层信任度 -2）',
+        note: '（球迷满意度低于15，每回合预算 -200，管理层信任度 -2）',
         condition: () => gameStats.fans > 0 && gameStats.fans < 15
     },
     {
         key: 'mediaHigh',
         title: '针锋相对！',
         description: '媒体的高曝光让你们的比赛备受关注，现在，无论是赢球还是输球都将给球迷满意度带来更大的变化。',
-        note: '（赢球会增加10点球迷满意度，输球和平局会相应扣除10和5点满意度。）'
+        note: '（媒体声望高于80，赢球会增加10点球迷满意度，输球和平局会相应扣除10和5点满意度。）',
+        condition: () => gameStats.media > 80
     }
 ];
 
 function showRandomEvents() {
     randomEventModal.classList.remove('warning');
+    randomEventModal.classList.remove('mainline');
     currentRandomEvents = selectRandomEvents();
     randomEventIndex = 0;
     showNextRandomEvent();
@@ -963,17 +1285,37 @@ function showNextPendingWarning() {
 // 显示下一个随机事件
 function showNextRandomEvent() {
     if (randomEventIndex >= currentRandomEvents.length) {
-        // 所有随机事件处理完毕
         randomEventModal.classList.add('hidden');
+        randomEventModal.classList.remove('mainline');
+        randomEventModal.classList.remove('warning');
+        if (pendingSeasonEndCallback) {
+            const cb = pendingSeasonEndCallback;
+            pendingSeasonEndCallback = null;
+            cb();
+            return;
+        }
         resetAfterMatch();
         return;
     }
-    
+
     const eventId = currentRandomEvents[randomEventIndex];
     const event = randomEvents[eventId];
-    
+
     document.getElementById('random-event-title').textContent = event.title;
-    document.getElementById('random-event-description').textContent = event.description;
+    if (event.warningStyle) {
+        randomEventModal.classList.add('warning');
+        randomEventModal.classList.remove('mainline');
+        document.getElementById('random-event-description').innerHTML =
+            event.description + (event.note ? `<span class="warning-note">${event.note}</span>` : '');
+    } else if (event.mainline) {
+        randomEventModal.classList.add('mainline');
+        randomEventModal.classList.remove('warning');
+        document.getElementById('random-event-description').innerHTML = formatBrackets(event.description);
+    } else {
+        randomEventModal.classList.remove('mainline');
+        randomEventModal.classList.remove('warning');
+        document.getElementById('random-event-description').textContent = event.description;
+    }
     
     const optionsContainer = document.getElementById('random-event-options');
     optionsContainer.innerHTML = '';
@@ -985,21 +1327,36 @@ function showNextRandomEvent() {
         }
         visibleOptionIndex++;
         const button = document.createElement('button');
-        button.textContent = `${visibleOptionIndex}. ${option.text}`;
+        button.textContent = event.warningStyle ? option.text : `${visibleOptionIndex}. ${option.text}`;
         button.className = 'random-event-option';
         button.addEventListener('click', () => {
             // 应用效果
             for (const [stat, delta] of Object.entries(option.effects)) {
                 updateStat(stat, delta);
             }
-            if (eventId === 3) {
-                gameStats.betKingEventUsed = true;
+            if (eventId === 3) { gameStats.betKingEventUsed = true; }
+            if (eventId === 13) { gameStats.sinkOrSwimEventUsed = true; }
+            if (eventId === 15) { gameStats.bigDataEventUsed = true; }
+            if ((mainlineEventPools[gameStats.season] || []).includes(eventId) &&
+                !gameStats.usedMainlineEvents.includes(eventId)) {
+                gameStats.usedMainlineEvents.push(eventId);
             }
-            if (eventId === 5) {
-                gameStats.rebateEventCount += 1;
-            }
+            if (eventId === 5) { gameStats.rebateEventCount += 1; }
             if (option.chain && Math.random() < option.chain.probability) {
-                currentRandomEvents.splice(randomEventIndex + 1, 0, option.chain.eventId);
+                const entry = option.chain.minRound
+                    ? { eventId: option.chain.eventId, minRound: option.chain.minRound }
+                    : option.chain.eventId;
+                gameStats.futureRandomEvents.push(entry);
+            }
+            if (option.ending) {
+                randomEventModal.classList.add('hidden');
+                showEnding(option.ending);
+                return;
+            }
+            if (option.endingChance && Math.random() < option.endingChance.probability) {
+                randomEventModal.classList.add('hidden');
+                showEnding(option.endingChance.endingId);
+                return;
             }
             randomEventIndex++;
             showNextRandomEvent();
@@ -1008,6 +1365,24 @@ function showNextRandomEvent() {
     });
     
     randomEventModal.classList.remove('hidden');
+}
+
+function getActiveEffectsText() {
+    const d = { budget: 0, trust: 0, media: 0, fans: 0 };
+    if (gameStats.trust > 0 && gameStats.trust < 15)       { d.budget -= 200; }
+    else if (gameStats.trust >= 15 && gameStats.trust < 30) { d.budget -= 100; }
+    if (gameStats.media > 0 && gameStats.media < 15)        { d.fans -= 2; d.trust -= 2; }
+    else if (gameStats.media >= 15 && gameStats.media < 30) { d.fans -= 1; }
+    if (gameStats.player > 0 && gameStats.player < 15)       { d.media -= 3; d.fans -= 3; }
+    else if (gameStats.player >= 15 && gameStats.player < 30){ d.media -= 2; }
+    if (gameStats.fans > 0 && gameStats.fans < 15)          { d.budget -= 200; d.trust -= 2; }
+    else if (gameStats.fans >= 15 && gameStats.fans < 30)   { d.budget -= 100; }
+    const parts = [];
+    if (d.budget !== 0) parts.push(`预算 ${d.budget}w欧`);
+    if (d.trust  !== 0) parts.push(`信任度 ${d.trust}`);
+    if (d.media  !== 0) parts.push(`媒体声望 ${d.media}`);
+    if (d.fans   !== 0) parts.push(`球迷满意度 ${d.fans}`);
+    return parts.length ? parts.join('，') : null;
 }
 
 function showWeeklyReport(result1, result2) {
@@ -1022,6 +1397,11 @@ function showWeeklyReport(result1, result2) {
     function resultClass(r) {
         return r.result === 'win' ? 'result-win' : r.result === 'draw' ? 'result-draw' : 'result-loss';
     }
+
+    const effectsText = getActiveEffectsText();
+    const effectsHtml = effectsText
+        ? `<div class="news-effects"><span class="news-effects-label">当前效果</span>：${effectsText}</div>`
+        : '';
 
     matchResultModal.classList.add('weekly');
     matchResultText.innerHTML = `
@@ -1041,6 +1421,7 @@ function showWeeklyReport(result1, result2) {
                 <div class="news-match-text ${resultClass(result2)}">${resultText(result2)}</div>
             </div>
         </div>
+        ${effectsHtml}
         <div class="news-footer-rule"></div>
     `;
     matchResultModal.classList.remove('hidden');
@@ -1057,13 +1438,129 @@ function resetAfterMatch() {
     startMatchBtn.disabled = true;
 }
 
+function startNewSeason() {
+    gameStats.season += 1;
+    gameStats.round = 0;
+    gameStats.points = 0;
+    gameStats.ranking = 1;
+    gameStats.lastScore = '';
+    gameStats.lastOpponentDisplay = '';
+    gameStats.consecutiveLosses = 0;
+    gameStats.southStandEventUsed = false;
+    gameStats.betKingEventUsed = false;
+    gameStats.rebateEventCount = 0;
+    gameStats.transferEventUsed = false;
+    gameStats.carCrashEventUsed = false;
+    gameStats.sinkOrSwimEventUsed = false;
+    gameStats.bigDataEventUsed = false;
+    gameStats.derbyLossEventPending = false;
+    gameStats.warningEventShown = false;
+    gameStats.futureRandomEvents = [];
+    gameStats.usedMainlineEvents = [];
+    gameStats.shownWarnings = {
+        trustCrisis: false, trustCritical: false,
+        mediaCrisis: false, mediaCritical: false,
+        playerCrisis: false, playerCritical: false,
+        fansCrisis: false, fansCritical: false
+    };
+    lastOpponentName = '';
+    initializeLeague();
+    updateLeagueRanking();
+    updateScoreboard();
+    decisionPoints = 0;
+    updateDecisionPoints();
+    eventBtns.forEach(btn => { btn.disabled = false; btn.style.backgroundColor = ''; });
+    startMatchBtn.disabled = true;
+    eventOptions.classList.add('hidden');
+    showSeasonIntro(gameStats.season, null);
+}
+
+function showSeasonResult(passed) {
+    if (!passed) {
+        if (gameStats.difficulty !== 'easy' && gameStats.season >= 5) {
+            showEnding('surprise');
+        } else {
+            showEnding(getSeasonEndingKey());
+        }
+        return;
+    }
+    const modal = document.getElementById('season-result-modal');
+    modal.classList.remove('passed', 'failed');
+    modal.classList.add('passed');
+    document.getElementById('season-result-title').textContent = '下一个赛季';
+    document.getElementById('season-result-text').textContent = '你完美的完成了这个赛季的任务，你仍然是这支球队不可动摇的球队总监。';
+    modal.classList.remove('hidden');
+}
+
+document.getElementById('season-result-continue').addEventListener('click', function() {
+    document.getElementById('season-result-modal').classList.add('hidden');
+    if (gameStats.difficulty === 'easy') {
+        showEnding(getSeasonEndingKey());
+    } else if (gameStats.season >= 5) {
+        showEnding('surprise');
+    } else {
+        startNewSeason();
+    }
+});
+
+function showSeasonTransition(completedSeason) {
+    isSeasonTransition = true;
+    document.getElementById('match-result-title').textContent = `第 ${completedSeason} 赛季结束`;
+    matchResultText.innerHTML = `
+        <div class="season-end-note">
+            <p>五个赛季中的第 ${completedSeason} 个已结束。</p>
+            <p class="season-end-sub">各项数值将延续至下一赛季，积分与排名将重新计算。</p>
+        </div>
+    `;
+    matchResultModal.classList.remove('hidden');
+}
+
 closeResultBtn.addEventListener('click', function() {
     matchResultModal.classList.add('hidden');
     matchResultModal.classList.remove('weekly');
-    if (gameStats.round >= 38) {
-        showEnding(getSeasonEndingKey());
+
+    if (isSeasonTransition) {
+        isSeasonTransition = false;
+        startNewSeason();
         return;
     }
+
+    if (gameStats.round >= 38) {
+        // 赛季结束时先检测是否有告别事件待触发
+        const farewellIdx = gameStats.futureRandomEvents.findIndex(
+            e => (typeof e === 'object' ? e.eventId : e) === 'farewell'
+        );
+        if (farewellIdx !== -1) {
+            gameStats.futureRandomEvents.splice(farewellIdx, 1);
+            currentRandomEvents = ['farewell'];
+            randomEventIndex = 0;
+            pendingSeasonEndCallback = () => {
+                if (gameStats.difficulty !== 'easy' && gameStats.season >= 5) { showEnding('surprise'); return; }
+                const _intro = seasonIntros[gameStats.season];
+                if (_intro && _intro.taskCheck) { showSeasonResult(_intro.taskCheck()); return; }
+                if (gameStats.difficulty === 'easy') { showEnding(getSeasonEndingKey()); return; }
+                showSeasonTransition(gameStats.season);
+            };
+            showNextRandomEvent();
+            return;
+        }
+        if (gameStats.difficulty !== 'easy' && gameStats.season >= 5) {
+            showEnding('surprise');
+            return;
+        }
+        const intro = seasonIntros[gameStats.season];
+        if (intro && intro.taskCheck) {
+            showSeasonResult(intro.taskCheck());
+            return;
+        }
+        if (gameStats.difficulty === 'easy') {
+            showEnding(getSeasonEndingKey());
+            return;
+        }
+        showSeasonTransition(gameStats.season);
+        return;
+    }
+
     applyWarningEffects();
     if (gameStats.gameEnded) return;
     pendingWarnings = getNewWarnings();

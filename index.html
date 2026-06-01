@@ -3,13 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=1.0, maximum-scale=5.0">
-    <title>ACM球队经理模拟器1.0</title>
+    <title>ACM球队总监模拟器1.0</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="game-container">
-        <h1>ACM球队经理模拟器1.0</h1>
+        <h1>ACM球队总监模拟器1.0</h1>
         
+        <!-- 测试反馈弹窗 -->
+        <div id="test-notice-modal" class="modal hidden">
+            <div class="modal-content test-notice-content">
+                <h2>*测试*</h2>
+                <p class="test-notice-intro">您现在游玩的是一个简陋的测试版本，目前只填充了主线第一章的剧情。目前有（17/？）个随机事件，（16/？）个结局。点击右下方的灰色结局按钮可以直达结局，方便您查看不同数值带来的影响。您可以从下面几个方面给出反馈：</p>
+                <ol class="test-notice-list">
+                    <li>UI设计太老土了/整体风格不合/某些地方的设计有问题</li>
+                    <li>剧情不符合预期/我想看到每个选项带来的数值变化/不懂这个地方为什么会加减某项数值</li>
+                    <li>可玩性不够/对某些事件持反对意见/应该加入某些事件</li>
+                    <li>剧情丰富程度不够/随机事件太少</li>
+                    <li>难度太高/难度太低</li>
+                    <li>错别字/不符合事实</li>
+                    <li>我有想穿插的随机事件/主线剧情</li>
+                    <li>我有其他问题</li>
+                </ol>
+                <p class="test-notice-contact">您可以通过 <strong>wb@加酸黄瓜三明治</strong> 反馈！如果您担心被屏蔽，也可以发送邮件至 <strong>lanviofs@gmail.com</strong>。不用在意邮件格式，但最好署名，方便我回复您。</p>
+                <button id="close-test-notice">了解</button>
+            </div>
+        </div>
+
         <!-- 弹窗事件 -->
         <div id="event-modal" class="modal">
             <div class="modal-content">
@@ -39,6 +59,43 @@
             </div>
         </div>
 
+        <!-- 赛季结算弹窗 -->
+        <div id="season-result-modal" class="modal hidden">
+            <div class="modal-content season-result-content">
+                <div class="season-result-label">赛季结算</div>
+                <h2 id="season-result-title"></h2>
+                <div class="season-result-rule"></div>
+                <p id="season-result-text"></p>
+                <button id="season-result-continue">继续</button>
+            </div>
+        </div>
+
+        <!-- 赛季任务查看弹窗 -->
+        <div id="season-tasks-modal" class="modal hidden">
+            <div class="modal-content season-tasks-content">
+                <div class="season-intro-eyebrow">赛季任务</div>
+                <h2 id="season-tasks-title"></h2>
+                <div class="season-intro-rule"></div>
+                <div id="season-tasks-list"></div>
+                <button id="close-tasks-modal">关闭</button>
+            </div>
+        </div>
+
+        <!-- 赛季开幕简报弹窗 -->
+        <div id="season-intro-modal" class="modal hidden">
+            <div class="modal-content season-intro-content">
+                <div class="season-intro-eyebrow">赛季简报</div>
+                <h2 id="season-intro-title"></h2>
+                <div class="season-intro-rule"></div>
+                <div class="season-intro-tasks-box">
+                    <div class="season-tasks-header">赛季任务</div>
+                    <div id="season-intro-tasks"></div>
+                </div>
+                <div id="season-intro-description"></div>
+                <button id="season-intro-continue">继续</button>
+            </div>
+        </div>
+
         <!-- 随机事件弹窗 -->
         <div id="random-event-modal" class="modal hidden">
             <div class="modal-content">
@@ -54,17 +111,17 @@
             <h2>选择难度</h2>
             <div class="difficulty-option">
                 <h3>小试马刀</h3>
-                <p>您将体验一个赛季的任期。（胜率较高）</p>
+                <p>您将体验一个赛季的任期。<span class="difficulty-rate">（胜率较高）</span></p>
                 <button class="select-difficulty" data-difficulty="easy">选择</button>
             </div>
             <div class="difficulty-option">
                 <h3>舍我其谁</h3>
-                <p>您将体验更为复杂的经营过程。（胜率中等）</p>
+                <p>您将体验更为复杂的经营过程。<span class="difficulty-rate">（胜率中等）</span></p>
                 <button class="select-difficulty" data-difficulty="medium">选择</button>
             </div>
             <div class="difficulty-option">
                 <h3>未竟之事</h3>
-                <p>您将体验最困难、最现实的版本。（胜率较低）</p>
+                <p>您将体验最困难、最现实的版本。<span class="difficulty-rate">（胜率较低）</span></p>
                 <button class="select-difficulty" data-difficulty="hard">选择</button>
             </div>
         </div>
@@ -153,6 +210,8 @@
                 </div>
             </div>
             
+            <button id="show-tasks-btn">赛季任务</button>
+
             <!-- 方框三：事件和开始比赛 -->
             <div class="events-box">
                 <div class="events-list">
