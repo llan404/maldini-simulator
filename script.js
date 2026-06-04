@@ -24,7 +24,7 @@ let gameStats = {
     round: 0,
     lastScore: '-',
     lastOpponentDisplay: '',
-    consecutiveLosses: 0,
+    consecutiveNonWins: 0,
     southStandEventUsed: false,
     betKingEventUsed: false,
     rebateEventCount: 0,
@@ -33,11 +33,27 @@ let gameStats = {
     sinkOrSwimEventUsed: false,
     bigDataEventUsed: false,
     derbyLossEventPending: false,
+    derbyWinEventPending: false,
     warningEventShown: false,
     gameEnded: false,
     season: 1,
     futureRandomEvents: [],
     usedMainlineEvents: [],
+    newCoachDone: false,
+    xmasDone: false,
+    oldFriendDone: false,
+    winterWindowDone: false,
+    winterSlotBonus: 0,
+    winterReturnCost: 0,
+    signedPlayers: [],
+    news01Pending: false,
+    news01Done: false,
+    effectiveDone: false,
+    lockerBrawlPending: false,
+    lockerBrawlDone: false,
+    supportTaskActive: false,
+    zlatanSupport: 0,
+    wonScudetto1: false,
     shownWarnings: {
         trustCrisis: false, trustCritical: false,
         mediaCrisis: false, mediaCritical: false,
@@ -51,21 +67,21 @@ const events = {
     1: {
         description: "在每周的周例会上，你向管理层进行汇报的风格是：",
         options: [
-            { text: "保守", effects: { trust: 6, media: -4 } },
+            { text: "保守", effects: { trust: 2, fans: 2,media: -4 } },
             { text: "激进", effects: { trust: -6, media: 6 } }
         ]
     },
     2: {
         description: "向球队董事会申请预算时，你的计划是：",
         options: [
-            { text: "谨慎", effects: { trust: -2, budget: 200 } },
-            { text: "大胆", effects: { trust: -8, budget: 600 } }
+            { text: "谨慎", effects: { trust: -2, budget: 100 } },
+            { text: "大胆", effects: { trust: -8, budget: 300 } }
         ]
     },
     3: {
         description: "进行常规新闻发布会时，你的风格是：",
         options: [
-            { text: "标准", effects: { media: 2, trust: 2 } },
+            { text: "标准", effects: { media: 2, trust: 2, player: -1 } },
             { text: "主动", effects: { media: 6, trust: -4, fans: 3 } },
             { text: "指责对手", effects: { media: 9, trust: -7, player: -4 } }
         ]
@@ -73,36 +89,36 @@ const events = {
     4: {
         description: "媒体邀请你参加赛后的深度采访时，你的选择是：",
         options: [
-            { text: "参加", effects: { media: 5, player: -3 } },
-            { text: "拒绝", effects: { media: -4, trust: 4 } }
+            { text: "参加", effects: { media: 5, player: -3, fans: 3 } },
+            { text: "拒绝", effects: { media: -4, player: 2 } }
         ]
     },
     5: {
         description: "赛前最后一次集合时，你需要对球员做出一些鼓励，你的选择是：",
         options: [
-            { text: "鼓励全队", effects: { player: 6, media: -2 } },
-            { text: "激励关键球员", effects: { player: 4, fans: -3, media: 3 } }
+            { text: "鼓励全队", effects: {fans: 2 } },
+            { text: "激励关键球员", effects: { player: 3, trust: -5} }
         ]
     },
     6: {
         description: "你需要对球队近一段时间的表现做出内部总结时：",
         options: [
-            { text: "正面鼓励", effects: { player: 6, trust: -4 } },
-            { text: "严厉批评", effects: { player: -6, trust: 5, fans: 4 } }
+            { text: "正面鼓励", effects: { player: 3, trust: -4 ,fans: 2} },
+            { text: "严厉批评", effects: { player: -6, trust: 3, fans: 5 } }
         ]
     },
     7: {
         description: "在下一场比赛来临之前，你决定对阵容提出一些意见：",
         options: [
-            { text: "大幅轮换", effects: { player: 5, fans: -6 } },
-            { text: "固定主力", effects: { player: -4, fans: 6 } }
+            { text: "大幅轮换", effects: { player: 3, fans: -6, trust: -2 } },
+            { text: "固定主力", effects: { player: -4, fans: 6, media: -2 } }
         ]
     },
     8: {
-        description: "转会窗来临前，你对球员合同谈判态度是：",
+        description: "部分经纪人想提升球员年薪，你对球员合同谈判态度是：",
         options: [
-            { text: "宽松", effects: { player: 7, trust: -6, budget: -400 } },
-            { text: "强硬", effects: { player: -5, trust: 5, media: 4, budget: 200 } }
+            { text: "宽松", effects: { player: 4, trust: -6, budget: -200 } },
+            { text: "强硬", effects: { player: -4, trust: 2, budget: 300 } }
         ]
     }
 };
@@ -284,10 +300,52 @@ const randomEvents = {
         title: "德比失利",
         warningStyle: true,
         description: "输给国际米兰！这是谁都不愿意看到的事，球迷对球队的支持大幅度下降了，媒体却津津乐道，在接下来的一周，这场比赛中能被清算的还有很多。",
-        note: "（发生此事件时球迷-5，媒体+3）",
+        note: "（发生此事件时球迷满意度-5，媒体声望-3）",
         options: [
-            { text: "继续", effects: { fans: -5, media: 3 } }
+            { text: "继续", effects: { fans: -5, media: -3 } }
         ]
+    },
+    derbyWin: {
+        title: "德比获胜！",
+        description: "你们赢下了万众瞩目的米兰城德比，球迷们非常高兴，球队的影响力也上升了。",
+                note: "（发生此事件时球迷满意度+5，媒体声望+3）",
+        options: [
+            { text: "继续", effects: { fans: 5, media: 3 } }
+        ]
+    },
+    unknownOneI: {
+        title: "无名小卒Ⅰ",
+        mainline: true,
+        description: "夏天开始，你升任了技术总监，提交了一份让董事会皱眉的引援名单，上面没有一个他们熟悉的名字，全是在中下游球队踢球、二十多岁的年轻人。一个葡萄牙边锋、一个法国左后卫……你和球探都认为他们天赋异禀，但管理层颇为不满，他们认为这是一笔回不了本的投资。就连那些信任你的同事也产生了怀疑，如果你们要购入这些年轻人，就意味着队里那些受球迷喜爱的小将不得不被清洗腾出位置的时候了。",
+        options: [
+            { text: "力排众议，全力押宝年轻人。", effects: { trust: -5 }, unknownOptNum: 1 },
+            { text: "只买几个年轻人，留住老将。", effects: { fans: 5 }, unknownOptNum: 2 },
+            { text: "听管理层的，买已经被验证过的球员。", effects: { trust: 5, fans: 5 } }
+        ]
+    },
+    transferRightsA: {
+        title: "转会操作权",
+        mainline: true,
+        description: "你花了一个周末的时间制作了更详尽的方案，由于你在上个赛季的表现深得管理层的信任，他们为你增加了一点预算，你可以在本次夏窗购入最多【四名】球员。",
+        options: [{ text: "了解", effects: { budget: 500 }, transferSlots: 4 }]
+    },
+    transferRightsB: {
+        title: "转会操作权",
+        mainline: true,
+        description: "你留下了一部分老将，由于你在上个赛季的表现深得管理层的信任，他们为你增加了一点预算你可以在本次夏窗最多购入【两名】球员。",
+        options: [{ text: "了解", effects: { budget: 500 }, transferSlots: 2 }]
+    },
+    transferRightsC: {
+        title: "转会操作权",
+        mainline: true,
+        description: "你的决定在球迷中引起了一部分讨论，他们倍受喜爱的球员有可能在夏窗被出售，他们在球员的社交媒体下疯狂发消息。他们的态度如何变化，就要看这个夏天你签下的球员是否能让他们满意了。你可以在本次夏窗最多购入【三名】球员。",
+        options: [{ text: "了解", effects: { fans: -1 }, transferSlots: 3 }]
+    },
+    transferRightsD: {
+        title: "转会操作权",
+        mainline: true,
+        description: "在新人和老将之间做取舍是一个痛苦的决定，你认为不能大刀阔斧的变革，仅仅清理一部分不适合的球员就够了。这个夏窗，你暂时没有太多的决定权。你可以在本次夏窗最多购入【一名】球员。",
+        options: [{ text: "了解", effects: {}, transferSlots: 1 }]
     },
     ffp1: {
         title: "FFP的绞索Ⅰ",
@@ -302,27 +360,42 @@ const randomEvents = {
     ffp2: {
         title: "FFP的绞索Ⅱ",
         mainline: true,
-        description: "财务团队给你的答案只有一个，靠正常经营，哪怕一线队加上教练都去卖沟子这账也平不了，你们只会陷入更深的漩涡，没钱买球员，只能不断地卖人，你选择：",
+        description: "财务团队给你的答案只有一个，靠正常经营，哪怕一线队加上教练都去卖沟子这账也平不了。你们只会陷入更深的漩涡：没钱买球员，只能不断地卖人，你选择：",
         options: [
-            { text: "主动认罚，放弃一年欧战，获得喘息的机会。", effects: { budget: 600, fans: -7, media: -5, trust: 5 } },
-            { text: "打包三位主力球员一起买了，获得更多预算。", effects: { budget: 1000, fans: -5, player: -10 } },
-            { text: "拒绝认罚，赌欧足联不会真的禁赛两年。", effects: {}, endingChance: { endingId: 'hardClash', probability: 0.5 } }
+            { text: "主动认罚，放弃一年欧战，获得喘息的机会。", effects: { budget: 800, media: -5 }, chain: { eventId: 'ffp3', probability: 1.0, immediate: true } },
+            { text: "打包三位主力球员一起买了，获得更多预算。", effects: { budget: 1500, fans: -5, player: -10 } },
+            { text: "拒绝认罚，赌欧足联不会真的禁赛两年。（概率结局）", effects: {}, endingChance: { endingId: 'hardClash', probability: 0.5 } }
+        ]
+    },
+    ffp3: {
+        title: "处罚结果",
+        mainline: true,
+        description: () => {
+            const base = '你和主教练走进更衣室向球员们宣布了欧足联的处罚决定：下赛季米兰将不得参加所有的欧战赛事，更衣室的气氛有短暂的停滞。';
+            if (gameStats.player >= 60 && gameStats.ranking <= 3) {
+                return base + '队长在此时站出来说，那么，我们就拿下那个该死的意甲冠军！更衣室重新开始骚动起来，你们的确离这个目标很近，部分球员受到了鼓舞。（【球员状态】+2）';
+            }
+            return base;
+        },
+        options: [
+            { text: '确认', effects: {},           condition: () => !(gameStats.player >= 60 && gameStats.ranking <= 3) },
+            { text: '确认', effects: { player: 2 }, condition: () => gameStats.player >= 60 && gameStats.ranking <= 3 }
         ]
     },
     euroNight1: {
         title: "欧联之夜Ⅰ",
         mainline: true,
-        description: "小组赛之夜，你们踢得毫无章法，前锋暴力射门，后防却门洞大开。教练在场边心急如焚，球员们却跟无头苍蝇一样乱窜，球员时代给你的直觉让你早早看出了输赢。比赛结束，你们不可思议的在小组赛出去了，CEO给你发了条消息：\"我们要谈谈换教练的事。\"",
+        description: "小组赛之夜，你们踢得毫无章法，前锋暴力射门，后防却门洞大开。加图索在场边心急如焚，球员们却跟无头苍蝇一样乱窜。比赛结束，你们在小组赛出局了，CEO给你发了条消息：\"我们要谈谈换教练的事。\"",
         options: [
-            { text: "向媒体和管理层公开揽责，宣称是自己的问题。", effects: { trust: -5, media: 3 }, chain: { eventId: 'euroNight2', probability: 1.0, minRound: 36 } },
-            { text: "自己和教练都是一根绳的蚂蚱，等待管理层的安排。", effects: { trust: 2 }, chain: { eventId: 'euroNight2', probability: 1.0, minRound: 36 } },
-            { text: "暗示主要是教练的责任，提出想换帅。", effects: { media: 3, player: -5 }, chain: { eventId: 'euroNight2', probability: 1.0, minRound: 36 } }
+            { text: "向媒体和管理层公开揽责，宣称是自己的问题。", effects: { trust: -5, media: 3 }, chain: { eventId: 'euroNight2', probability: 1.0, minRound: 34, immediate: true } },
+            { text: "自己和教练都是一根绳上的的蚂蚱，等待管理层的安排。", effects: { trust: 2 }, chain: { eventId: 'euroNight2', probability: 1.0, minRound: 34, immediate: true } },
+            { text: "暗示主要是教练的责任，提出想换帅。", effects: { media: 3, player: -5 }, chain: { eventId: 'euroNight2', probability: 1.0, minRound: 34, immediate: true } }
         ]
     },
     euroNight2: {
         title: "欧联之夜Ⅱ",
         mainline: true,
-        description: "上一次欧战给你们的打击还没有过去，联赛多轮不胜又来了，外界对于换帅的呼声越来越高。你看向这位米兰名宿，你和他曾是关系紧密的队友，你深知以他的性格，已经做了能为米兰做的一切，你选择：",
+        description: "上一次欧战给你们的打击还没有过去，联赛多轮不胜又来了，外界对于换帅的呼声越来越高。你看向这位米兰名宿，你和加图索曾是关系紧密的队友。你深知他的性格，已经做了能为米兰做的一切，你选择：",
         options: [
             { text: "替他担保，认为他再干一个赛季会更好。", effects: { trust: -2 }, chain: { eventId: 'farewell', probability: 1.0, minRound: 38 } },
             { text: "体面换帅，向媒体直言他已经做到最好。", effects: { trust: 2, media: 2 }, chain: { eventId: 'farewell', probability: 0.5, minRound: 38 } },
@@ -332,9 +405,103 @@ const randomEvents = {
     farewell: {
         title: "告别",
         mainline: true,
-        description: "他最终还是离开了，在多方压力下，拿着一只受FFP约束、临时拼凑的球队，问题或许不在他。他没有推荐下一位教练，也没有要遣散费。这是我能留给米兰的最后一笔钱了。在这位教练走后，他给你的私人账号发了一封长长的告别信，米兰对我意义非凡，我希望你能干得比我更好，衷心的、最美好的祝愿。",
+        description: "加图索最终还是离开了，在多方压力下，拿着一只受FFP约束、临时拼凑的球队，以惨败的结局收场。他没有要遣散费。这是我能留给米兰的最后一笔钱了。离开之前，他感谢了你在这个赛季对他的帮助。",
         options: [
-            { text: "了解。", effects: {} }
+            { text: "确认", effects: {} }
+        ]
+    },
+    reputation: {
+        title: "风评",
+        mainline: true,
+        description: "你在第一赛季的表现获得了球迷的尊重和管理层的认可，球迷满意度和董事会信任度提升了。（【球迷满意度】+10，【董事会信任度】+10）",
+        options: [
+            { text: "确认", effects: { fans: 10, trust: 10 } }
+        ]
+    },
+    scudetto1: {
+        title: "去他的FFP，我们是冠军！",
+        mainline: true,
+        description: "没人相信你们能成功，在FFP和换帅危机给予的巨大压力下，你们在关键局扳平意想不到的强队。这只米兰的战术水平和身体素质在你和主教练的操练下达到了巅峰状态，不止一个球员给你发过消息：我们真的有可能获得意甲冠军吗？现在你可以回答了，是的，完全有可能。\n这是米兰所有球员梦寐以求的时刻，他们把你视作一切的转机，认为你才是力挽狂澜的那个人。你将如球员时代一样登上庆祝的花车，球员将你环绕时你甚至有些呼吸急促，尽情庆祝吧！",
+        options: [
+            { text: "确认", effects: {} }
+        ]
+    },
+    newCoach: {
+        title: "新教练",
+        mainline: true,
+        description: "新来的教练皮奥利试图引进与前教练不同的编排，他以4-4-2作为球队主要的阵型，而这种阵型并不适配米兰目前的板凳厚度。教练上任初期需要来自你的支持，你选择：",
+        options: [
+            { text: "支持教练，米兰不适合频繁换帅。", effects: { player: 3 } },
+            { text: "和教练沟通，承诺冬窗会根据他的想法选人。", effects: {}, winterSlot: 1 },
+            { text: "和管理层沟通，认为需要立刻更换这个教练。", effects: { trust: 5, player: -5 } }
+        ]
+    },
+    xmasHorror: {
+        title: "圣诞夜惊魂",
+        mainline: true,
+        description: "仅仅在AC Milan的120岁生日后的第三天，这个圣诞夜，你们在客场以5：0憾负亚特兰大。社交媒体上，皮奥利的名字后面跟着\"下课\"的标签，同事悄悄给你发来消息：\"保罗，你是不是看走眼了？\"。\n你清楚，如果再来一场这样的大败，你和他就得一起滚蛋了。",
+        options: [
+            { text: "谢绝媒体采访，在更衣室内部召开会议，重建信心。", effects: { player: 3, media: -3 } },
+            { text: "向董事会申请预算，承诺在冬窗补强。", effects: { budget: 200, trust: -3 } },
+            { text: "安抚教练，球队正在重建期，这不是他的错。", effects: { player: 1 } }
+        ]
+    },
+    oldFriend: {
+        title: "曾经的传奇",
+        mainline: true,
+        description: "一位朋友，一位辗转过半个欧洲的传奇前锋，他的电话现在躺在你的联系簿里。他曾说过如果米兰需要他，他就会回来，他从未对其他球队做出过这样的承诺。",
+        options: [
+            { text: "拨通电话，询问他愿不愿意回来。", effects: {}, nextEvent: 'instruction', winterReturn: 100 },
+            { text: "等待他出现在转会市场上，通过球员经纪人联系。", effects: {}, winterReturn: 1000 },
+            { text: "放弃这个想法，靠现有阵容一样能赢。", effects: { player: 1, trust: 1 } }
+        ]
+    },
+    instruction: {
+        title: "指示",
+        mainline: true,
+        description: "电话那头沉默了几秒，他狂妄地笑起来：“你们签下兹拉坦，就已经具备了获得意甲冠军的一切了！”",
+        options: [
+            { text: "确认", effects: {} }
+        ]
+    },
+    news01: {
+        title: "确定回归：伊布说“yes”",
+        newsStyle: true,
+        no: "01",
+        source: "Goal.com",
+        content: "这桩悬念终于接近尾声。据天空体育报道，伊布已经在当天对回归红黑军团给出了肯定的答复：要么现在，要么永不——答案是“yes”。\n对伊布拉希莫维奇来说，重返米兰将发生在他首次加盟米兰十年之后。这位前巴黎圣日尔曼球员曾在阿莱格里手下度过两个赛季，并赢得一座意甲冠军——那是尤文图斯绝对统治时代到来前米兰赢得的最后一座。自那以后，米兰经历了巨大的失望，如今，他们决心正是要靠着这位瑞典人在联赛中重新崛起。",
+        options: [
+            { text: "继续", effects: {} }
+        ]
+    },
+    effective: {
+        title: "卓有成效",
+        mainline: true,
+        description: "伊布拉希莫维奇加入后，给球队带来了不一样的斗志，媒体形容他“点燃了球场”。他严格要求队里的每一个人，以20场11球的效率横扫全场，但很快，有队员私下找你倾诉球队氛围太压迫，管理层也对他的个人风格感到不满，你选择：",
+        options: [
+            { text: "伊布拉希莫维奇是毋庸置疑的团队领袖。", effects: { trust: -3, player: -3 } },
+            { text: "伊布拉希莫维奇的行为应该得到控制。", effects: { trust: 5 } },
+            { text: "坐视不理，相信球队有自己的自适应机制。", effects: { media: 3 }, brawlChance: 0.5 }
+        ]
+    },
+    lockerBrawl: {
+        title: "更衣室斗殴",
+        mainline: true,
+        description: "小道消息，米兰的更衣室新来的球员性情暴虐，左手持棍，右手拿刀，在更衣室左右手开弓，打得那些年轻小球员都不敢跟他在一张桌子上吃饭，你选择：",
+        options: [
+            { text: "查清真相。", effects: { trust: -5 } },
+            { text: "置之不理。", effects: { media: -5 } }
+        ]
+    },
+    support: {
+        title: "必要的支持",
+        mainline: true,
+        repeatable: true,
+        description: "“保罗，为什么只给另一位球员加练？”“保罗，他怎么能怀疑教练的权威，他是来当管理的还是来踢球的？”“媒体说，伊布拉希莫维奇给团队带来了太大压力。”\n这名球员给球队带来变化的同时，也带来了怀疑。你需要牺牲一些风评，来换取对他的支持。\n（新增赛季任务：为兹拉坦获得三个支持点，可重复选择，亦可在【赛季任务】面板中继续。）",
+        options: [
+            { text: "让球员明白兹拉坦才是球队的核心。", effects: { player: -10 }, supportPoint: 1 },
+            { text: "告诉管理层，没有兹拉坦我们无法完成赛季目标。", effects: { trust: -10 }, supportPoint: 1 },
+            { text: "警告媒体不要再报道有关更衣室的不实传言。", effects: { media: -10 }, supportPoint: 1 }
         ]
     }
 };
@@ -342,10 +509,7 @@ const randomEvents = {
 // 主线事件池 — 各赛季专属事件，仅在对应赛季内随机触发
 const mainlineEventPools = {
     1: ['ffp1', 'euroNight1'],
-    2: [],
-    3: [],
-    4: [],
-    5: []   // 第五赛季主线事件（暂未填充）
+    2: [], 3: [], 4: [], 5: []
 };
 
 // 各赛季主线事件的最早触发轮次（含）
@@ -353,12 +517,22 @@ const mainlineRoundConstraints = {
     1: { ffp1: 6, euroNight1: 26 }
 };
 
+// 赛季开始时必定推入 futureRandomEvents 的事件
+const seasonStartEvents = {};
+
+// 随机事件池中数字 ID 的预计算集合（排除链式命名事件）
+const numericRandomEventIds = Object.keys(randomEvents).filter(id => !isNaN(parseInt(id)));
+
 // 赛季开幕简报数据
 const seasonIntros = {
     1: {
         title: '第一赛季·废墟上的人',
-        tasks: ['赛季末预算大于 2000w 欧', '排名不低于第 10 位'],
-        taskCheck: () => gameStats.budget > 2000 && gameStats.ranking <= 10,
+        tasks: () => [
+            '赛季末预算大于 2000w 欧',
+            (pendingDifficulty || gameStats.difficulty) === 'hard' ? '排名不低于第 14 位' : '排名不低于第 10 位'
+        ],
+        taskCheck: () => gameStats.budget > 2000 &&
+            gameStats.ranking <= (gameStats.difficulty === 'hard' ? 14 : 10),
         description: [
             '你重新回到了米兰，新资方刚刚接管AC Milan，他们和你一样处处受限。因上个财年多次违反FFP（财政公平法案），欧足联对你们展开了数次调查，要求你们在限期内达到预算平衡，否则将对你们处以禁赛两个赛季作为惩罚。',
             '你必须立刻开始处理球队当中的问题球员，与此同时，管理层提出了要求，你需要在这个赛季内平衡好【预算】和【排名】之间的关系，好在，他们的要求并不是很高。'
@@ -367,10 +541,11 @@ const seasonIntros = {
     2: {
         title: '第二赛季·青春风暴',
         tasks: ['拿到欧战资格（赛季末排名不低于第 6 位）'],
-        taskCheck: () => gameStats.ranking <= 6,
+        taskCheck: () => gameStats.ranking <= 6 &&
+            (!gameStats.supportTaskActive || gameStats.zlatanSupport >= 3),
         description: [
-            '对于现在的米兰来说，买不起经验丰富的知名球星。即使是能和经纪人谈好，球员本人也会要求高薪资和战术地位。你选择将目光放在几位小将身上，遗憾的是，即使是初出茅庐的稍有潜力的小将，对米兰的预算来说也不便宜。稍有不慎，你可能就会购入天价饮水机。',
-            '你做出准确的判断，在【排名】更进一步的情况下，提升【球员状态】。'
+            '现在的米兰买不起经验丰富的知名球星。即使和经纪人谈判顺利，球员本人也会要求高薪资和战术地位。这两者都是米兰无法保证的，你选择将目光放在几位小将身上，遗憾的是，即使是初出茅庐的稍有潜力的小将，对米兰的预算来说也不便宜。管理层和球迷不允许你犯错，稍有不慎，你可能就会购入天价饮水机。',
+            '你必须做出准确的判断，在【排名】更进一步的情况下，提升【球员状态】。'
         ]
     }
 };
@@ -529,6 +704,16 @@ let currentRandomEvents = [];
 let randomEventIndex = 0;
 let pendingWarnings = [];
 let isSeasonTransition = false;
+let matchSchedule = [];
+let scheduleIndex = 0;
+let pendingTransferSlots = 0;
+let matchHistory = [];   // {round, opponent, result, score}
+let choiceHistory = [];  // {round, eventName, optionText, effects}
+
+const eventNames = {
+    1:'周例会汇报', 2:'申请预算', 3:'新闻发布会', 4:'深度采访',
+    5:'赛前鼓励',   6:'内部总结', 7:'阵容意见',   8:'合同谈判'
+};
 
 const categoryStrength = {
     strong: 1.0,
@@ -571,7 +756,7 @@ function getMatchProbability(teamA, teamB) {
     const strengthB = categoryStrength[teamB.category];
     const drawRate = 0.2;
     const winA = (strengthA / (strengthA + strengthB)) * (1 - drawRate);
-    return { winA, winB: 1 - drawRate - winA, drawRate };
+    return { winA, drawRate };
 }
 
 function simulateOtherMatches(excludedOpponentName) {
@@ -594,7 +779,7 @@ function simulateOtherMatches(excludedOpponentName) {
 }
 
 function getWinRate(category) {
-    const statusBonus = (gameStats.player - 50) / 150;
+    const statusBonus = (gameStats.player - 50) / 250;
     let difficultyBonus = 0;
     if (gameStats.difficulty === 'easy') {
         difficultyBonus = 0.12;
@@ -627,6 +812,8 @@ function updateScoreboard() {
 
 function playRound(opponentName) {
     const opponent = getTeamByName(opponentName);
+    // 第二赛季第16轮（亚特兰大）剧本：必定 0:5 惨败
+    const forcedLoss = gameStats.season === 2 && scheduleIndex === 16 && opponentName === '亚特兰大';
     const winRate = getWinRate(opponent.category);
     let drawRate = 0.18;
     if (winRate > 0.8) {
@@ -636,7 +823,9 @@ function playRound(opponentName) {
     }
     const random = Math.random();
     let result;
-    if (random < winRate) {
+    if (forcedLoss) {
+        result = 'loss';
+    } else if (random < winRate) {
         result = 'win';
     } else if (random < winRate + drawRate) {
         result = 'draw';
@@ -646,12 +835,15 @@ function playRound(opponentName) {
 
     let score;
     if (result === 'win') {
-        const ourGoals = 1 + Math.floor(Math.random() * 3);
-        const theirGoals = Math.floor(Math.random() * 2);
+        const ourGoals = 1 + Math.floor(Math.random() * 4);        // 1–4
+        const theirGoals = Math.floor(Math.random() * ourGoals);    // 0 至 ourGoals-1，严格小于
         score = `${ourGoals}:${theirGoals}`;
         gameStats.points += 3;
-        gameStats.consecutiveLosses = 0;
+        gameStats.consecutiveNonWins = 0;
         gameStats.southStandEventUsed = false;
+        if (opponentName === '国际米兰') {
+            gameStats.derbyWinEventPending = true;
+        }
         if (gameStats.media > 80) {
             updateStat('fans', 10);
         } else {
@@ -662,17 +854,20 @@ function playRound(opponentName) {
         score = `${goals}:${goals}`;
         gameStats.points += 1;
         opponent.points += 1;
-        gameStats.consecutiveLosses = 0;
-        gameStats.southStandEventUsed = false;
+        gameStats.consecutiveNonWins += 1;
         if (gameStats.media > 80) {
             updateStat('fans', -5);
         }
     } else {
-        const ourGoals = Math.floor(Math.random() * 2);
-        const theirGoals = 1 + Math.floor(Math.random() * 3);
-        score = `${ourGoals}:${theirGoals}`;
+        if (forcedLoss) {
+            score = '0:5';
+        } else {
+            const theirGoals = 1 + Math.floor(Math.random() * 4);      // 1–4
+            const ourGoals = Math.floor(Math.random() * theirGoals);    // 0 至 theirGoals-1，严格小于
+            score = `${ourGoals}:${theirGoals}`;
+        }
         opponent.points += 3;
-        gameStats.consecutiveLosses += 1;
+        gameStats.consecutiveNonWins += 1;
         if (opponentName === '国际米兰') {
             gameStats.derbyLossEventPending = true;
         }
@@ -765,14 +960,7 @@ function showSeasonIntro(season, difficulty) {
     pendingDifficulty = difficulty;
     document.getElementById('season-intro-title').textContent = intro.title;
 
-    const tasksEl = document.getElementById('season-intro-tasks');
-    tasksEl.innerHTML = '';
-    intro.tasks.forEach(task => {
-        const div = document.createElement('div');
-        div.className = 'season-task-item';
-        div.textContent = '· ' + task;
-        tasksEl.appendChild(div);
-    });
+    renderTaskList(document.getElementById('season-intro-tasks'), intro);
 
     const descEl = document.getElementById('season-intro-description');
     descEl.innerHTML = '';
@@ -785,7 +973,7 @@ function showSeasonIntro(season, difficulty) {
     document.getElementById('season-intro-modal').classList.remove('hidden');
 }
 
-document.getElementById('show-tasks-btn').addEventListener('click', function() {
+function renderSeasonTasksPanel() {
     const season = gameStats.season;
     const intro = seasonIntros[season];
     const titleEl = document.getElementById('season-tasks-title');
@@ -796,15 +984,64 @@ document.getElementById('show-tasks-btn').addEventListener('click', function() {
         listEl.innerHTML = '<p class="no-tasks-note">本赛季暂无主线任务。</p>';
     } else {
         titleEl.textContent = intro.title;
-        listEl.innerHTML = '';
-        intro.tasks.forEach(task => {
-            const div = document.createElement('div');
-            div.className = 'season-task-item';
-            div.textContent = '· ' + task;
-            listEl.appendChild(div);
+        renderTaskList(listEl, intro);
+    }
+    if (season === 2 && gameStats.supportTaskActive) {
+        renderSupportTask(listEl);
+    }
+}
+
+// 渲染可交互的"为兹拉坦获得三个支持点"任务（赛季任务面板内可重复选择）
+function renderSupportTask(listEl) {
+    const points = Math.min(3, gameStats.zlatanSupport);
+    const done = gameStats.zlatanSupport >= 3;
+    const box = document.createElement('div');
+    box.className = 'support-task' + (done ? ' support-task-done' : '');
+
+    const header = document.createElement('div');
+    header.className = 'support-task-header';
+    header.textContent = `为兹拉坦获得支持点${done ? ' · 已完成' : ''}`;
+    box.appendChild(header);
+
+    const dots = document.createElement('div');
+    dots.className = 'support-task-dots';
+    for (let i = 0; i < 3; i++) {
+        const dot = document.createElement('span');
+        dot.className = 'support-dot' + (i < points ? ' filled' : '');
+        dots.appendChild(dot);
+    }
+    box.appendChild(dots);
+
+    if (!done) {
+        randomEvents.support.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'support-task-btn';
+            btn.textContent = `${opt.text}（${formatEffects(opt.effects)}）`;
+            btn.addEventListener('click', () => {
+                applyZlatanSupport(opt);
+                renderSeasonTasksPanel();
+            });
+            box.appendChild(btn);
         });
     }
+    listEl.appendChild(box);
+}
 
+function applyZlatanSupport(option) {
+    if (gameStats.zlatanSupport >= 3 || gameStats.gameEnded) return;
+    for (const [stat, delta] of Object.entries(option.effects)) updateStat(stat, delta);
+    gameStats.zlatanSupport += (option.supportPoint || 1);
+    choiceHistory.push({
+        round: gameStats.round,
+        eventName: '必要的支持',
+        optionText: option.text,
+        effects: option.effects,
+        kind: 'special'
+    });
+}
+
+document.getElementById('show-tasks-btn').addEventListener('click', function() {
+    renderSeasonTasksPanel();
     document.getElementById('season-tasks-modal').classList.remove('hidden');
 });
 
@@ -818,8 +1055,16 @@ document.getElementById('season-intro-continue').addEventListener('click', funct
         mainInterface.classList.remove('hidden');
         initializeGame(pendingDifficulty);
         pendingDifficulty = null;
+        return;
     }
-    // 赛季中期过渡：游戏状态已由 startNewSeason() 重置，直接继续
+    // 第二赛季开始时依次展示"风评" → "无名小卒"主线卡片
+    if (gameStats.season === 2) {
+        currentRandomEvents = ['reputation', 'unknownOneI'];
+        randomEventIndex = 0;
+        showNextRandomEvent();
+        return;
+    }
+    // 其他赛季中期过渡：游戏状态已由 startNewSeason() 重置，直接继续
 });
 
 // 更新数值
@@ -846,15 +1091,7 @@ function updateStat(statName, delta) {
 // 检查结局
 function checkEnding(statName) {
     if (gameStats.gameEnded) return;
-    if (statName === 'trust' && gameStats.trust <= 0) {
-        showEnding('trust');
-    } else if (statName === 'media' && gameStats.media <= 0) {
-        showEnding('media');
-    } else if (statName === 'fans' && gameStats.fans <= 0) {
-        showEnding('fans');
-    } else if (statName === 'player' && gameStats.player <= 0) {
-        showEnding('player');
-    }
+    if (gameStats[statName] <= 0) showEnding(statName);
 }
 
 // 显示结局
@@ -862,9 +1099,26 @@ function showEnding(endingKey) {
     const ending = endings[endingKey];
     if (!ending) return;
     gameStats.gameEnded = true;
+    recordAchievedEnding(endingKey);
     document.getElementById('ending-title').textContent = ending.title;
     document.getElementById('ending-text').textContent = ending.text;
     document.getElementById('ending-modal').classList.remove('hidden');
+}
+
+// ===== 结局图鉴（跨存档持久化）=====
+const ENDINGS_KEY = 'acm_endings_v1';
+
+function getAchievedEndings() {
+    try { return JSON.parse(localStorage.getItem(ENDINGS_KEY)) || []; }
+    catch { return []; }
+}
+
+function recordAchievedEnding(key) {
+    const achieved = getAchievedEndings();
+    if (!achieved.includes(key)) {
+        achieved.push(key);
+        localStorage.setItem(ENDINGS_KEY, JSON.stringify(achieved));
+    }
 }
 
 // 更新预算
@@ -945,26 +1199,23 @@ function updateProgressBar(barId, value) {
 // 初始化游戏
 function initializeGame(difficulty) {
     // 初始化数值
-    const initVal = difficulty === 'hard' ? 30 : 50;
-    gameStats = { trust: initVal, media: initVal, fans: initVal, player: initVal, budget: 1000, points: 0, ranking: 1, round: 0, lastScore: '', lastOpponentDisplay: '', consecutiveLosses: 0, southStandEventUsed: false, betKingEventUsed: false, rebateEventCount: 0, transferEventUsed: false, carCrashEventUsed: false, sinkOrSwimEventUsed: false, bigDataEventUsed: false, derbyLossEventPending: false, warningEventShown: false, gameEnded: false, season: 1, futureRandomEvents: [], usedMainlineEvents: [], shownWarnings: { trustCrisis: false, trustCritical: false, mediaCrisis: false, mediaCritical: false, playerCrisis: false, playerCritical: false, fansCrisis: false, fansCritical: false }, difficulty };
+    const initVal = difficulty === 'hard' ? 40 : 50;
+    gameStats = { trust: initVal, media: initVal, fans: initVal, player: initVal, budget: 1000, points: 0, ranking: 1, round: 0, lastScore: '', lastOpponentDisplay: '', consecutiveNonWins: 0, southStandEventUsed: false, betKingEventUsed: false, rebateEventCount: 0, transferEventUsed: false, carCrashEventUsed: false, sinkOrSwimEventUsed: false, bigDataEventUsed: false, derbyLossEventPending: false, derbyWinEventPending: false, warningEventShown: false, gameEnded: false, season: 1, futureRandomEvents: [], usedMainlineEvents: [], newCoachDone: false, xmasDone: false, oldFriendDone: false, winterWindowDone: false, winterSlotBonus: 0, winterReturnCost: 0, signedPlayers: [], news01Pending: false, news01Done: false, effectiveDone: false, lockerBrawlPending: false, lockerBrawlDone: false, supportTaskActive: false, zlatanSupport: 0, wonScudetto1: false, shownWarnings: { trustCrisis: false, trustCritical: false, mediaCrisis: false, mediaCritical: false, playerCrisis: false, playerCritical: false, fansCrisis: false, fansCritical: false }, difficulty };
+    pendingTransferSlots = 0;
     lastOpponentName = '';
+    matchSchedule = generateMatchSchedule();
+    scheduleIndex = 0;
     initializeLeague();
     updateLeagueRanking();
-    updateProgressBar('trust-bar', initVal);
-    updateProgressBar('media-bar', initVal);
-    updateProgressBar('fans-bar', initVal);
-    updateProgressBar('player-bar', initVal);
+    for (const stat of ['trust', 'media', 'fans', 'player'])
+        updateProgressBar(`${stat}-bar`, initVal);
     updateBudget(0);
     updateScoreboard();
-    
-    // 重置决策点
+    matchHistory = [];
+    choiceHistory = [];
     decisionPoints = 0;
     updateDecisionPoints();
-    // 启用事件按钮
-    eventBtns.forEach(btn => {
-        btn.disabled = false;
-        btn.style.backgroundColor = '#8B0000';
-    });
+    resetEventBtns('#8B0000');
     startMatchBtn.disabled = true;
     eventOptions.classList.add('hidden');
 }
@@ -980,7 +1231,7 @@ eventBtns.forEach(btn => {
         eventDescription.textContent = event.description;
         optionButtons.innerHTML = '';
         
-        event.options.forEach((option, index) => {
+        event.options.forEach((option) => {
             const optionContainer = document.createElement('div');
             optionContainer.className = 'option-container';
             
@@ -993,6 +1244,15 @@ eventBtns.forEach(btn => {
             effectsSpan.className = 'effects-text';
             
             optionBtn.addEventListener('click', () => {
+                // 记录历史
+                choiceHistory.push({
+                    round: gameStats.round + 1,
+                    eventName: eventNames[eventId] || `事件${eventId}`,
+                    optionText: option.text,
+                    effects: option.effects,
+                    kind: 'event'
+                });
+
                 // 应用效果
                 for (const [stat, delta] of Object.entries(option.effects)) {
                     if (stat === 'budget') {
@@ -1001,10 +1261,10 @@ eventBtns.forEach(btn => {
                         updateStat(stat, delta);
                     }
                 }
-                
+
                 // 隐藏选项
                 eventOptions.classList.add('hidden');
-                
+
                 // 增加决策点
                 decisionPoints++;
                 updateDecisionPoints();
@@ -1045,23 +1305,404 @@ const matchResultText = document.getElementById('match-result-text');
 const closeResultBtn = document.getElementById('close-result');
 const randomEventModal = document.getElementById('random-event-modal');
 
-function drawOpponent() {
-    let opponent = teams[Math.floor(Math.random() * teams.length)];
-    while (opponent.name === lastOpponentName) {
-        opponent = teams[Math.floor(Math.random() * teams.length)];
+function generateMatchSchedule() {
+    // 每队主客场各踢一次，共38轮
+    const schedule = [];
+    teams.forEach(t => { schedule.push(t.name); schedule.push(t.name); });
+    shuffleArray(schedule);
+    // 消除相邻重复（同一支队伍连续两场）
+    for (let i = 0; i < schedule.length - 1; i++) {
+        if (schedule[i] === schedule[i + 1]) {
+            for (let j = i + 2; j < schedule.length; j++) {
+                if (schedule[j] !== schedule[i]) {
+                    [schedule[i + 1], schedule[j]] = [schedule[j], schedule[i + 1]];
+                    break;
+                }
+            }
+        }
     }
-    lastOpponentName = opponent.name;
-    return opponent.name;
+    // 第二赛季：第16轮必定对战亚特兰大（圣诞夜惊魂）
+    if (gameStats.season === 2) {
+        forceFixture(schedule, 16, '亚特兰大');
+    }
+    return schedule;
 }
+
+// 将指定球队固定到某一轮，并避免相邻重复
+function forceFixture(schedule, round, teamName) {
+    const idx = round - 1;
+    if (schedule[idx] === teamName) return;
+    const from = schedule.indexOf(teamName);
+    if (from === -1) return;
+    [schedule[idx], schedule[from]] = [schedule[from], schedule[idx]];
+    // 若交换后在目标轮相邻处产生重复，则把相邻处的同名球队换到安全位置
+    [idx - 1, idx + 1].forEach(adj => {
+        if (schedule[adj] === teamName) {
+            for (let j = 0; j < schedule.length; j++) {
+                if (Math.abs(j - idx) <= 1) continue;
+                if (schedule[j] !== teamName &&
+                    schedule[j - 1] !== teamName && schedule[j + 1] !== teamName) {
+                    [schedule[adj], schedule[j]] = [schedule[j], schedule[adj]];
+                    break;
+                }
+            }
+        }
+    });
+}
+
+function drawOpponent() {
+    if (scheduleIndex >= matchSchedule.length) {
+        // 超出赛程（不应发生），退回随机
+        return teams[Math.floor(Math.random() * teams.length)].name;
+    }
+    const name = matchSchedule[scheduleIndex++];
+    lastOpponentName = name;
+    return name;
+}
+
+// 解析 futureRandomEvents 条目为事件 ID
+function resolveEventEntry(e) {
+    return typeof e === 'object' ? e.eventId : e;
+}
+
+// 渲染赛季任务列表到指定容器
+function renderTaskList(el, intro) {
+    el.innerHTML = '';
+    (typeof intro.tasks === 'function' ? intro.tasks() : intro.tasks).forEach(task => {
+        const div = document.createElement('div');
+        div.className = 'season-task-item';
+        div.textContent = '· ' + task;
+        el.appendChild(div);
+    });
+}
+
+// 重置事件按钮状态
+function resetEventBtns(color = '') {
+    eventBtns.forEach(btn => { btn.disabled = false; btn.style.backgroundColor = color; });
+}
+
+// ===== 转会市场 =====
+const transferBuyPlayers = [
+    // ===== 转会池（核心引援，tier 1）=====
+    {
+        id: 'lb_winger', name: '飞翼左后卫', tier: 1, tag: '潜力股', tagColor: 'potential',
+        desc: '攻守兼备的现代边卫，甚至十分擅长助攻，跑起来像一台失控的跑车。有人说他上场只会吃红牌，也许他性格暴躁，也许他只是渴望一个机会来证明自己。',
+        effects: { player: 4, media: -2 }, cost: 2000
+    },
+    {
+        id: 'winger_pt', name: '葡萄牙边锋', tier: 1, tag: '潜力股', tagColor: 'potential',
+        desc: '20岁，速度和盘带俱佳，不契合前教练的培养思路，表现出极强的可塑性。他的缺点都可以改正，他的优点却很难在其他球员身上发现。',
+        effects: { player: 5 }, cost: 2200
+    },
+    {
+        id: 'striker_fr', name: '法国中锋', tier: 1, tag: '潜力股', tagColor: 'potential',
+        desc: '以几乎白送的价格挂牌，有人说现代足球已经没有他的容身之地。他自称儿时的偶像是你曾经的队友，因此才想来到米兰。',
+        effects: { player: 4, fans: 3 }, cost: 1200
+    },
+    {
+        id: 'cb_eng', name: '英格兰中卫', tier: 1, tag: '即战力', tagColor: 'ready',
+        desc: '身体素质强硬，风格稳健。你们需要一位中卫，但他只接受租借，培养他之后，是否能留住他呢？',
+        effects: { player: 5 }, cost: 1600
+    },
+    {
+        id: 'gk_talent', name: '天才守门员', tier: 1, tag: '潜力股', tagColor: 'potential',
+        desc: '反应神速，几乎是一位无死角门将。没人相信一个新人能顶替刚刚离队的传奇门神，他的心态极佳，但是否适合米兰还未可知。',
+        effects: { player: 5 }, cost: 2400
+    },
+    {
+        id: 'maestro', name: '上帝的指挥', tier: 1, tag: '即战力', tagColor: 'ready',
+        desc: '他曾经口出狂言，如果他回到米兰，不是为了"养老"，而是为了夺冠。签下他意味着认可他在更衣室里的绝对权威。',
+        effects: { player: 8, fans: 6, trust: -4 }, cost: 5500
+    },
+    {
+        id: 'cm_youth_it', name: '意大利青训中场', tier: 1, tag: '潜力股', tagColor: 'potential',
+        desc: '22岁，本土培养。他是个不折不扣的米兰死忠。为了穿上这件红黑球衣，他主动要求降薪。只要你不出售他，他永远也不会要求转会。',
+        effects: { player: 3, fans: 5, trust: 3 }, cost: 800
+    },
+    // ===== NPC池（其他目标，tier 2）=====
+    {
+        id: 'dm_cro', name: '克罗地亚铁腰', tier: 2, tag: '即战力', tagColor: 'ready',
+        desc: '通过高效的比赛阅读能力覆盖整片中场，他的合同还剩最后一年，十分抢手，经纪人已经在和别的球队总监喝咖啡了。',
+        effects: { player: 6 }, cost: 3500
+    },
+    {
+        id: 'amf_fk', name: '任意球前腰', tier: 2, tag: '高风险', tagColor: 'risk',
+        desc: '22岁，当打之年，在更衣室和队友打成一片，但他的经纪人胃口不小，谈判桌上他的眼睛总望着别处：米兰城不止一家球队。',
+        effects: { player: 6, fans: 3 }, cost: 4000
+    },
+    {
+        id: 'dm_pt', name: '葡萄牙后腰', tier: 2, tag: '高风险', tagColor: 'risk',
+        desc: '拦截凶狠，身材高大，性格火爆。平均三场就会吃一次牌，曾有在更衣室和队友大打出手的传闻，辱骂过教练。如果管不住他，就别签下这个定时炸弹。',
+        effects: { player: 7, trust: -5 }, cost: 3000
+    },
+    {
+        id: 'winger_amateur', name: '业余的边锋', tier: 2, tag: '高风险', tagColor: 'risk',
+        desc: '他踢过很长时间的低级别联赛，如果不是球探报告，你甚至不能确定他是一名职业球员。他愿意为任何赛场机会拼命，任何机会。',
+        effects: { player: 2 }, cost: 300
+    },
+    {
+        id: 'cb_control', name: '控制型中卫', tier: 2, tag: '即战力', tagColor: 'ready',
+        desc: '195cm，33岁，沉稳可靠，他的经验足够帮助任何一家处在重建期的球队度过磨合期，但他的跑动能力下滑明显，防守技巧上也有一些短板。',
+        effects: { player: 4 }, cost: 1800
+    },
+    {
+        id: 'mid_bel', name: '比利时天才', tier: 2, tag: '高风险', tagColor: 'risk',
+        desc: '21岁，技术细腻，媒体说他是新一代全能中场，身价高的吓人，球探报告显示他在前东家郁郁不得志，你无法知道是态度原因还是体系不合。',
+        effects: { player: 6, fans: 4 }, cost: 5200
+    },
+    {
+        id: 'striker_vet', name: '养老的前锋', tier: 2, tag: '高风险', tagColor: 'risk',
+        desc: '35岁，昔日的世界级射手，拿着高额薪水被俱乐部无情抛弃，他的脚法和经验都还在，关键球的处理仍然不失水准，但他对任何俱乐部的热情都已经远去，签下他意味着承担高额的薪资。',
+        effects: { player: 5, fans: 5, trust: -3 }, cost: 4500
+    },
+    {
+        id: 'striker_ger', name: '德国攻击手', tier: 2, tag: '高风险', tagColor: 'risk',
+        desc: '26岁，社交媒体有百万级别的粉丝，签下他意味着进一步扩大在社媒上的影响力，教练私下对你表示过轻微的怀疑，他的技术真的适配米兰吗？',
+        effects: { player: 3, fans: 9, media: 5 }, cost: 5000
+    },
+    {
+        id: 'mid_steady', name: '稳健型中场', tier: 2, tag: '高风险', tagColor: 'risk',
+        desc: '33岁，既能扫荡又能后插，关键时刻总是不吝啬牺牲自己的体力，性格直爽，和更衣室关系良好。他的经纪人没有隐瞒球员的身体状况，正是这份体检报告让你犹豫。',
+        effects: { player: 5, trust: 2 }, cost: 2000
+    },
+    {
+        id: 'cb_den', name: '丹麦中卫', tier: 2, tag: '即战力', tagColor: 'ready',
+        desc: '冷静、稳健，几乎不犯错。中规中矩的价格，中规中矩的描述。你也许就是需要这样一位没什么特点的后卫。',
+        effects: { player: 4 }, cost: 2200
+    },
+    {
+        id: 'rb_esp', name: '西班牙边卫', tier: 2, tag: '即战力', tagColor: 'ready',
+        desc: '29岁，经验丰富，攻防两端都拿得出手，即插即用毫无磨合成本。问题是他名气大、要价高、且已经过了巅峰期。',
+        effects: { player: 5 }, cost: 3800
+    }
+];
+const transferSellPlayers = [
+    {
+        id: 'veteran', name: '高薪老将',
+        desc: '高薪，合同还有两年，出售可回血预算。',
+        effects: { budget: 350, player: -4 }
+    },
+    {
+        id: 'fan_fav', name: '球迷宠儿小将',
+        desc: '青训出品，南看台最爱的本土才俊。',
+        effects: { budget: 200, fans: -5 }
+    }
+];
+
+const TM_PER_PAGE = 4;
+let tmState = { slots: 0, initialSlots: 0, basePlayer: 0, purchased: new Set(), sold: new Set(), pool: [], page: 0 };
+
+// 抽取本次转会窗展示的球员：必出 01、02（潜力股），其余从 NPC 池随机抽满 8 名
+function drawTransferPool() {
+    const guaranteed = transferBuyPlayers.filter(p => p.id === 'lb_winger' || p.id === 'winger_pt');
+    const npcPool = transferBuyPlayers.filter(p => p.tier === 2);
+    const picked = npcPool.slice().sort(() => Math.random() - 0.5).slice(0, 8 - guaranteed.length);
+    return guaranteed.concat(picked);
+}
+
+function openTransferMarket(slots, opts = {}) {
+    tmState = { slots, initialSlots: slots, basePlayer: gameStats.player, purchased: new Set(), sold: new Set(), pool: opts.pool || drawTransferPool(), page: 0 };
+    document.getElementById('tm-season-label').textContent = opts.label || `转会市场 · 第${gameStats.season}赛季`;
+    document.getElementById('tm-window-title').textContent = opts.windowTitle || '夏季转会窗';
+    renderTransferMarket();
+    document.getElementById('transfer-market-modal').classList.remove('hidden');
+}
+
+// 冬季转会窗：06 球员（上帝的指挥）必定出现并标记"回归"；夏窗未买下的 01、02 继续出现；其余由 NPC 池填充
+function drawWinterPool() {
+    const result = [];
+    // 06 必定出现，标记回归；转会费按"问君此去几时来"的选择（100w / 1000w），未触发则为原价
+    const maestro = transferBuyPlayers.find(p => p.id === 'maestro');
+    const maestroCard = { ...maestro, tag: '回归', tagColor: 'return' };
+    if (gameStats.winterReturnCost > 0) maestroCard.cost = gameStats.winterReturnCost;
+    result.push(maestroCard);
+    // 夏窗未购入的 01、02 继续出现
+    ['lb_winger', 'winger_pt'].forEach(id => {
+        if (!gameStats.signedPlayers.includes(id)) {
+            result.push(transferBuyPlayers.find(p => p.id === id));
+        }
+    });
+    // 其余从 NPC 池随机填充至 8 人
+    const npcPool = transferBuyPlayers.filter(p => p.tier === 2);
+    const picked = npcPool.slice().sort(() => Math.random() - 0.5).slice(0, 8 - result.length);
+    return result.concat(picked);
+}
+
+function openWinterTransferMarket() {
+    const slots = 1 + (gameStats.winterSlotBonus || 0);
+    openTransferMarket(slots, {
+        pool: drawWinterPool(),
+        label: `转会市场 · 第${gameStats.season}赛季`,
+        windowTitle: '冬季转会窗'
+    });
+}
+
+function renderTransferMarket() {
+    document.getElementById('tm-budget').textContent = `€${gameStats.budget}万`;
+    document.getElementById('tm-slots').textContent = `${tmState.slots}/${tmState.initialSlots}`;
+    document.getElementById('tm-strength-before').textContent = tmState.basePlayer;
+    document.getElementById('tm-strength-after').textContent = Math.max(0, Math.min(100, gameStats.player));
+
+    // 可签入球员：每页 4 名，右下角翻页
+    const buyEl = document.getElementById('tm-buy-players');
+    buyEl.innerHTML = '';
+    const totalPages = Math.max(1, Math.ceil(tmState.pool.length / TM_PER_PAGE));
+    if (tmState.page > totalPages - 1) tmState.page = totalPages - 1;
+    const pageStart = tmState.page * TM_PER_PAGE;
+    tmState.pool.slice(pageStart, pageStart + TM_PER_PAGE).forEach(p => {
+        const bought = tmState.purchased.has(p.id);
+        const canAfford = gameStats.budget >= p.cost;
+        const hasSlot = tmState.slots > 0;
+        const tagClass = { potential: 'tm-tag-potential', ready: 'tm-tag-ready', risk: 'tm-tag-risk', return: 'tm-tag-return' }[p.tagColor];
+
+        const statsHtml = Object.entries(p.effects).map(([k, v]) => {
+            const labels = { player: '即战力', fans: '球迷满意度', trust: '董事会信任度', media: '媒体声望' };
+            const cls = v > 0 ? 'tm-stat-pos' : 'tm-stat-neg';
+            return `<div>${labels[k] || k}：<span class="${cls}">${v > 0 ? '+' : ''}${v}</span></div>`;
+        }).join('') + `<div>身价：€${p.cost}万</div>`;
+
+        let btnText = '签下';
+        let btnDisabled = false;
+        if (bought) { btnText = '已签下'; btnDisabled = true; }
+        else if (!canAfford) { btnText = '预算不足'; btnDisabled = true; }
+        else if (!hasSlot) { btnText = '名额已满'; btnDisabled = true; }
+
+        const card = document.createElement('div');
+        card.className = 'tm-player-card' + (bought ? ' tm-bought' : '');
+        card.innerHTML = `
+            <div class="tm-card-header">
+                <div class="tm-player-name">${p.name}</div>
+                <div class="tm-tag ${tagClass}">${p.tag}</div>
+            </div>
+            <div class="tm-card-desc">${p.desc}</div>
+            <div class="tm-card-stats">${statsHtml}</div>
+            <button class="tm-sign-btn"${btnDisabled ? ' disabled' : ''}>${btnText}</button>
+        `;
+        if (!btnDisabled) {
+            card.querySelector('.tm-sign-btn').addEventListener('click', () => {
+                tmState.purchased.add(p.id);
+                if (!gameStats.signedPlayers.includes(p.id)) gameStats.signedPlayers.push(p.id);
+                if (p.id === 'maestro' && !gameStats.news01Done) gameStats.news01Pending = true;
+                tmState.slots--;
+                updateBudget(-p.cost);
+                Object.entries(p.effects).forEach(([k, v]) => updateStat(k, v));
+                renderTransferMarket();
+            });
+        }
+        buyEl.appendChild(card);
+    });
+
+    // 翻页控件（右下角）
+    const pageEl = document.getElementById('tm-buy-pagination');
+    if (totalPages <= 1) {
+        pageEl.innerHTML = '';
+    } else {
+        pageEl.innerHTML = `
+            <button class="tm-page-btn" id="tm-page-prev"${tmState.page === 0 ? ' disabled' : ''}>‹</button>
+            <span class="tm-page-indicator">${tmState.page + 1} / ${totalPages}</span>
+            <button class="tm-page-btn" id="tm-page-next"${tmState.page >= totalPages - 1 ? ' disabled' : ''}>›</button>
+        `;
+        const prevBtn = document.getElementById('tm-page-prev');
+        const nextBtn = document.getElementById('tm-page-next');
+        if (!prevBtn.disabled) prevBtn.addEventListener('click', () => { tmState.page--; renderTransferMarket(); });
+        if (!nextBtn.disabled) nextBtn.addEventListener('click', () => { tmState.page++; renderTransferMarket(); });
+    }
+
+    // 可出售球员
+    const sellEl = document.getElementById('tm-sell-players');
+    sellEl.innerHTML = '';
+    transferSellPlayers.forEach(p => {
+        const sold = tmState.sold.has(p.id);
+        const gain = p.effects.budget;
+        const sideEffects = Object.entries(p.effects)
+            .filter(([k]) => k !== 'budget')
+            .map(([k, v]) => {
+                const labels = { player: '即战力', fans: '球迷满意度', trust: '董事会信任度' };
+                return `${labels[k] || k}${v > 0 ? '+' : ''}${v}`;
+            }).join('，');
+
+        const row = document.createElement('div');
+        row.className = 'tm-sell-row' + (sold ? ' tm-sold' : '');
+        row.innerHTML = `
+            <div class="tm-sell-info">
+                <div class="tm-sell-name">${p.name}</div>
+                <div class="tm-sell-effect">回收€${gain}万${sideEffects ? '，' + sideEffects : ''}</div>
+            </div>
+            <button class="tm-sell-btn"${sold ? ' disabled' : ''}>${sold ? '已出售' : '出售'}</button>
+        `;
+        if (!sold) {
+            row.querySelector('.tm-sell-btn').addEventListener('click', () => {
+                tmState.sold.add(p.id);
+                Object.entries(p.effects).forEach(([k, v]) => {
+                    if (k === 'budget') updateBudget(v);
+                    else updateStat(k, v);
+                });
+                renderTransferMarket();
+            });
+        }
+        sellEl.appendChild(row);
+    });
+}
+
+document.getElementById('tm-close-btn').addEventListener('click', () => {
+    document.getElementById('transfer-market-modal').classList.add('hidden');
+    resetAfterMatch();
+});
 
 // 随机选择随机事件
 function selectRandomEvents() {
     const selectedEvents = [];
 
-    // 连续失利后的特殊事件优先触发
-    if (gameStats.consecutiveLosses >= 3 && !gameStats.southStandEventUsed) {
+    // 第二赛季剧本事件（按轮次必定触发，优先于其他随机事件）
+    if (gameStats.season === 2) {
+        // 签下 06（上帝的指挥）后的下一回合触发新闻01
+        if (gameStats.news01Pending && !gameStats.news01Done) {
+            gameStats.news01Pending = false;
+            gameStats.news01Done = true;
+            return ['news01'];
+        }
+        if (gameStats.round >= 10 && !gameStats.newCoachDone) {
+            gameStats.newCoachDone = true;
+            return ['newCoach'];
+        }
+        if (gameStats.round >= 16 && !gameStats.xmasDone) {
+            gameStats.xmasDone = true;
+            return ['xmasHorror'];
+        }
+        if (gameStats.round >= 18 && !gameStats.oldFriendDone) {
+            gameStats.oldFriendDone = true;
+            return ['oldFriend'];
+        }
+        // 兹拉坦剧情：仅当签下 06（上帝的指挥），26 回合后触发"卓有成效"
+        if (gameStats.round >= 26 && !gameStats.effectiveDone &&
+            gameStats.signedPlayers.includes('maestro')) {
+            gameStats.effectiveDone = true;
+            return ['effective'];
+        }
+        // "坐视不理"50% 触发的更衣室斗殴（下回合）
+        if (gameStats.lockerBrawlPending && !gameStats.lockerBrawlDone) {
+            gameStats.lockerBrawlPending = false;
+            gameStats.lockerBrawlDone = true;
+            return ['lockerBrawl'];
+        }
+        // 第30回合固定触发"必要的支持"（需前序剧情已激活：签下06→卓有成效），解锁支持点任务
+        if (gameStats.round >= 30 && gameStats.effectiveDone && !gameStats.supportTaskActive) {
+            gameStats.supportTaskActive = true;
+            return ['support'];
+        }
+    }
+
+    // 连续四轮不胜后触发南看台事件
+    if (gameStats.consecutiveNonWins >= 4 && !gameStats.southStandEventUsed) {
         selectedEvents.push(2);
         gameStats.southStandEventUsed = true;
+        return selectedEvents;
+    }
+
+    // 德比获胜必定触发
+    if (gameStats.derbyWinEventPending) {
+        gameStats.derbyWinEventPending = false;
+        selectedEvents.push('derbyWin');
         return selectedEvents;
     }
 
@@ -1072,12 +1713,13 @@ function selectRandomEvents() {
         return selectedEvents;
     }
 
-    // 待触发的链式事件（满足最早轮次后60%概率触发，否则延到下一回合）
+    // 待触发的链式事件（immediate 必定触发，否则满足最早轮次后 60% 概率触发）
     if (gameStats.futureRandomEvents.length > 0) {
         const pending = gameStats.futureRandomEvents[0];
-        const eventId = typeof pending === 'object' ? pending.eventId : pending;
-        const minRound = typeof pending === 'object' ? (pending.minRound || 0) : 0;
-        if (gameStats.round >= minRound && Math.random() < 0.6) {
+        const eventId  = resolveEventEntry(pending);
+        const minRound = typeof pending === 'object' ? (pending.minRound  || 0)     : 0;
+        const immediate = typeof pending === 'object' ? (pending.immediate || false) : false;
+        if (gameStats.round >= minRound && (immediate || Math.random() < 0.6)) {
             gameStats.futureRandomEvents.shift();
             selectedEvents.push(eventId);
         }
@@ -1097,9 +1739,8 @@ function selectRandomEvents() {
     }
 
     // 随机事件池（event 3 已移入主线事件池，不再进入随机池）
-    const eventIds = Object.keys(randomEvents).filter(id => {
+    const eventIds = numericRandomEventIds.filter(id => {
         const numId = parseInt(id);
-        if (isNaN(numId)) return false;
         if (numId === 3 && gameStats.betKingEventUsed) return false;
         if (numId === 5 && gameStats.rebateEventCount >= 2) return false;
         if (numId === 10 && gameStats.transferEventUsed) return false;
@@ -1123,6 +1764,27 @@ function selectRandomEvents() {
     }
     selectedEvents.push(selectedId);
     return selectedEvents;
+}
+
+// 预警阈值规则表，驱动 applyWarningEffects 和 getActiveEffectsText
+const warningDeltaRules = [
+    { critical: { pred: () => gameStats.trust > 0  && gameStats.trust  < 15, delta: { budget: -200 } },
+        crisis: { pred: () => gameStats.trust >= 15 && gameStats.trust  < 30, delta: { budget: -100 } } },
+    { critical: { pred: () => gameStats.media > 0  && gameStats.media  < 15, delta: { fans: -2, trust: -2 } },
+        crisis: { pred: () => gameStats.media >= 15 && gameStats.media < 30, delta: { fans: -1 } } },
+    { critical: { pred: () => gameStats.player > 0  && gameStats.player < 15, delta: { media: -3, fans: -3 } },
+        crisis: { pred: () => gameStats.player >= 15 && gameStats.player < 30, delta: { media: -2 } } },
+    { critical: { pred: () => gameStats.fans > 0  && gameStats.fans  < 15, delta: { budget: -200, trust: -2 } },
+        crisis: { pred: () => gameStats.fans >= 15 && gameStats.fans  < 30, delta: { budget: -100 } } }
+];
+
+function computeWarningDeltas() {
+    const d = { budget: 0, trust: 0, media: 0, fans: 0 };
+    for (const rule of warningDeltaRules) {
+        const level = rule.critical.pred() ? rule.critical : rule.crisis.pred() ? rule.crisis : null;
+        if (level) for (const [k, v] of Object.entries(level.delta)) d[k] += v;
+    }
+    return d;
 }
 
 // 预警事件数据
@@ -1192,9 +1854,24 @@ const statWarningEvents = [
     }
 ];
 
+const statWarningEvtMap = Object.fromEntries(statWarningEvents.map(e => [e.key, e]));
+
 function showRandomEvents() {
     randomEventModal.classList.remove('warning');
     randomEventModal.classList.remove('mainline');
+    randomEventModal.classList.remove('news');
+    if (pendingTransferSlots > 0) {
+        const slots = pendingTransferSlots;
+        pendingTransferSlots = 0;
+        openTransferMarket(slots);
+        return;
+    }
+    // 第二赛季第20轮后触发冬季转会窗
+    if (gameStats.season === 2 && gameStats.round >= 20 && !gameStats.winterWindowDone) {
+        gameStats.winterWindowDone = true;
+        openWinterTransferMarket();
+        return;
+    }
     currentRandomEvents = selectRandomEvents();
     randomEventIndex = 0;
     showNextRandomEvent();
@@ -1202,35 +1879,18 @@ function showRandomEvents() {
 
 // 每轮关闭周报时应用的持续衰减效果
 function applyWarningEffects() {
-    if (gameStats.trust > 0 && gameStats.trust < 15) {
-        updateBudget(-200);
-    } else if (gameStats.trust >= 15 && gameStats.trust < 30) {
-        updateBudget(-100);
-    }
-    if (gameStats.media > 0 && gameStats.media < 15) {
-        updateStat('fans', -2);
-        updateStat('trust', -2);
-    } else if (gameStats.media >= 15 && gameStats.media < 30) {
-        updateStat('fans', -1);
-    }
-    if (gameStats.player > 0 && gameStats.player < 15) {
-        updateStat('media', -3);
-        updateStat('fans', -3);
-    } else if (gameStats.player >= 15 && gameStats.player < 30) {
-        updateStat('media', -2);
-    }
-    if (gameStats.fans > 0 && gameStats.fans < 15) {
-        updateBudget(-200);
-        updateStat('trust', -2);
-    } else if (gameStats.fans >= 15 && gameStats.fans < 30) {
-        updateBudget(-100);
+    for (const rule of warningDeltaRules) {
+        const level = rule.critical.pred() ? rule.critical : rule.crisis.pred() ? rule.crisis : null;
+        if (!level) continue;
+        for (const [k, v] of Object.entries(level.delta)) {
+            if (k === 'budget') updateBudget(v); else updateStat(k, v);
+        }
     }
 }
 
 // 检测本轮新触发的预警并返回队列
 function getNewWarnings() {
     const queue = [];
-    const evtMap = Object.fromEntries(statWarningEvents.map(e => [e.key, e]));
     const statPairs = [
         ['trustCrisis', 'trustCritical'],
         ['mediaCrisis', 'mediaCritical'],
@@ -1238,8 +1898,8 @@ function getNewWarnings() {
         ['fansCrisis', 'fansCritical']
     ];
     for (const [crisisKey, criticalKey] of statPairs) {
-        const critEvt = evtMap[criticalKey];
-        const crisEvt = evtMap[crisisKey];
+        const critEvt = statWarningEvtMap[criticalKey];
+        const crisEvt = statWarningEvtMap[crisisKey];
         if (critEvt.condition() && !gameStats.shownWarnings[criticalKey]) {
             gameStats.shownWarnings[criticalKey] = true;
             gameStats.shownWarnings[crisisKey] = true;
@@ -1288,7 +1948,19 @@ function showNextRandomEvent() {
         randomEventModal.classList.add('hidden');
         randomEventModal.classList.remove('mainline');
         randomEventModal.classList.remove('warning');
+        randomEventModal.classList.remove('news');
         if (pendingSeasonEndCallback) {
+            // 当前事件展示完后，检查是否有新入队的主线事件（如 euroNight2 结束后 farewell 被推入）
+            const nextMainlineIdx = gameStats.futureRandomEvents.findIndex(e =>
+                randomEvents[resolveEventEntry(e)]?.mainline
+            );
+            if (nextMainlineIdx !== -1) {
+                const next = gameStats.futureRandomEvents.splice(nextMainlineIdx, 1)[0];
+                currentRandomEvents = [resolveEventEntry(next)];
+                randomEventIndex = 0;
+                showNextRandomEvent();
+                return;
+            }
             const cb = pendingSeasonEndCallback;
             pendingSeasonEndCallback = null;
             cb();
@@ -1304,22 +1976,37 @@ function showNextRandomEvent() {
     document.getElementById('random-event-title').textContent = event.title;
     if (event.warningStyle) {
         randomEventModal.classList.add('warning');
-        randomEventModal.classList.remove('mainline');
+        randomEventModal.classList.remove('mainline', 'news');
         document.getElementById('random-event-description').innerHTML =
             event.description + (event.note ? `<span class="warning-note">${event.note}</span>` : '');
+    } else if (event.newsStyle) {
+        randomEventModal.classList.add('news');
+        randomEventModal.classList.remove('mainline', 'warning');
+        document.getElementById('random-event-description').innerHTML =
+            `<span class="news-source">新闻来源：${event.source}</span>` +
+            event.content.split('\n').map(p => `<p class="news-para">${p}</p>`).join('');
     } else if (event.mainline) {
         randomEventModal.classList.add('mainline');
-        randomEventModal.classList.remove('warning');
-        document.getElementById('random-event-description').innerHTML = formatBrackets(event.description);
+        randomEventModal.classList.remove('warning', 'news');
+        document.getElementById('random-event-description').innerHTML = formatBrackets(
+            typeof event.description === 'function' ? event.description() : event.description
+        );
     } else {
-        randomEventModal.classList.remove('mainline');
-        randomEventModal.classList.remove('warning');
+        randomEventModal.classList.remove('mainline', 'warning', 'news');
         document.getElementById('random-event-description').textContent = event.description;
     }
     
     const optionsContainer = document.getElementById('random-event-options');
     optionsContainer.innerHTML = '';
-    
+
+    // 可重复选择的事件（如"必要的支持"）：选择后不自动关闭，仅在达成支持点或点击关闭时退出
+    if (event.repeatable) {
+        renderRepeatableEvent(event, optionsContainer);
+        randomEventModal.classList.remove('hidden');
+        return;
+    }
+
+    const visibleCount = event.options.filter(o => !o.condition || o.condition()).length;
     let visibleOptionIndex = 0;
     event.options.forEach((option) => {
         if (option.condition && !option.condition()) {
@@ -1327,9 +2014,19 @@ function showNextRandomEvent() {
         }
         visibleOptionIndex++;
         const button = document.createElement('button');
-        button.textContent = event.warningStyle ? option.text : `${visibleOptionIndex}. ${option.text}`;
-        button.className = 'random-event-option';
+        button.textContent = (event.warningStyle || visibleCount === 1) ? option.text : `${visibleOptionIndex}. ${option.text}`;
+        button.className = 'random-event-option' + (visibleCount === 1 ? ' random-event-option--single' : '');
         button.addEventListener('click', () => {
+            // 记录随机/主线事件选择
+            if (!event.warningStyle && Object.keys(option.effects).length > 0) {
+                choiceHistory.push({
+                    round: gameStats.round,
+                    eventName: event.title,
+                    optionText: option.text.replace(/（结局）$/, ''),
+                    effects: option.effects,
+                    kind: 'special'
+                });
+            }
             // 应用效果
             for (const [stat, delta] of Object.entries(option.effects)) {
                 updateStat(stat, delta);
@@ -1343,8 +2040,11 @@ function showNextRandomEvent() {
             }
             if (eventId === 5) { gameStats.rebateEventCount += 1; }
             if (option.chain && Math.random() < option.chain.probability) {
-                const entry = option.chain.minRound
-                    ? { eventId: option.chain.eventId, minRound: option.chain.minRound }
+                const hasExtra = option.chain.minRound || option.chain.immediate;
+                const entry = hasExtra
+                    ? { eventId: option.chain.eventId,
+                        ...(option.chain.minRound  ? { minRound: option.chain.minRound } : {}),
+                        ...(option.chain.immediate  ? { immediate: true }               : {}) }
                     : option.chain.eventId;
                 gameStats.futureRandomEvents.push(entry);
             }
@@ -1358,25 +2058,64 @@ function showNextRandomEvent() {
                 showEnding(option.endingChance.endingId);
                 return;
             }
+            if (option.unknownOptNum !== undefined && !gameStats.gameEnded) {
+                const trustHigh = gameStats.trust > 80;
+                const rightsId = option.unknownOptNum === 1
+                    ? (trustHigh ? 'transferRightsA' : 'transferRightsC')
+                    : (trustHigh ? 'transferRightsB' : 'transferRightsD');
+                currentRandomEvents.splice(randomEventIndex + 1, 0, rightsId);
+            }
+            if (option.transferSlots !== undefined && !gameStats.gameEnded) {
+                pendingTransferSlots = option.transferSlots;
+            }
+            if (option.winterSlot) { gameStats.winterSlotBonus += option.winterSlot; }
+            if (option.winterReturn !== undefined) { gameStats.winterReturnCost = option.winterReturn; }
+            if (option.brawlChance && Math.random() < option.brawlChance) { gameStats.lockerBrawlPending = true; }
+            if (option.nextEvent && !gameStats.gameEnded) {
+                currentRandomEvents.splice(randomEventIndex + 1, 0, option.nextEvent);
+            }
             randomEventIndex++;
             showNextRandomEvent();
         });
         optionsContainer.appendChild(button);
     });
-    
+
     randomEventModal.classList.remove('hidden');
 }
 
+// 渲染可重复选择的事件（必要的支持）：选择不关闭，达成3点或点击关闭才退出
+function renderRepeatableEvent(event, optionsContainer) {
+    const counter = document.createElement('div');
+    counter.className = 'support-event-counter';
+    counter.textContent = `已获得支持点：${Math.min(3, gameStats.zlatanSupport)} / 3`;
+    optionsContainer.appendChild(counter);
+
+    event.options.forEach((option) => {
+        const button = document.createElement('button');
+        button.className = 'random-event-option';
+        button.textContent = `${option.text}（${formatEffects(option.effects)}）`;
+        button.addEventListener('click', () => {
+            applyZlatanSupport(option);
+            if (gameStats.zlatanSupport >= 3 || gameStats.gameEnded) {
+                randomEventIndex++;          // 达成或触发结局 → 关闭事件
+            }
+            showNextRandomEvent();           // 否则以同一索引重渲染，刷新计数
+        });
+        optionsContainer.appendChild(button);
+    });
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'random-event-option support-event-close';
+    closeBtn.textContent = '关闭';
+    closeBtn.addEventListener('click', () => {
+        randomEventIndex++;
+        showNextRandomEvent();
+    });
+    optionsContainer.appendChild(closeBtn);
+}
+
 function getActiveEffectsText() {
-    const d = { budget: 0, trust: 0, media: 0, fans: 0 };
-    if (gameStats.trust > 0 && gameStats.trust < 15)       { d.budget -= 200; }
-    else if (gameStats.trust >= 15 && gameStats.trust < 30) { d.budget -= 100; }
-    if (gameStats.media > 0 && gameStats.media < 15)        { d.fans -= 2; d.trust -= 2; }
-    else if (gameStats.media >= 15 && gameStats.media < 30) { d.fans -= 1; }
-    if (gameStats.player > 0 && gameStats.player < 15)       { d.media -= 3; d.fans -= 3; }
-    else if (gameStats.player >= 15 && gameStats.player < 30){ d.media -= 2; }
-    if (gameStats.fans > 0 && gameStats.fans < 15)          { d.budget -= 200; d.trust -= 2; }
-    else if (gameStats.fans >= 15 && gameStats.fans < 30)   { d.budget -= 100; }
+    const d = computeWarningDeltas();
     const parts = [];
     if (d.budget !== 0) parts.push(`预算 ${d.budget}w欧`);
     if (d.trust  !== 0) parts.push(`信任度 ${d.trust}`);
@@ -1431,10 +2170,7 @@ function resetAfterMatch() {
     matchResultModal.classList.add('hidden');
     decisionPoints = 0;
     updateDecisionPoints();
-    eventBtns.forEach(btn => {
-        btn.disabled = false;
-        btn.style.backgroundColor = '#8B0000';
-    });
+    resetEventBtns('#8B0000');
     startMatchBtn.disabled = true;
 }
 
@@ -1445,7 +2181,7 @@ function startNewSeason() {
     gameStats.ranking = 1;
     gameStats.lastScore = '';
     gameStats.lastOpponentDisplay = '';
-    gameStats.consecutiveLosses = 0;
+    gameStats.consecutiveNonWins = 0;
     gameStats.southStandEventUsed = false;
     gameStats.betKingEventUsed = false;
     gameStats.rebateEventCount = 0;
@@ -1454,25 +2190,57 @@ function startNewSeason() {
     gameStats.sinkOrSwimEventUsed = false;
     gameStats.bigDataEventUsed = false;
     gameStats.derbyLossEventPending = false;
+    gameStats.derbyWinEventPending = false;
     gameStats.warningEventShown = false;
     gameStats.futureRandomEvents = [];
     gameStats.usedMainlineEvents = [];
+    gameStats.newCoachDone = false;
+    gameStats.xmasDone = false;
+    gameStats.oldFriendDone = false;
+    gameStats.winterWindowDone = false;
+    gameStats.winterSlotBonus = 0;
+    gameStats.winterReturnCost = 0;
+    gameStats.signedPlayers = [];
+    gameStats.news01Pending = false;
+    gameStats.news01Done = false;
+    gameStats.effectiveDone = false;
+    gameStats.lockerBrawlPending = false;
+    gameStats.lockerBrawlDone = false;
+    gameStats.supportTaskActive = false;
+    gameStats.zlatanSupport = 0;
     gameStats.shownWarnings = {
         trustCrisis: false, trustCritical: false,
         mediaCrisis: false, mediaCritical: false,
         playerCrisis: false, playerCritical: false,
         fansCrisis: false, fansCritical: false
     };
+    (seasonStartEvents[gameStats.season] || []).forEach(e => gameStats.futureRandomEvents.push(e));
+    pendingTransferSlots = 0;
     lastOpponentName = '';
+    matchSchedule = generateMatchSchedule();
+    scheduleIndex = 0;
     initializeLeague();
     updateLeagueRanking();
     updateScoreboard();
     decisionPoints = 0;
     updateDecisionPoints();
-    eventBtns.forEach(btn => { btn.disabled = false; btn.style.backgroundColor = ''; });
+    resetEventBtns();
     startMatchBtn.disabled = true;
     eventOptions.classList.add('hidden');
     showSeasonIntro(gameStats.season, null);
+}
+
+function showScudetto1ThenResult() {
+    gameStats.wonScudetto1 = true;
+    currentRandomEvents = ['scudetto1'];
+    randomEventIndex = 0;
+    pendingSeasonEndCallback = () => {
+        const intro = seasonIntros[gameStats.season];
+        if (intro && intro.taskCheck) { showSeasonResult(intro.taskCheck()); return; }
+        if (gameStats.difficulty === 'easy') { showEnding(getSeasonEndingKey()); return; }
+        showSeasonTransition(gameStats.season);
+    };
+    showNextRandomEvent();
 }
 
 function showSeasonResult(passed) {
@@ -1488,8 +2256,29 @@ function showSeasonResult(passed) {
     modal.classList.remove('passed', 'failed');
     modal.classList.add('passed');
     document.getElementById('season-result-title').textContent = '下一个赛季';
-    document.getElementById('season-result-text').textContent = '你完美的完成了这个赛季的任务，你仍然是这支球队不可动摇的球队总监。';
+    document.getElementById('season-result-text').textContent = getSeasonResultText();
     modal.classList.remove('hidden');
+}
+
+// 赛季结算正文：第二赛季按最终排名给出不同结语
+function getSeasonResultText() {
+    if (gameStats.season === 2) {
+        const base = '老球员坐镇，年轻人成长，皮奥利的战术终于捏合成型。重启后的米兰判若两队，一场接一场地赢下去。';
+        const tail = '更重要的是，所有人都看见了，这支年轻的米兰，正在攀升的路上。';
+        let middle;
+        if (gameStats.ranking === 1) {
+            // 两个赛季都夺冠 → 第二颗星
+            middle = gameStats.wonScudetto1
+                ? '赛季末，你们拿到了意甲冠军，给米兰修上了戴标20次意甲冠军的第二颗星！'
+                : '赛季末，你们拿到了意甲冠军！';
+        } else if (gameStats.ranking <= 4) {
+            middle = '赛季末，你们超额完成了任务，拿到了欧冠资格。';
+        } else {
+            middle = '赛季末，你们没能进欧冠，但拿到了欧战资格。';
+        }
+        return base + middle + tail;
+    }
+    return '你完美的完成了这个赛季的任务，你仍然是这支球队不可动摇的球队总监。';
 }
 
 document.getElementById('season-result-continue').addEventListener('click', function() {
@@ -1515,6 +2304,15 @@ function showSeasonTransition(completedSeason) {
     matchResultModal.classList.remove('hidden');
 }
 
+function doSeasonEnd() {
+    if (gameStats.difficulty !== 'easy' && gameStats.season >= 5) { showEnding('surprise'); return; }
+    if (gameStats.season === 1 && gameStats.ranking === 1) { showScudetto1ThenResult(); return; }
+    const intro = seasonIntros[gameStats.season];
+    if (intro && intro.taskCheck) { showSeasonResult(intro.taskCheck()); return; }
+    if (gameStats.difficulty === 'easy') { showEnding(getSeasonEndingKey()); return; }
+    showSeasonTransition(gameStats.season);
+}
+
 closeResultBtn.addEventListener('click', function() {
     matchResultModal.classList.add('hidden');
     matchResultModal.classList.remove('weekly');
@@ -1526,38 +2324,19 @@ closeResultBtn.addEventListener('click', function() {
     }
 
     if (gameStats.round >= 38) {
-        // 赛季结束时先检测是否有告别事件待触发
-        const farewellIdx = gameStats.futureRandomEvents.findIndex(
-            e => (typeof e === 'object' ? e.eventId : e) === 'farewell'
+        // 赛季结束时强制触发所有未展示的主线链式事件（如 euroNight2 → farewell）
+        const pendingMainlineIdx = gameStats.futureRandomEvents.findIndex(e =>
+            randomEvents[resolveEventEntry(e)]?.mainline
         );
-        if (farewellIdx !== -1) {
-            gameStats.futureRandomEvents.splice(farewellIdx, 1);
-            currentRandomEvents = ['farewell'];
+        if (pendingMainlineIdx !== -1) {
+            const pending = gameStats.futureRandomEvents.splice(pendingMainlineIdx, 1)[0];
+            currentRandomEvents = [resolveEventEntry(pending)];
             randomEventIndex = 0;
-            pendingSeasonEndCallback = () => {
-                if (gameStats.difficulty !== 'easy' && gameStats.season >= 5) { showEnding('surprise'); return; }
-                const _intro = seasonIntros[gameStats.season];
-                if (_intro && _intro.taskCheck) { showSeasonResult(_intro.taskCheck()); return; }
-                if (gameStats.difficulty === 'easy') { showEnding(getSeasonEndingKey()); return; }
-                showSeasonTransition(gameStats.season);
-            };
+            pendingSeasonEndCallback = doSeasonEnd;
             showNextRandomEvent();
             return;
         }
-        if (gameStats.difficulty !== 'easy' && gameStats.season >= 5) {
-            showEnding('surprise');
-            return;
-        }
-        const intro = seasonIntros[gameStats.season];
-        if (intro && intro.taskCheck) {
-            showSeasonResult(intro.taskCheck());
-            return;
-        }
-        if (gameStats.difficulty === 'easy') {
-            showEnding(getSeasonEndingKey());
-            return;
-        }
-        showSeasonTransition(gameStats.season);
+        doSeasonEnd();
         return;
     }
 
@@ -1569,6 +2348,14 @@ closeResultBtn.addEventListener('click', function() {
         pendingWarnings.push(statWarningEvents.find(e => e.key === 'mediaHigh'));
     }
     showNextPendingWarning();
+});
+
+// 下一章（测试用）：保留当前数值直接跳入下一赛季
+document.getElementById('next-chapter-btn').addEventListener('click', function() {
+    if (gameStats.season >= 5) return;
+    document.getElementById('ending-modal').classList.add('hidden');
+    gameStats.gameEnded = false;
+    startNewSeason();
 });
 
 // 重新开始游戏
@@ -1595,6 +2382,7 @@ startMatchBtn.addEventListener('click', function() {
     gameStats.round = Math.min(38, gameStats.round + 1);
     updateScoreboard();
     if (matchResult1 === null) return;
+    matchHistory.push({ round: gameStats.round, opponent: opponentName1, result: matchResult1.result, score: matchResult1.score });
 
     const opponentName2 = drawOpponent();
     const matchResult2 = playRound(opponentName2);
@@ -1602,6 +2390,7 @@ startMatchBtn.addEventListener('click', function() {
     updateScoreboard();
     eventOptions.classList.add('hidden');
     if (matchResult2 === null) return;
+    matchHistory.push({ round: gameStats.round, opponent: opponentName2, result: matchResult2.result, score: matchResult2.score });
 
     showWeeklyReport(matchResult1, matchResult2);
 
@@ -1612,4 +2401,262 @@ startMatchBtn.addEventListener('click', function() {
         });
         startMatchBtn.disabled = true;
     }
+});
+
+// ===== 公共工具 =====
+const chineseNums = ['一','二','三','四','五','六','七','八','九','十'];
+const toChineseNum = n => chineseNums[n - 1] || String(n);
+
+function closeOnOverlayClick(modalId) {
+    const el = document.getElementById(modalId);
+    el.addEventListener('click', e => { if (e.target === el) el.classList.add('hidden'); });
+}
+closeOnOverlayClick('schedule-modal');
+closeOnOverlayClick('history-modal');
+closeOnOverlayClick('archive-modal');
+closeOnOverlayClick('gallery-modal');
+closeOnOverlayClick('standings-modal');
+
+// ===== 赛程 =====
+document.getElementById('show-schedule-btn').addEventListener('click', () => {
+    document.getElementById('schedule-modal-title').textContent =
+        `第${toChineseNum(gameStats.season)}赛季·赛程`;
+    const list = document.getElementById('schedule-list');
+    list.innerHTML = '';
+    matchSchedule.forEach((opponentName, i) => {
+        const roundNum = i + 1;
+        const hist = matchHistory.find(h => h.round === roundNum);
+        const isPast = hist !== undefined;
+        const isCurrent = !isPast && roundNum === gameStats.round + 1;
+        const row = document.createElement('div');
+        row.className = 'schedule-row ' + (isPast ? 'played' : isCurrent ? 'current' : 'upcoming');
+
+        const roundEl = document.createElement('span');
+        roundEl.className = 'sch-round';
+        roundEl.textContent = `R${roundNum}`;
+
+        const nameEl = document.createElement('span');
+        nameEl.textContent = opponentName;
+
+        const resultEl = document.createElement('span');
+        resultEl.className = 'sch-result';
+        if (hist) {
+            const map = { win: '胜', draw: '平', loss: '负' };
+            resultEl.textContent = `${hist.score} ${map[hist.result]}`;
+            resultEl.classList.add(hist.result);
+        } else {
+            resultEl.textContent = isCurrent ? '本轮' : '待赛';
+            resultEl.classList.add('upcoming');
+        }
+
+        row.appendChild(roundEl);
+        row.appendChild(nameEl);
+        row.appendChild(resultEl);
+        list.appendChild(row);
+    });
+    document.getElementById('schedule-modal').classList.remove('hidden');
+});
+
+document.getElementById('close-schedule-modal').addEventListener('click', () => {
+    document.getElementById('schedule-modal').classList.add('hidden');
+});
+
+// ===== 排名（意甲积分榜）=====
+document.getElementById('show-standings-btn').addEventListener('click', () => {
+    updateLeagueRanking();
+    const list = document.getElementById('standings-list');
+    list.innerHTML = '';
+    leagueTeams.forEach((team, i) => {
+        const rank = i + 1;
+        const zone = rank <= 4 ? 'zone-ucl' : rank <= 6 ? 'zone-uel' : '';
+        const row = document.createElement('div');
+        row.className = 'standings-row' + (zone ? ' ' + zone : '') +
+            (team.name === 'AC Milan' ? ' is-milan' : '');
+        row.innerHTML = `
+            <span class="st-rank">${rank}</span>
+            <span class="st-name">${team.name}</span>
+            <span class="st-points">${team.points}分</span>`;
+        list.appendChild(row);
+    });
+    document.getElementById('standings-modal').classList.remove('hidden');
+});
+
+document.getElementById('close-standings-modal').addEventListener('click', () => {
+    document.getElementById('standings-modal').classList.add('hidden');
+});
+
+// ===== 历史数值 =====
+document.getElementById('show-history-btn').addEventListener('click', () => {
+    const list = document.getElementById('history-list');
+    list.innerHTML = '';
+    if (choiceHistory.length === 0) {
+        list.innerHTML = '<div class="history-empty">暂无决策记录</div>';
+    } else {
+        const statLabels = { trust:'信任度', media:'媒体声望', fans:'球迷满意度', player:'球员状态', budget:'预算' };
+        [...choiceHistory].reverse().forEach(entry => {
+            const parts = Object.entries(entry.effects)
+                .map(([k, v]) => {
+                    const cls = v > 0 ? 'history-eff-pos' : 'history-eff-neg';
+                    return `<span class="${cls}">${statLabels[k] || k}${v > 0 ? '+' : ''}${v}</span>`;
+                }).join(' ');
+            const row = document.createElement('div');
+            row.className = 'history-row' + (entry.kind === 'special' ? ' history-row-special' : '');
+            row.innerHTML = `
+                <div class="history-row-header">
+                    <span class="history-event">${entry.eventName}</span>
+                    <span class="history-round">第${entry.round}轮</span>
+                </div>
+                <div class="history-option">${entry.optionText}</div>
+                <div class="history-effects">${parts || '无数值变化'}</div>`;
+            list.appendChild(row);
+        });
+    }
+    document.getElementById('history-modal').classList.remove('hidden');
+});
+
+document.getElementById('close-history-modal').addEventListener('click', () => {
+    document.getElementById('history-modal').classList.add('hidden');
+});
+
+// ===== 存档（三槽位）=====
+const SAVE_PREFIX = 'acm_save_v2_slot';
+
+function getSlotSave(slot) {
+    try { return JSON.parse(localStorage.getItem(SAVE_PREFIX + slot)); } catch { return null; }
+}
+
+function buildSaveData() {
+    return {
+        gameStats: JSON.parse(JSON.stringify(gameStats)),
+        matchSchedule, scheduleIndex,
+        matchHistory, choiceHistory,
+        decisionPoints, pendingTransferSlots,
+        leagueTeams: leagueTeams.map(t => ({ name: t.name, category: t.category, points: t.points })),
+        timestamp: new Date().toLocaleString('zh-CN', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' })
+    };
+}
+
+function applyLoadedSave(save) {
+    gameStats = save.gameStats;
+    matchSchedule = save.matchSchedule;
+    scheduleIndex = save.scheduleIndex;
+    matchHistory = save.matchHistory;
+    choiceHistory = save.choiceHistory;
+    decisionPoints = save.decisionPoints;
+    pendingTransferSlots = save.pendingTransferSlots || 0;
+    leagueTeams = save.leagueTeams;
+    difficultySelection.classList.add('hidden');
+    mainInterface.classList.remove('hidden');
+    for (const stat of ['trust', 'media', 'fans', 'player'])
+        updateProgressBar(`${stat}-bar`, gameStats[stat]);
+    updateBudget(0);
+    updateScoreboard();
+    updateDecisionPoints();
+    eventOptions.classList.add('hidden');
+    const allDone = gameStats.round >= 38;
+    resetEventBtns(allDone ? '#ccc' : '#8B0000');
+    if (allDone) eventBtns.forEach(btn => { btn.disabled = true; btn.style.backgroundColor = '#ccc'; });
+    startMatchBtn.disabled = decisionPoints < 2 || allDone;
+    document.getElementById('archive-modal').classList.add('hidden');
+}
+
+function renderArchiveSlots() {
+    const container = document.getElementById('archive-slots');
+    container.innerHTML = '';
+    [1, 2, 3].forEach(slot => {
+        const save = getSlotSave(slot);
+        const row = document.createElement('div');
+        row.className = 'archive-slot';
+
+        const info = document.createElement('div');
+        info.className = 'archive-slot-info';
+        if (save) {
+            info.innerHTML = `<div class="archive-slot-label">存档 ${slot}</div>
+                <div class="archive-slot-detail">第${toChineseNum(save.gameStats.season)}赛季 · 第${save.gameStats.round}轮</div>
+                <div class="archive-slot-detail" style="color:#7a6753">${save.timestamp}</div>`;
+        } else {
+            info.innerHTML = `<div class="archive-slot-label">存档 ${slot}</div>
+                <div class="archive-slot-empty">空存档</div>`;
+        }
+
+        const saveBtn = document.createElement('button');
+        saveBtn.textContent = '保存';
+        saveBtn.addEventListener('click', () => {
+            localStorage.setItem(SAVE_PREFIX + slot, JSON.stringify(buildSaveData()));
+            renderArchiveSlots();
+        });
+
+        const loadBtn = document.createElement('button');
+        loadBtn.textContent = '读取';
+        loadBtn.disabled = !save;
+        loadBtn.addEventListener('click', () => {
+            const s = getSlotSave(slot);
+            if (s) applyLoadedSave(s);
+        });
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '删除';
+        delBtn.className = 'del-btn';
+        delBtn.disabled = !save;
+        delBtn.addEventListener('click', () => {
+            localStorage.removeItem(SAVE_PREFIX + slot);
+            renderArchiveSlots();
+        });
+
+        row.appendChild(info);
+        row.appendChild(saveBtn);
+        row.appendChild(loadBtn);
+        row.appendChild(delBtn);
+        container.appendChild(row);
+    });
+}
+
+document.getElementById('show-archive-btn').addEventListener('click', () => {
+    renderArchiveSlots();
+    document.getElementById('archive-modal').classList.remove('hidden');
+});
+
+document.getElementById('close-archive-modal').addEventListener('click', () => {
+    document.getElementById('archive-modal').classList.add('hidden');
+});
+
+// ===== 结局图鉴 =====
+function renderGallery() {
+    const achieved = getAchievedEndings();
+    const grid = document.getElementById('gallery-grid');
+    grid.innerHTML = '';
+    Object.entries(endings)
+        .sort((a, b) => a[1].id - b[1].id)
+        .forEach(([key, ending]) => {
+            const unlocked = achieved.includes(key);
+            const card = document.createElement('div');
+            card.className = 'gallery-card ' + (unlocked ? 'achieved' : 'locked');
+            card.innerHTML = `
+                <span class="gallery-card-no">No.${String(ending.id).padStart(2, '0')}</span>
+                <span class="gallery-card-title">${ending.title}</span>`;
+            if (unlocked) {
+                card.addEventListener('click', () => showGalleryDetail(ending));
+            }
+            grid.appendChild(card);
+        });
+    document.getElementById('gallery-grid').classList.remove('hidden');
+    document.getElementById('gallery-detail').classList.add('hidden');
+}
+
+function showGalleryDetail(ending) {
+    document.getElementById('gallery-detail-title').textContent = ending.title;
+    document.getElementById('gallery-detail-text').textContent = ending.text;
+    document.getElementById('gallery-grid').classList.add('hidden');
+    document.getElementById('gallery-detail').classList.remove('hidden');
+}
+
+document.getElementById('show-gallery-btn').addEventListener('click', () => {
+    renderGallery();
+    document.getElementById('gallery-modal').classList.remove('hidden');
+});
+
+document.getElementById('gallery-detail-back').addEventListener('click', renderGallery);
+
+document.getElementById('close-gallery-modal').addEventListener('click', () => {
+    document.getElementById('gallery-modal').classList.add('hidden');
 });

@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=1.0, maximum-scale=5.0">
-    <title>ACM球队总监模拟器1.0</title>
+    <title>ACM球队总监模拟器1.2</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="game-container">
-        <h1>ACM球队总监模拟器1.0</h1>
+        <h1>ACM球队总监模拟器1.2</h1>
         
         <!-- 测试反馈弹窗 -->
         <div id="test-notice-modal" class="modal hidden">
             <div class="modal-content test-notice-content">
                 <h2>*测试*</h2>
-                <p class="test-notice-intro">您现在游玩的是一个简陋的测试版本，目前只填充了主线第一章的剧情。目前有（17/？）个随机事件，（16/？）个结局。点击右下方的灰色结局按钮可以直达结局，方便您查看不同数值带来的影响。您可以从下面几个方面给出反馈：</p>
+                <p class="test-notice-intro">您现在游玩的是一个简陋的测试版本。目前有（17/？）个随机事件，（17/？）个结局。1.2版本加入了存档、赛程、排名、结局图鉴、第二章主线故事。并对难度进行了修正，困难模式下，第二章大概只有1/3的通过率。中等难度下，第二章有80%的通过率。点击右下方的灰色结局按钮可以直达结局，方便您查看不同数值带来的影响。您可以从下面几个方面给出反馈：</p>
                 <ol class="test-notice-list">
                     <li>UI设计太老土了/整体风格不合/某些地方的设计有问题</li>
                     <li>剧情不符合预期/我想看到每个选项带来的数值变化/不懂这个地方为什么会加减某项数值</li>
@@ -106,6 +106,107 @@
             </div>
         </div>
         
+        <!-- 转会市场弹窗 -->
+        <div id="transfer-market-modal" class="modal hidden">
+            <div class="modal-content tm-panel">
+                <div class="tm-header">
+                    <div class="tm-header-left">
+                        <div class="tm-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+                        </div>
+                        <div>
+                            <div class="tm-season-label" id="tm-season-label">转会市场 · 第二赛季</div>
+                            <div class="tm-window-title" id="tm-window-title">夏季转会窗</div>
+                        </div>
+                    </div>
+                    <div class="tm-header-right">
+                        <div class="tm-stat-chip">
+                            <div class="tm-chip-label">剩余预算</div>
+                            <div class="tm-chip-value" id="tm-budget">€1000万</div>
+                        </div>
+                        <div class="tm-stat-chip">
+                            <div class="tm-chip-label">引援名额</div>
+                            <div class="tm-chip-value" id="tm-slots">3/3</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tm-section-title">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+                    可签入球员
+                </div>
+                <div class="tm-players-grid" id="tm-buy-players"></div>
+                <div class="tm-pagination" id="tm-buy-pagination"></div>
+                <div class="tm-section-title">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7 7 7-7"/></svg>
+                    可出售套现
+                </div>
+                <div class="tm-sell-players" id="tm-sell-players"></div>
+                <div class="tm-footer">
+                    <div class="tm-strength-info">球员状态 <span id="tm-strength-before">50</span> <span class="tm-arrow">→</span> <span id="tm-strength-after">50</span></div>
+                    <button id="tm-close-btn">关闭转会窗，继续赛季。</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 赛程弹窗 -->
+        <div id="schedule-modal" class="modal hidden">
+            <div class="modal-content schedule-content">
+                <h2 id="schedule-modal-title">本赛季赛程</h2>
+                <div class="season-intro-rule"></div>
+                <div id="schedule-list"></div>
+                <button id="close-schedule-modal">关闭</button>
+            </div>
+        </div>
+
+        <!-- 历史数值弹窗 -->
+        <div id="history-modal" class="modal hidden">
+            <div class="modal-content history-content">
+                <h2>决策记录</h2>
+                <div class="season-intro-rule"></div>
+                <div id="history-list"></div>
+                <button id="close-history-modal">关闭</button>
+            </div>
+        </div>
+
+        <!-- 存档弹窗 -->
+        <div id="archive-modal" class="modal hidden">
+            <div class="modal-content archive-content">
+                <h2>游戏存档</h2>
+                <div class="season-intro-rule"></div>
+                <div id="archive-slots"></div>
+                <button id="close-archive-modal">关闭</button>
+            </div>
+        </div>
+
+        <!-- 排名弹窗 -->
+        <div id="standings-modal" class="modal hidden">
+            <div class="modal-content standings-content">
+                <h2>意甲积分榜</h2>
+                <div class="season-intro-rule"></div>
+                <div class="standings-legend">
+                    <span><i class="zone-dot zone-ucl"></i>欧冠区</span>
+                    <span><i class="zone-dot zone-uel"></i>欧联区</span>
+                </div>
+                <div id="standings-list"></div>
+                <button id="close-standings-modal">关闭</button>
+            </div>
+        </div>
+
+        <!-- 结局图鉴弹窗 -->
+        <div id="gallery-modal" class="modal hidden">
+            <div class="modal-content gallery-content">
+                <h2>结局图鉴</h2>
+                <div class="season-intro-rule"></div>
+                <div id="gallery-grid"></div>
+                <div id="gallery-detail" class="hidden">
+                    <h3 id="gallery-detail-title"></h3>
+                    <p id="gallery-detail-text"></p>
+                    <button id="gallery-detail-back">返回</button>
+                </div>
+                <button id="close-gallery-modal">关闭</button>
+            </div>
+        </div>
+
         <!-- 难度选择 -->
         <div id="difficulty-selection" class="hidden">
             <h2>选择难度</h2>
@@ -192,27 +293,7 @@
                 </div>
             </div>
             
-            <!-- 方框二：变量 -->
-            <div class="variables-box">
-                <div class="last-score-panel">
-                    <div class="panel-label">上一轮比赛结果</div>
-                    <div class="last-score-value">
-                        <span id="last-score-home">AC Milan</span>
-                        <span id="last-score-num">-</span>
-                        <span id="last-score-away"></span>
-                    </div>
-                </div>
-                <div class="summary-grid">
-                    <div class="variable">积分：<span id="points">0</span></div>
-                    <div class="variable">排名：<span id="ranking">1</span></div>
-                    <div class="variable">轮次：<span class="value" id="round-value"><span id="round">0</span><span class="slash">/38</span></span></div>
-                    <div class="variable">预算：<span id="budget">1000万欧元</span></div>
-                </div>
-            </div>
-            
-            <button id="show-tasks-btn">赛季任务</button>
-
-            <!-- 方框三：事件和开始比赛 -->
+            <!-- 方框二：事件和开始比赛 -->
             <div class="events-box">
                 <div class="events-list">
                     <button class="event-btn" data-event="1">周例会<br>汇报</button>
@@ -233,9 +314,40 @@
                 </div>
                 <button id="start-match" disabled>开始比赛</button>
             </div>
+
+            <!-- 方框三：变量 -->
+            <div class="variables-box">
+                <div class="last-score-panel">
+                    <div class="panel-label">上一轮比赛结果</div>
+                    <div class="last-score-value">
+                        <span id="last-score-home">AC Milan</span>
+                        <span id="last-score-num">-</span>
+                        <span id="last-score-away"></span>
+                    </div>
+                </div>
+                <div class="summary-grid">
+                    <div class="variable">积分：<span id="points">0</span></div>
+                    <div class="variable">排名：<span id="ranking">1</span></div>
+                    <div class="variable">轮次：<span class="value" id="round-value"><span id="round">0</span><span class="slash">/38</span></span></div>
+                    <div class="variable">预算：<span id="budget">1000万欧元</span></div>
+                </div>
+            </div>
+
+            <!-- 底部按钮 -->
+            <div class="bottom-btn-row">
+                <button id="show-tasks-btn">赛季任务</button>
+                <button id="show-schedule-btn">赛程</button>
+                <button id="show-standings-btn">排名</button>
+                <button id="show-history-btn">决策记录</button>
+            </div>
+            <div class="meta-btn-row">
+                <button id="show-archive-btn">游戏存档</button>
+                <button id="show-gallery-btn">结局图鉴</button>
+            </div>
         </div>
     </div>
     
+    <button id="next-chapter-btn">下一章</button>
     <button id="test-ending-btn">结局</button>
     <script src="script.js"></script>
 </body>
