@@ -3,35 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=1.0, maximum-scale=5.0">
-    <title>ACM球队总监模拟器1.2</title>
+    <title>ACM球队总监模拟器1.5</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="game-container">
-        <h1>ACM球队总监模拟器1.2</h1>
+        <h1>ACM球队总监模拟器1.5</h1>
         
-        <!-- 测试反馈弹窗 -->
-        <div id="test-notice-modal" class="modal hidden">
+        <!-- 创作者声明（开场第一屏） -->
+        <div id="test-notice-modal" class="modal">
             <div class="modal-content test-notice-content">
-                <h2>*测试*</h2>
-                <p class="test-notice-intro">您现在游玩的是一个简陋的测试版本。目前有（17/？）个随机事件，（17/？）个结局。1.2版本加入了存档、赛程、排名、结局图鉴、第二章主线故事。并对难度进行了修正，困难模式下，第二章大概只有1/3的通过率。中等难度下，第二章有80%的通过率。点击右下方的灰色结局按钮可以直达结局，方便您查看不同数值带来的影响。您可以从下面几个方面给出反馈：</p>
+                <h2>创作者声明</h2>
+                <p class="test-notice-intro">当前版本为：1.5</p>
+                <p class="test-notice-intro">您在游玩中遇到的 bug 可以通过 <strong>wb@加酸黄瓜三明治</strong> 反馈！如果您担心被屏蔽，也可以发送邮件至 <strong>lanviofs@gmail.com</strong>。</p>
+                <p class="test-notice-intro">从模拟数据来看，困难模式的综合通关率仅有 1/3，如您选择困难模式，请善用存档功能。</p>
+                <p class="test-notice-intro">您可以从以下方面提出建议：</p>
                 <ol class="test-notice-list">
-                    <li>UI设计太老土了/整体风格不合/某些地方的设计有问题</li>
-                    <li>剧情不符合预期/我想看到每个选项带来的数值变化/不懂这个地方为什么会加减某项数值</li>
-                    <li>可玩性不够/对某些事件持反对意见/应该加入某些事件</li>
-                    <li>剧情丰富程度不够/随机事件太少</li>
-                    <li>难度太高/难度太低</li>
-                    <li>错别字/不符合事实</li>
-                    <li>我有想穿插的随机事件/主线剧情</li>
-                    <li>我有其他问题</li>
+                    <li>UI设计问题/页面风格问题</li>
+                    <li>剧情不符合预期/随机事件触发问题</li>
+                    <li>可玩性不够/应该加入某些事件</li>
+                    <li>错别字</li>
+                    <li>难度太高/太低</li>
+                    <li>我有其他建议</li>
                 </ol>
-                <p class="test-notice-contact">您可以通过 <strong>wb@加酸黄瓜三明治</strong> 反馈！如果您担心被屏蔽，也可以发送邮件至 <strong>lanviofs@gmail.com</strong>。不用在意邮件格式，但最好署名，方便我回复您。</p>
+                <p class="test-notice-contact">特别感谢：<br>@同人女终有一报 提供了大量测试建议<br>@金卷兰舶 提供了大量有关事件和测试的建议<br>@黒直/@NakedDream 绘制了结局CG并提供了测试建议<br>@清灯晓 提供了大量测试建议</p>
                 <button id="close-test-notice">了解</button>
             </div>
         </div>
 
         <!-- 弹窗事件 -->
-        <div id="event-modal" class="modal">
+        <div id="event-modal" class="modal hidden">
             <div class="modal-content">
                 <h2>马尔蒂尼上任</h2>
                 <p>2018年8月初，AC米兰宣布俱乐部传奇保罗·马尔蒂尼将以管理层身份回归，结束自2009年退役后长达九年的缺席。</p>
@@ -54,7 +55,8 @@
                 <div class="ending-label">结　局</div>
                 <h2 id="ending-title"></h2>
                 <div class="ending-rule"></div>
-                <p id="ending-text"></p>
+                <img id="ending-image" class="ending-image hidden" alt="">
+                <div id="ending-text"></div>
                 <button id="restart-game">重新开始</button>
             </div>
         </div>
@@ -148,6 +150,43 @@
             </div>
         </div>
 
+        <!-- 续约谈判弹窗 -->
+        <div id="negotiation-modal" class="modal hidden">
+            <div class="modal-content neg-panel">
+                <div class="neg-header">
+                    <div class="neg-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h4"/></svg>
+                    </div>
+                    <div class="neg-head-text">
+                        <div class="neg-title" id="neg-title">续约谈判 · 第一赛季</div>
+                        <div class="neg-subtitle" id="neg-subtitle">意大利门神 · 合同到期在即</div>
+                    </div>
+                    <div class="neg-round" id="neg-round">回合 1 / 4</div>
+                </div>
+                <div class="neg-agent-box">
+                    <div class="neg-quote">“</div>
+                    <div class="neg-agent" id="neg-agent"></div>
+                </div>
+                <div class="neg-bar-area">
+                    <div class="neg-bar-top">
+                        <span class="neg-bar-label">续约意向</span>
+                        <span class="neg-value" id="neg-value">45 / 100</span>
+                    </div>
+                    <div class="neg-bar">
+                        <div class="neg-marker" id="neg-marker"></div>
+                    </div>
+                    <div class="neg-bar-labels">
+                        <span class="neg-lab-red">谈崩 &lt;40</span>
+                        <span class="neg-lab-yellow">拉锯中</span>
+                        <span class="neg-lab-green">续约 ≥70</span>
+                    </div>
+                </div>
+                <div class="neg-delta hidden" id="neg-delta"></div>
+                <div class="neg-pending" id="neg-pending"></div>
+                <div class="neg-options" id="neg-options"></div>
+            </div>
+        </div>
+
         <!-- 赛程弹窗 -->
         <div id="schedule-modal" class="modal hidden">
             <div class="modal-content schedule-content">
@@ -200,8 +239,8 @@
                 <div id="gallery-grid"></div>
                 <div id="gallery-detail" class="hidden">
                     <h3 id="gallery-detail-title"></h3>
-                    <p id="gallery-detail-text"></p>
-                    <button id="gallery-detail-back">返回</button>
+                    <img id="gallery-detail-image" class="ending-image hidden" alt="">
+                    <div id="gallery-detail-text"></div>
                 </div>
                 <button id="close-gallery-modal">关闭</button>
             </div>
@@ -291,8 +330,18 @@
                         </div>
                     </div>
                 </div>
+                <div class="stat-card suspicion-card hidden" id="suspicion-card">
+                    <div class="suspicion-label">红鸟的不满</div>
+                    <div class="suspicion-dots">
+                        <span class="suspicion-dot"></span>
+                        <span class="suspicion-dot"></span>
+                        <span class="suspicion-dot"></span>
+                        <span class="suspicion-dot"></span>
+                        <span class="suspicion-dot"></span>
+                    </div>
+                </div>
             </div>
-            
+
             <!-- 方框二：事件和开始比赛 -->
             <div class="events-box">
                 <div class="events-list">
@@ -309,10 +358,10 @@
                     <p id="event-description"></p>
                     <div id="option-buttons"></div>
                 </div>
-                <div class="decision-points">
-                    决策点：<span id="decision-points">0</span>/2
+                <div class="match-bar">
+                    <div class="decision-points">决策点：<span id="decision-points">0</span>/2</div>
+                    <button id="start-match" disabled>开始比赛</button>
                 </div>
-                <button id="start-match" disabled>开始比赛</button>
             </div>
 
             <!-- 方框三：变量 -->
@@ -341,6 +390,7 @@
                 <button id="show-history-btn">决策记录</button>
             </div>
             <div class="meta-btn-row">
+                <button id="magic-phone-btn" class="magic-phone-btn hidden">魔力电话</button>
                 <button id="show-archive-btn">游戏存档</button>
                 <button id="show-gallery-btn">结局图鉴</button>
             </div>
