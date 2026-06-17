@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=1.0, maximum-scale=5.0">
     <title>ACM球队总监模拟器1.5</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Umami 访问统计 -->
+    <script defer src="https://cloud.umami.is/script.js" data-website-id="15f089cb-1e59-488e-a4d8-b9e6b1952431"></script>
 </head>
 <body>
     <div id="game-container">
@@ -145,7 +147,7 @@
                 <div class="tm-sell-players" id="tm-sell-players"></div>
                 <div class="tm-footer">
                     <div class="tm-strength-info">球员状态 <span id="tm-strength-before">50</span> <span class="tm-arrow">→</span> <span id="tm-strength-after">50</span></div>
-                    <button id="tm-close-btn">关闭转会窗，继续赛季。</button>
+                    <button id="tm-close-btn">关闭转会窗，继续赛季</button>
                 </div>
             </div>
         </div>
@@ -225,6 +227,7 @@
                 <div class="standings-legend">
                     <span><i class="zone-dot zone-ucl"></i>欧冠区</span>
                     <span><i class="zone-dot zone-uel"></i>欧联区</span>
+                    <span><i class="zone-dot zone-releg"></i>降级区</span>
                 </div>
                 <div id="standings-list"></div>
                 <button id="close-standings-modal">关闭</button>
@@ -383,16 +386,18 @@
             </div>
 
             <!-- 底部按钮 -->
-            <div class="bottom-btn-row">
-                <button id="show-tasks-btn">赛季任务</button>
-                <button id="show-schedule-btn">赛程</button>
-                <button id="show-standings-btn">排名</button>
-                <button id="show-history-btn">决策记录</button>
-            </div>
-            <div class="meta-btn-row">
-                <button id="magic-phone-btn" class="magic-phone-btn hidden">魔力电话</button>
-                <button id="show-archive-btn">游戏存档</button>
-                <button id="show-gallery-btn">结局图鉴</button>
+            <div class="btn-rows-box">
+                <div class="bottom-btn-row">
+                    <button id="show-tasks-btn">赛季任务</button>
+                    <button id="show-schedule-btn">赛程</button>
+                    <button id="show-standings-btn">排名</button>
+                    <button id="show-history-btn">决策记录</button>
+                </div>
+                <div class="meta-btn-row">
+                    <button id="magic-phone-btn" class="magic-phone-btn hidden">魔力电话</button>
+                    <button id="show-archive-btn">游戏存档</button>
+                    <button id="show-gallery-btn">结局图鉴</button>
+                </div>
             </div>
         </div>
     </div>

@@ -335,6 +335,7 @@ button:hover {
 
 #random-event-description {
     font-style: italic;
+    color: #000000;
 }
 
 #random-event-modal.warning .modal-content {
@@ -452,19 +453,22 @@ button:hover {
 .random-event-option {
     display: block;
     width: 100%;
-    background-color: #8B0000;
-    color: white;
-    border: none;
+    background-color: rgba(139, 0, 0, 0.07);   /* 淡红底，让方框可辨认 */
+    color: #8B0000;                            /* 红字 */
+    border: 1.5px solid rgba(139, 0, 0, 0.55); /* 明显红描边，与正文区分 */
     padding: 10px;
     margin: 5px 0;
     border-radius: 5px;
     cursor: pointer;
     text-align: left;
     font-size: 1em;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .random-event-option:hover {
-    background-color: #DC143C;
+    background-color: #8B0000;   /* 悬停：变回现在的红色（实心红） */
+    color: white;
+    border-color: #8B0000;
 }
 
 /* 主界面 */
@@ -499,7 +503,8 @@ button:hover {
     min-width: 0;
     box-sizing: border-box;
     align-self: stretch;
-    background: #FBF5E8;
+    background: #FBF3E4;
+    border: 1px solid #EBDFC9;
     border-radius: 18px;
     padding: 8px 10px;
     box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
@@ -1219,15 +1224,15 @@ button:hover {
 .ucl-final-pct { font-size: 0.92rem; font-weight: 700; color: #2c4a6e; margin-top: 6px; }
 .ucl-final-vs { font-size: 0.78rem; font-weight: 700; color: #8aa4c2; flex-shrink: 0; }
 
-.ucl-final-evals { font-size: 0.78rem; color: #2c4a6e; line-height: 1.7; margin-bottom: 12px; }
-.ucl-final-evals span {
-    display: inline-block; min-width: 2.6em; margin-right: 6px;
-    color: #1e5a9e; font-weight: 700;
+.ucl-final-venue {
+    text-align: center; font-size: 0.78rem; color: #2c4a6e;
+    letter-spacing: 0.08em; margin-bottom: 14px;
 }
 .ucl-final-narr {
     font-size: 0.86rem; color: #1d2b3e; line-height: 1.85;
     text-align: justify; font-family: Georgia, 'Times New Roman', serif;
 }
+.ucl-final-narr + .ucl-final-narr { margin-top: 10px; }
 
 #random-event-modal.ucl .random-event-option {
     background: transparent;
@@ -1431,10 +1436,8 @@ button:hover {
 }
 
 /* 底部四按钮行 */
-.bottom-btn-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+/* 赛季任务与游戏存档合并为一个大方框，两组按钮之间用细线隔开 */
+.btn-rows-box {
     border: 2px solid #1c1916;
     border-radius: 14px;
     margin: 10px 0;
@@ -1442,15 +1445,19 @@ button:hover {
     background-color: #F5F5DC;
 }
 
+.bottom-btn-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+
 .meta-btn-row {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    border: 2px solid #1c1916;
-    border-radius: 14px;
-    margin: 10px 0;
-    padding: 12px;
-    background-color: #F5F5DC;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(28, 25, 22, 0.25);
 }
 
 /* 魔力电话道具按钮（紫色勾线，并入"游戏存档"方框，尺寸与其一致）*/
@@ -1772,7 +1779,7 @@ button:hover {
         padding: 12px 14px;
     }
     
-    .stats-box, .variables-box, .events-box, .bottom-btn-row, .meta-btn-row {
+    .stats-box, .variables-box, .events-box, .btn-rows-box {
         padding: 12px;
     }
     
@@ -2004,6 +2011,7 @@ button:hover {
 .zone-dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
 .zone-dot.zone-ucl { background: #2f6ea1; }
 .zone-dot.zone-uel { background: #c8841e; }
+.zone-dot.zone-releg { background: #8a8a8a; }
 
 #standings-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 12px; }
 
@@ -2022,6 +2030,7 @@ button:hover {
 
 .standings-row.zone-ucl { border-left-color: #2f6ea1; }
 .standings-row.zone-uel { border-left-color: #c8841e; }
+.standings-row.zone-releg { border-left-color: #8a8a8a; }
 
 .standings-row.is-milan {
     background: rgba(139, 0, 0, 0.08);

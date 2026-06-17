@@ -25,9 +25,12 @@ let gameStats = {
     lastScore: '-',
     lastOpponentDisplay: '',
     consecutiveNonWins: 0,
+    consecutiveLosses: 0,
+    usedRandomEvents: [],
     southStandEventUsed: false,
     betKingEventUsed: false,
     rebateEventCount: 0,
+    randomPity: 0,
     transferEventUsed: false,
     carCrashEventUsed: false,
     sinkOrSwimEventUsed: false,
@@ -380,25 +383,25 @@ const randomEvents = {
     transferRightsA: {
         title: "转会操作权",
         mainline: true,
-        description: "你花了一个周末的时间制作了更详尽的方案，由于你在上个赛季的表现深得管理层的信任，他们为你增加了一点预算，你可以在本次夏窗购入最多【四名】球员。本轮比赛结束后，将开启夏季转会窗。",
+        description: "你花了一个周末的时间制作了更详尽的方案，由于你在上个赛季的表现深得管理层的信任，他们为你增加了一点预算，你可以在本次夏窗购入最多【四名】球员。<br>本轮比赛结束后，将开启夏季转会窗。",
         options: [{ text: "了解", effects: { budget: 500 }, transferSlots: 4 }]
     },
     transferRightsB: {
         title: "转会操作权",
         mainline: true,
-        description: "你留下了一部分老将，由于你在上个赛季的表现深得管理层的信任，他们为你增加了一点预算你可以在本次夏窗最多购入【两名】球员。本轮比赛结束后，将开启夏季转会窗。",
+        description: "你留下了一部分老将，由于你在上个赛季的表现深得管理层的信任，他们为你增加了一点预算你可以在本次夏窗最多购入【两名】球员。<br>本轮比赛结束后，将开启夏季转会窗。",
         options: [{ text: "了解", effects: { budget: 500 }, transferSlots: 2 }]
     },
     transferRightsC: {
         title: "转会操作权",
         mainline: true,
-        description: "你的决定在球迷中引起了一部分讨论，他们倍受喜爱的球员有可能在夏窗被出售，他们在球员的社交媒体下疯狂发消息。他们的态度如何变化，就要看这个夏天你签下的球员是否能让他们满意了。你可以在本次夏窗最多购入【三名】球员。本轮比赛结束后，将开启夏季转会窗。",
+        description: "你的决定在球迷中引起了一部分讨论，他们倍受喜爱的球员有可能在夏窗被出售，他们在球员的社交媒体下疯狂发消息。他们的态度如何变化，就要看这个夏天你签下的球员是否能让他们满意了。你可以在本次夏窗最多购入【三名】球员。<br>本轮比赛结束后，将开启夏季转会窗。",
         options: [{ text: "了解", effects: { fans: -1 }, transferSlots: 3 }]
     },
     transferRightsD: {
         title: "转会操作权",
         mainline: true,
-        description: "在新人和老将之间做取舍是一个痛苦的决定，你认为不能大刀阔斧的变革，仅仅清理一部分不适合的球员就够了。这个夏窗，你暂时没有太多的决定权。你可以在本次夏窗最多购入【一名】球员。本轮比赛结束后，将开启夏季转会窗。",
+        description: "在新人和老将之间做取舍是一个痛苦的决定，你认为不能大刀阔斧的变革，仅仅清理一部分不适合的球员就够了。这个夏窗，你暂时没有太多的决定权。你可以在本次夏窗最多购入【一名】球员。<br>本轮比赛结束后，将开启夏季转会窗。",
         options: [{ text: "了解", effects: {}, transferSlots: 1 }]
     },
     ffp1: {
@@ -524,15 +527,6 @@ const randomEvents = {
         no: "01",
         source: "Goal.com",
         content: "这桩悬念终于接近尾声。据天空体育报道，伊布已经在当天对回归红黑军团给出了肯定的答复：要么现在，要么永不——答案是“yes”。\n对伊布拉希莫维奇来说，重返米兰将发生在他首次加盟米兰十年之后。这位前巴黎圣日尔曼球员曾在阿莱格里手下度过两个赛季，并赢得一座意甲冠军——那是尤文图斯绝对统治时代到来前米兰赢得的最后一座。自那以后，米兰经历了巨大的失望，如今，他们决心正是要靠着这位瑞典人在联赛中重新崛起。",
-        options: [
-            { text: "继续", effects: {} }
-        ]
-    },
-    newsTomori: {
-        title: "转会内幕：托莫里忆加盟米兰细节",
-        newsStyle: true,
-        source: "The Athletic",
-        content: "当我把这件事告诉支持我的爸爸时，他的第一个问题竟然是：“保罗·马尔蒂尼为什么要找你说话？”\n哈哈哈！真谢谢您啊，老爸。\n我向他解释说，马尔蒂尼是AC米兰的体育总监，他打电话来是想探探我的口风，看我有没有兴趣租借过去。其实在整个 Zoom 通话过程中，我自己也完全不敢相信。我就坐在那儿看着他，听着他说话，但脑子里根本没真正反应过来。\n心里一直在想：这真的是保罗·马尔蒂尼啊。我居然在和保罗·马尔蒂尼聊天。哪怕以后什么都没发生，我至少也能吹一辈子：我和保罗·马尔蒂尼说过话。\n我爸爸是米兰的超级粉丝，他是尼日利亚人，从小就追随最顶级的欧洲足球。在他那个年代，米兰就是足坛的霸主——感觉他们每年都在拿欧冠冠军。当他意识到我接到的电话是真的以后，他兴奋得不行，甚至开始给我上起了米兰的历史课。我只能坐在那儿，心想：“行了，谢谢您嘞。我好歹也算懂点足球吧。”",
         options: [
             { text: "继续", effects: {} }
         ]
@@ -691,7 +685,7 @@ const randomEvents = {
     buyoutTomori: {
         title: "买断我！保罗！",
         mainline: true,
-        description: "正在你为即将到来的夏窗焦头烂额时，同事给你转发了一段视频。视频中，一位上赛季租借来米兰的英格兰球员在一次私下聚会中喝醉了酒，他紧紧搂着丹尼尔·马尔蒂尼，对着镜头大喊：“买断我！保罗！”。<br>球队的决策不是由你一人做出，在此刻，你选择：",
+        description: "正在你为即将到来的夏窗焦头烂额时，同事给你转发了一段视频。视频中，一位上赛季租借来米兰的意大利球员在一次私下聚会中喝醉了酒，他紧紧搂着丹尼尔·马尔蒂尼，对着镜头大喊：“买断我！保罗！”。<br>球队的决策不是由你一人做出，在此刻，你选择：",
         options: [
             { text: "尽力在转会窗中优先买断这名球员。", effects: {}, disc04: 500 },
             { text: "以球队现在的状况，还得降价才能买得起。", effects: {}, disc04: 700 },
@@ -1074,12 +1068,12 @@ const endings = {
         title: "明天",
         hidden: true,
         image: "Special_Ending_1.jpg",
-        text: () => `尽管你对资方已经足够谨慎，在赛季结束时，你仍然被开除了。这次是什么原因？你知道没有一个总监能做的比你更好了，在任期中，米兰获得了${gameStats.scudettoCount}次联赛冠军，${gameStats.uclTitleCount}次欧冠冠军，管理层最开始给你定下的目标已经被超额完成。
+        text: () => { const _ts = getTomorrowStats(); const _sc = _ts ? _ts.s : gameStats.scudettoCount; const _uc = _ts ? _ts.u : gameStats.uclTitleCount; return `尽管你对资方已经足够谨慎，在赛季结束时，你仍然被开除了。这次是什么原因？你知道没有一个总监能做的比你更好了，在任期中，米兰获得了${_sc}次联赛冠军，${_uc}次欧冠冠军，管理层最开始给你定下的目标已经被超额完成。
 红鸟资本所引入的经营球队的观念让你无法理解，你们谁也无法说服对方。爆发了数次摩擦后，管理层认为解决人比解决事更容易。
 你离开后的一切都是可预知的：管理层会分批卖掉那些已经踢出来的小将，回收资金。然后利用那套数据系统买入新一批球员，让球队的排名能够稳定在前四，在接下来的几年中，不断执行这个循环——如果真能这么顺利的话。
 在你离开米兰内洛的一个月后，某天早上醒来，一位中间人给你发来消息，曾经接触过收购案的新资方想要联系你，他们资金状况良好，愿意投资，最重要的是，他们不会深度参与球队的日常决策。
 新的资方看到了米兰的潜力，以及前几年的惊人成绩，米兰复苏的速度令欧洲足坛震惊。新资方想邀请你重新回到米兰，继续你未完成的事业，你会考虑吗？
-你不知道新资方管理下的米兰会是什么样的，但你确定，被红鸟管理的、可预见的那个未来，一定不是米兰的球迷和球员希望发生的。`
+你不知道新资方管理下的米兰会是什么样的，但你确定，被红鸟管理的、可预见的那个未来，一定不是米兰的球迷和球员希望发生的。`; }
     }
 };
 
@@ -1142,6 +1136,12 @@ const teams = [
     { name: '切沃', category: 'low' }
 ];
 
+// 意乙池：每赛季垫底3队降级后，从这里随机抽3队补入意甲（均归为弱队）
+const serieBTeams = ['帕尔马', '科莫', '威尼斯', '克雷莫纳', '卡坦扎罗', '巴勒莫', '布雷西亚', '科森扎'];
+
+// 当前意甲池（不含 AC Milan），随升降级动态变化；新游戏时由 teams 复制
+let serieATeams = teams.map(t => ({ ...t }));
+
 let currentRandomEvents = [];
 let randomEventIndex = 0;
 let pendingWarnings = [];
@@ -1169,11 +1169,23 @@ function initializeLeague() {
     leagueTeams = [
         { name: 'AC Milan', category: 'strong', points: 0 }
     ];
-    leagueTeams.push(...teams.map(team => ({
+    leagueTeams.push(...serieATeams.map(team => ({
         name: team.name,
         category: team.category,
         points: 0
     })));
+}
+
+// 赛季末升降级：上赛季垫底3队降入意乙，从意乙池随机抽3队（弱队）补入意甲池
+function applyRelegation() {
+    const ranked = leagueTeams.slice().sort((a, b) => b.points - a.points);
+    const relegated = ranked.filter(t => t.name !== 'AC Milan').slice(-3).map(t => t.name);
+    const survivors = serieATeams.filter(t => !relegated.includes(t.name));
+    const survivorNames = survivors.map(t => t.name);
+    // 候选：意乙池中不在意甲、且非本赛季刚降级的球队
+    const candidates = serieBTeams.filter(n => !survivorNames.includes(n) && !relegated.includes(n));
+    const promoted = candidates.sort(() => Math.random() - 0.5).slice(0, 3).map(name => ({ name, category: 'low' }));
+    serieATeams = survivors.concat(promoted);
 }
 
 function getTeamByName(name) {
@@ -1296,6 +1308,7 @@ function playRound(opponentName) {
         score = `${ourGoals}:${theirGoals}`;
         gameStats.points += 3;
         gameStats.consecutiveNonWins = 0;
+        gameStats.consecutiveLosses = 0;   // 赢球清零连败
         gameStats.southStandEventUsed = false;
         if (opponentName === '国际米兰') {
             gameStats.derbyWinEventPending = true;
@@ -1324,6 +1337,7 @@ function playRound(opponentName) {
         }
         opponent.points += 3;
         gameStats.consecutiveNonWins += 1;
+        gameStats.consecutiveLosses += 1;   // 仅输球累加；平局不增不减（见 draw 分支）
         if (opponentName === '国际米兰') {
             gameStats.derbyLossEventPending = true;
         }
@@ -1606,12 +1620,22 @@ function showEnding(endingKey) {
     currentEndingKey = endingKey;
     galleryPreview = false;
     gameStats.gameEnded = true;
+    if (endingKey === 'tomorrow') saveTomorrowStats(); // 记录触发时的冠军数，供图鉴预览
     if (!ending.epilogue) recordAchievedEnding(endingKey); // 尾声卡片不计入图鉴
     renderEndingCard(ending, false);
 }
 
 // ===== 结局图鉴（跨存档持久化）=====
 const ENDINGS_KEY = 'acm_endings_v1';
+
+// "明天"结局触发时的意甲/欧冠冠军数快照，供结局图鉴预览时填充
+const TOMORROW_STATS_KEY = 'acm_ending_tomorrow_v1';
+function saveTomorrowStats() {
+    try { localStorage.setItem(TOMORROW_STATS_KEY, JSON.stringify({ s: gameStats.scudettoCount, u: gameStats.uclTitleCount })); } catch {}
+}
+function getTomorrowStats() {
+    try { return JSON.parse(localStorage.getItem(TOMORROW_STATS_KEY)); } catch { return null; }
+}
 
 function getAchievedEndings() {
     try { return JSON.parse(localStorage.getItem(ENDINGS_KEY)) || []; }
@@ -1705,11 +1729,12 @@ function updateProgressBar(barId, value) {
 function initializeGame(difficulty) {
     // 初始化数值
     const initVal = difficulty === 'hard' ? 40 : 50;
-    gameStats = { trust: initVal, media: initVal, fans: initVal, player: initVal, budget: 1000, points: 0, ranking: 1, round: 0, lastScore: '', lastOpponentDisplay: '', consecutiveNonWins: 0, southStandEventUsed: false, betKingEventUsed: false, rebateEventCount: 0, transferEventUsed: false, carCrashEventUsed: false, sinkOrSwimEventUsed: false, bigDataEventUsed: false, derbyLossEventPending: false, derbyWinEventPending: false, warningEventShown: false, gameEnded: false, season: 1, futureRandomEvents: [], usedMainlineEvents: [], newCoachDone: false, xmasDone: false, oldFriendDone: false, winterWindowDone: false, winterSlotBonus: 0, winterReturnCost: 0, signedPlayers: [], news01Pending: false, news01Done: false, effectiveDone: false, lockerBrawlPending: false, lockerBrawlDone: false, supportTaskActive: false, zlatanSupport: 0, wonScudetto1: false, hasUCL: false, uclBanNextSeason: false, uclFixtures: null, uclStage: null, uclQualified: false, uclGroupPos: 0, uclOutRound: 0, euroType: 'ucl', lastSeasonRanking: 0, uclTagShown: false, mug1Done: false, mug2Done: false, mugPactDone: false, mugPactPending: false, player07WinterCost: 0, player07Trust: 0, player07Removed: false, player01Trust: 0, emoOutburstDone: false, nextLeftBack3Done: false, transferRumorDone: false, donnaNegoDone: false, summerWarnShown: false, winterWarnShown: false, player04Discount: 0, buyoutTomoriDone: false, overtimeFineUsed: false, tomoriNewsPending: false, tomoriNewsDone: false, leaoNewsPending: false, leaoNewsDone: false, betKing1Done: false, betKing2Done: false, betKing3Done: false, betKingSkip: false, betKingResolved: false, farCallDone: false, magicPhoneUnlocked: false, magicPhoneUses: 0, scudettoCount: 0, uclTitleCount: 0, season4TitlesBefore: 0, uclReachedFinal: false, suspicion: 0, hesitantContract1Done: false, hesitantContract2Done: false, omniscient1Done: false, omniscient2Done: false, pressOfficerDone: false, nextLeftBack4Done: false, leftBack4Resolved: false, southStandTalkDone: false, southStandPending: false, footballDisputeDone: false, deadEndDone: false, lastMatchLost: false, shownWarnings: { trustCrisis: false, trustCritical: false, mediaCrisis: false, mediaCritical: false, playerCrisis: false, playerCritical: false, fansCrisis: false, fansCritical: false }, difficulty };
+    gameStats = { trust: initVal, media: initVal, fans: initVal, player: initVal, budget: 1000, points: 0, ranking: 1, round: 0, lastScore: '', lastOpponentDisplay: '', consecutiveNonWins: 0, consecutiveLosses: 0, usedRandomEvents: [], southStandEventUsed: false, betKingEventUsed: false, rebateEventCount: 0, randomPity: 0, transferEventUsed: false, carCrashEventUsed: false, sinkOrSwimEventUsed: false, bigDataEventUsed: false, derbyLossEventPending: false, derbyWinEventPending: false, warningEventShown: false, gameEnded: false, season: 1, futureRandomEvents: [], usedMainlineEvents: [], newCoachDone: false, xmasDone: false, oldFriendDone: false, winterWindowDone: false, winterSlotBonus: 0, winterReturnCost: 0, signedPlayers: [], news01Pending: false, news01Done: false, effectiveDone: false, lockerBrawlPending: false, lockerBrawlDone: false, supportTaskActive: false, zlatanSupport: 0, wonScudetto1: false, hasUCL: false, uclBanNextSeason: false, uclFixtures: null, uclStage: null, uclQualified: false, uclGroupPos: 0, uclOutRound: 0, euroType: 'ucl', lastSeasonRanking: 0, uclTagShown: false, mug1Done: false, mug2Done: false, mugPactDone: false, mugPactPending: false, player07WinterCost: 0, player07Trust: 0, player07Removed: false, player01Trust: 0, emoOutburstDone: false, nextLeftBack3Done: false, transferRumorDone: false, donnaNegoDone: false, summerWarnShown: false, winterWarnShown: false, player04Discount: 0, buyoutTomoriDone: false, overtimeFineUsed: false, tomoriNewsPending: false, tomoriNewsDone: false, leaoNewsPending: false, leaoNewsDone: false, betKing1Done: false, betKing2Done: false, betKing3Done: false, betKingSkip: false, betKingResolved: false, farCallDone: false, magicPhoneUnlocked: false, magicPhoneUses: 0, scudettoCount: 0, uclTitleCount: 0, season4TitlesBefore: 0, uclReachedFinal: false, suspicion: 0, hesitantContract1Done: false, hesitantContract2Done: false, omniscient1Done: false, omniscient2Done: false, pressOfficerDone: false, nextLeftBack4Done: false, leftBack4Resolved: false, southStandTalkDone: false, southStandPending: false, footballDisputeDone: false, deadEndDone: false, lastMatchLost: false, shownWarnings: { trustCrisis: false, trustCritical: false, mediaCrisis: false, mediaCritical: false, playerCrisis: false, playerCritical: false, fansCrisis: false, fansCritical: false }, difficulty };
     pendingTransferSlots = 0;
     lastOpponentName = '';
     matchSchedule = generateMatchSchedule();
     scheduleIndex = 0;
+    serieATeams = teams.map(t => ({ ...t }));
     initializeLeague();
     updateLeagueRanking();
     for (const stat of ['trust', 'media', 'fans', 'player'])
@@ -1906,8 +1931,8 @@ const transferBuyPlayers = [
         effects: { player: 4, fans: 3 }, cost: 1200
     },
     {
-        id: 'cb_eng', name: '英格兰中卫', tier: 1, tag: '即战力', tagColor: 'ready',
-        desc: '身体素质强硬，风格稳健。你们需要一位中卫，但他只接受租借，培养他之后，是否能留住他呢？',
+        id: 'cb_eng', name: '全能型工兵', tier: 1, tag: '即战力', tagColor: 'ready',
+        desc: '35岁，出身于本土青训，他曾多次被租借，踢过边翼卫和中场，速度和身体早已不是巅峰，主教练信任他，更多是因为他的经验和稳定性。',
         effects: { player: 5 }, cost: 1600
     },
     {
@@ -1962,9 +1987,9 @@ const transferBuyPlayers = [
         effects: { player: 4 }, cost: 1800
     },
     {
-        id: 'mid_bel', name: '比利时天才', tier: 2, tag: '高风险', tagColor: 'risk',
-        desc: '21岁，技术细腻，媒体说他是新一代全能中场，身价高的吓人，球探报告显示他在前东家郁郁不得志，你无法知道是态度原因还是体系不合。',
-        effects: { player: 6, fans: 4 }, cost: 5200
+        id: 'mid_bel', name: '进攻型中场', tier: 2, tag: '高风险', tagColor: 'risk',
+        desc: '从顶级球队租借来的小个子，灵光一现的时候能在狭小空间里给出一脚直塞，但他大概会在租借期满后走人。',
+        effects: { player: 6, fans: 4 }, cost: 2800
     },
     {
         id: 'striker_vet', name: '养老的前锋', tier: 2, tag: '高风险', tagColor: 'risk',
@@ -1990,6 +2015,16 @@ const transferBuyPlayers = [
         id: 'rb_esp', name: '西班牙边卫', tier: 2, tag: '即战力', tagColor: 'ready',
         desc: '29岁，经验丰富，攻防两端都拿得出手，即插即用毫无磨合成本。问题是他名气大、要价高、且已经过了巅峰期。',
         effects: { player: 5 }, cost: 3800
+    },
+    {
+        id: 'cb_eng_loan', name: '英格兰中卫', tier: 2, tag: '即战力', tagColor: 'ready',
+        desc: '身体素质强硬，风格稳健。你们需要一位中卫，前东家的首发名单里没有他的位置，培养他之后，是否能留住他呢？',
+        effects: { player: 5 }, cost: 1600
+    },
+    {
+        id: 'striker_glass', name: '玻璃进攻手', tier: 2, tag: '高风险', tagColor: 'risk',
+        desc: '25岁却已经有过三次大伤，状态好的时候能左右一场比赛，旧伤发作的时候一个赛季踢不了十场。出场频率和作用都是未知数。',
+        effects: { player: 7 }, cost: 2000
     }
 ];
 // 01-09 号核心球员（tier 1）均带"欧冠"标签（第三赛季夏窗后才在转会窗显示）
@@ -2131,7 +2166,6 @@ function renderTransferMarket() {
                 tmState.purchased.add(p.id);
                 if (!gameStats.signedPlayers.includes(p.id)) gameStats.signedPlayers.push(p.id);
                 if (p.id === 'maestro' && !gameStats.news01Done) gameStats.news01Pending = true;
-                if (p.id === 'cb_eng' && !gameStats.tomoriNewsDone) gameStats.tomoriNewsPending = true;
                 if (p.id === 'winger_pt' && !gameStats.leaoNewsDone) gameStats.leaoNewsPending = true;
                 tmState.slots--;
                 updateBudget(-p.cost);
@@ -2619,16 +2653,11 @@ function settleDonnaNego(forced) {
 // 随机选择随机事件
 function selectRandomEvents() {
     const selectedEvents = [];
-
+    // 随机事件保底计数：本轮先记为"未触发"，真正抽中数字随机事件后归零（见函数末尾）
+    gameStats.randomPity = (gameStats.randomPity || 0) + 1;
 
     // 第二赛季剧本事件（按轮次必定触发，优先于其他随机事件）
     if (gameStats.season === 2) {
-        // 签下 06（上帝的指挥）后的下一回合触发新闻01
-        if (gameStats.news01Pending && !gameStats.news01Done) {
-            gameStats.news01Pending = false;
-            gameStats.news01Done = true;
-            return ['news01'];
-        }
         if (gameStats.round >= 10 && !gameStats.newCoachDone) {
             gameStats.newCoachDone = true;
             return ['newCoach'];
@@ -2791,56 +2820,55 @@ function selectRandomEvents() {
         return ['emoOutburst'];
     }
 
-    // 签下04（托莫里）后，当赛季随机触发新闻
-    if (gameStats.tomoriNewsPending && !gameStats.tomoriNewsDone && Math.random() < 0.5) {
-        gameStats.tomoriNewsPending = false;
-        gameStats.tomoriNewsDone = true;
-        return ['newsTomori'];
-    }
-
-    // 签下02（莱奥）后，当赛季随机触发新闻
-    if (gameStats.leaoNewsPending && !gameStats.leaoNewsDone && Math.random() < 0.5) {
-        gameStats.leaoNewsPending = false;
-        gameStats.leaoNewsDone = true;
-        return ['newsLeao'];
-    }
-
-    // 连续四轮不胜后触发南看台事件
-    if (gameStats.consecutiveNonWins >= 4 && !gameStats.southStandEventUsed) {
+    // 连输四场后触发南看台事件（平局不算；属随机事件，触发后重置保底计数）
+    if (gameStats.consecutiveLosses >= 4 && !gameStats.southStandEventUsed) {
         selectedEvents.push(2);
         gameStats.southStandEventUsed = true;
+        gameStats.randomPity = 0;
         return selectedEvents;
     }
 
-    // 待触发的链式事件（immediate 必定触发，否则满足最早轮次后 60% 概率触发）
+    // 待触发的链式/主线事件：到点即必定触发并优先占用本轮；未到点则不阻塞，继续往下抽随机事件
     if (gameStats.futureRandomEvents.length > 0) {
         const pending = gameStats.futureRandomEvents[0];
         const eventId  = resolveEventEntry(pending);
         const minRound = typeof pending === 'object' ? (pending.minRound  || 0)     : 0;
-        const immediate = typeof pending === 'object' ? (pending.immediate || false) : false;
-        if (gameStats.round >= minRound && (immediate || Math.random() < 0.6)) {
+        if (gameStats.round >= minRound) {
             gameStats.futureRandomEvents.shift();
             selectedEvents.push(eventId);
+            return selectedEvents;
         }
-        return selectedEvents;
+        // 未到触发轮次：不占用本轮随机事件名额，继续往下
     }
 
-    // 主线事件池：当前赛季专属事件（满足最早轮次后50%概率触发）
+    // 主线事件池：当前赛季专属事件，满足最早轮次即必定触发（优先于随机事件）
     const roundConstraints = mainlineRoundConstraints[gameStats.season] || {};
     const currentMainlinePool = (mainlineEventPools[gameStats.season] || []).filter(id =>
         !gameStats.usedMainlineEvents.includes(id) &&
         gameStats.round >= (roundConstraints[id] || 0)
     );
-    if (currentMainlinePool.length > 0 && Math.random() < 0.5) {
+    if (currentMainlinePool.length > 0) {
         const selectedId = currentMainlinePool[Math.floor(Math.random() * currentMainlinePool.length)];
         selectedEvents.push(selectedId);
         return selectedEvents;
     }
 
+    // 新闻：不占用随机事件名额，与本轮随机事件并列展示（先入队，继续往下抽随机）
+    if (gameStats.news01Pending && !gameStats.news01Done) {
+        gameStats.news01Pending = false; gameStats.news01Done = true;
+        selectedEvents.push('news01');
+    }
+    if (gameStats.leaoNewsPending && !gameStats.leaoNewsDone) {
+        gameStats.leaoNewsPending = false; gameStats.leaoNewsDone = true;
+        selectedEvents.push('newsLeao');
+    }
+
     // 随机事件池
     const eventIds = numericRandomEventIds.filter(id => {
         const numId = parseInt(id);
-        // 仅由特定条件触发的事件，不进入随机池：2=南看台(连续不胜)，17=德比失利(输给国米)，20=聘请新闻官(第五赛季第24轮剧本)
+        // 本赛季已触发过的随机事件不再进入随机池（避免重复，赛季初重置）
+        if (gameStats.usedRandomEvents.includes(numId)) return false;
+        // 仅由特定条件触发的事件，不进入随机池：2=南看台(连输四场)，17=德比失利(输给国米)，20=聘请新闻官(第五赛季第24轮剧本)
         if (numId === 2 || numId === 17 || numId === 20) return false;
         // 12=汇报之争、15=大数据时代、18=干扰训练：仅第五赛季进入随机池
         if ((numId === 12 || numId === 15 || numId === 18) && gameStats.season !== 5) return false;
@@ -2853,21 +2881,19 @@ function selectRandomEvents() {
         return true;
     });
 
-    if (Math.random() < 0.5 || eventIds.length === 0) {
-        return selectedEvents;
+    // 保底概率：50% 起，每个未触发回合 +10%，触发后归零（randomPity 在函数开头已 +1）
+    const chance = Math.min(1, 0.4 + 0.1 * gameStats.randomPity);
+    if (eventIds.length === 0 || Math.random() >= chance) {
+        return selectedEvents;   // 本轮未抽中，randomPity 保留累积
     }
+    gameStats.randomPity = 0;     // 触发随机事件 → 重置，下回合回到 50%
 
     const randomIndex = Math.floor(Math.random() * eventIds.length);
     const selectedId = parseInt(eventIds[randomIndex]);
-    if (selectedId === 10) {
-        gameStats.transferEventUsed = true;
-    }
-    if (selectedId === 11) {
-        gameStats.carCrashEventUsed = true;
-    }
-    if (selectedId === 19) {
-        gameStats.overtimeFineUsed = true;
-    }
+    gameStats.usedRandomEvents.push(selectedId);   // 本赛季内不再重复触发
+    if (selectedId === 10) gameStats.transferEventUsed = true;
+    if (selectedId === 11) gameStats.carCrashEventUsed = true;
+    if (selectedId === 19) gameStats.overtimeFineUsed = true;
     selectedEvents.push(selectedId);
     return selectedEvents;
 }
@@ -2968,21 +2994,6 @@ function showRandomEvents() {
     randomEventModal.classList.remove('news');
     randomEventModal.classList.remove('ucl');
     randomEventModal.classList.remove('magic');
-    // 德比赛果优先：赢/输国际米兰后立刻触发，先于转会/欧冠/剧本等
-    if (gameStats.derbyWinEventPending) {
-        gameStats.derbyWinEventPending = false;
-        currentRandomEvents = ['derbyWin'];
-        randomEventIndex = 0;
-        showNextRandomEvent();
-        return;
-    }
-    if (gameStats.derbyLossEventPending) {
-        gameStats.derbyLossEventPending = false;
-        currentRandomEvents = [17];
-        randomEventIndex = 0;
-        showNextRandomEvent();
-        return;
-    }
     // 转会窗即将开始（开窗前一轮提示，主线卡片）
     const winterRound = gameStats.season === 2 ? 20 : 18;
     // 夏窗（第三赛季及以后开局开启，第2轮后开窗）：第1轮提示
@@ -3016,7 +3027,12 @@ function showRandomEvents() {
     }
     // 欧冠节点（小组赛果 / 淘汰赛之夜）
     if (maybeShowUclCard()) return;
-    currentRandomEvents = selectRandomEvents();
+    // 德比赛果：不独占本轮、不干扰随机事件——先展示德比，再照常抽随机事件并列入队；
+    // 若本轮被转会窗/欧冠占用，则德比保留 pending 顺延到下一轮，不丢失
+    const derbyFirst = [];
+    if (gameStats.derbyWinEventPending) { gameStats.derbyWinEventPending = false; derbyFirst.push('derbyWin'); }
+    if (gameStats.derbyLossEventPending) { gameStats.derbyLossEventPending = false; derbyFirst.push(17); }
+    currentRandomEvents = derbyFirst.concat(selectRandomEvents());
     randomEventIndex = 0;
     showNextRandomEvent();
 }
@@ -3190,7 +3206,7 @@ function showNextRandomEvent() {
         }
         visibleOptionIndex++;
         const button = document.createElement('button');
-        button.textContent = (event.warningStyle || visibleCount === 1) ? option.text : `${visibleOptionIndex}. ${option.text}`;
+        button.textContent = option.text;
         button.className = 'random-event-option' + (visibleCount === 1 ? ' random-event-option--single' : '');
         button.addEventListener('click', () => {
             // 记录随机/主线事件选择
@@ -3261,7 +3277,7 @@ function showNextRandomEvent() {
                     round: gameStats.round,
                     eventName: event.title,
                     optionText: option.text,
-                    note: option.disc04 > 0 ? `托莫里身价 -${option.disc04}万欧元` : '托莫里身价不变',
+                    note: option.disc04 > 0 ? `费洛伦齐身价 -${option.disc04}万欧元` : '费洛伦齐身价不变',
                     effects: {},
                     kind: 'special'
                 });
@@ -3413,6 +3429,8 @@ function startNewSeason() {
     gameStats.lastScore = '';
     gameStats.lastOpponentDisplay = '';
     gameStats.consecutiveNonWins = 0;
+    gameStats.consecutiveLosses = 0;
+    gameStats.usedRandomEvents = [];
     gameStats.southStandEventUsed = false;
     gameStats.betKingEventUsed = false;
     gameStats.rebateEventCount = 0;
@@ -3434,7 +3452,7 @@ function startNewSeason() {
     gameStats.winterWarnShown = false;
     gameStats.winterSlotBonus = 0;
     gameStats.winterReturnCost = 0;
-    gameStats.signedPlayers = [];
+    // 注意：signedPlayers（已签下球员）必须跨赛季保留，否则已购球员会在下赛季转会窗重新出现
     gameStats.news01Pending = false;
     gameStats.news01Done = false;
     gameStats.effectiveDone = false;
@@ -3457,6 +3475,7 @@ function startNewSeason() {
     scheduleIndex = 0;
     matchHistory = [];
     choiceHistory = [];
+    applyRelegation();
     initializeLeague();
     updateLeagueRanking();
     updateScoreboard();
@@ -3540,6 +3559,8 @@ function getSeasonSettlement() {
     if (r === 1) {
         if (wonUCL) return { budget: 2000, text: '您带领的AC Milan获得了双冠王！所向披靡的姿态和无懈可击的战术配合，使得你们同时将意甲冠军和欧冠冠军收入囊中。球队的影响力得到了极大扩张，教练摇身一变成了不可多得的名帅。管理层收到了多份广告商的合作报价，球队的预算也上升了。（球队预算+2000w）' };
         if (wonUEL) return { budget: 1500, text: 'AC Milan获得了欧联冠军和意甲冠军！虽然上赛季只获得了参加欧联的资格，但球队顺势而为，不仅获得了意甲第一，还拿下了欧联冠军。在下个赛季，你们将有较大的优势在欧冠联赛中小组直接出线。管理层对这个赛季的进步非常满意，增加了球队的预算。（预算+1500w）' };
+        // FFP 认罚放弃欧战：本赛季夺冠也不附带下赛季欧冠资格的文案
+        if (gameStats.uclBanNextSeason) return { budget: 1000, text: `AC Milan不负众望，以${margin}分的优势领跑意甲，最终在赛季结束时获得了意甲冠军！管理层因为这个赛季突出的成绩，增加了球队的预算。（球队预算+1000w）` };
         return { budget: 1000, text: `AC Milan不负众望，以${margin}分的优势领跑意甲，最终在赛季结束时获得了意甲冠军！您将获得下赛季的欧冠资格，并且有较大的优势小组直接出线，管理层因为这个赛季突出的成绩，增加了球队的预算。（球队预算+1000w）` };
     }
     if (r <= 4) {
@@ -3916,11 +3937,11 @@ function playUclKnockout(decision) {
     }
 }
 
-// 决赛（最后一战）：选择后判定夺冠/亚军。decMod 为小幅强度修正
-function playUclFinal(playerBoost, decMod) {
-    updateStat('player', playerBoost);
+// 决赛（最后一战）：选择后判定夺冠/亚军。option.mod(opp) 为小幅强度修正，option.cost 为预算消耗
+function playUclFinal(option) {
     const opp = gameStats.uclFixtures.final;
-    const wr = uclWinRate(opp.tier, 'ko', decMod || 0);
+    if (option.cost) updateBudget(-option.cost);
+    const wr = uclWinRate(opp.tier, 'ko', option.mod ? option.mod(opp) : 0);
     const won = Math.random() < (wr.win + 0.5 * wr.draw);
     applyUclRewards(uclRewards.final[won ? 'win' : 'out']);
     const score = uclScore(won);
@@ -3938,23 +3959,74 @@ function playUclFinal(playerBoost, decMod) {
     }
 }
 
-function uclFanEval(f) {
-    if (f >= 75) return '南看台已为这一夜彻夜难眠，呼声响彻圣西罗';
-    if (f >= 50) return '满怀期待，相信球队能创造奇迹';
-    if (f >= 30) return '将信将疑，但仍会守在屏幕前';
-    return '不敢抱太大的希望';
-}
-function uclMediaEval(m) {
-    if (m >= 75) return `一致看好米兰捧起${euroTrophy()}`;
-    if (m >= 50) return '认为米兰拥有一战之力';
-    if (m >= 30) return '更看好实力雄厚的对手';
-    return '普遍唱衰米兰的前景';
+// 决赛场地（按赛季，致敬历届欧冠决赛举办地；country 用于主场优势判定，显示用 城市·球场）
+const uclFinalVenues = {
+    1: { country: '西班牙', city: '马德里', stadium: '西维塔斯大都会球场' },
+    2: { country: '葡萄牙', city: '里斯本', stadium: '卢斯球场' },
+    3: { country: '葡萄牙', city: '波尔图', stadium: '巨龙球场' },
+    4: { country: '法国', city: '巴黎', stadium: '法兰西体育场' },
+    5: { country: '土耳其', city: '伊斯坦布尔', stadium: '奥林匹克体育场' }
+};
+// 决赛举办地所在国的球队：对手为其中之一时，视为拥有主场优势
+const uclVenueHomeTeams = {
+    '西班牙': ['皇家马德里', '马德里竞技', '巴塞罗那', '塞维利亚', '皇家社会'],
+    '葡萄牙': ['本菲卡', '波尔图', '布拉加'],
+    '法国': ['巴黎圣日尔曼', '摩纳哥'],
+    '土耳其': []
+};
+function oppHasHomeAdvantage(opp, venue) {
+    return (uclVenueHomeTeams[venue.country] || []).includes(opp.name);
 }
 
-// "最后一战"：欧冠蓝色对阵页（全称+简写、球迷媒体评价、三选项）
+// 队内带"欧冠"标签（tier1 核心）的已签球员数
+function squadUclTagCount() {
+    return gameStats.signedPlayers.filter(id => {
+        const p = transferBuyPlayers.find(b => b.id === id);
+        return p && p.uclTag;
+    }).length;
+}
+
+// "最后一战"备选策略：每次决赛从"可用"项中随机抽 3 个；mod(opp) 返回赛前强度修正，cost 为预算消耗
+const uclFinalOptions = [
+    { text: '提前联系媒体造势，展示夺冠决心。', avail: () => gameStats.media > 80,
+      mod: opp => (['皇家马德里', '拜仁慕尼黑'].includes(opp.name) ? -0.01 : 0.01) },
+    { text: "面对采访时把'夺冠热门'的名头推给对手。", avail: () => gameStats.media > 80,
+      mod: opp => (['皇家马德里', '拜仁慕尼黑', '曼城'].includes(opp.name) ? -0.01 : 0.01) },
+    { text: '给球队许诺夺冠奖金。', avail: () => gameStats.budget > 1000, cost: 1000, note: '（球队预算-1000万）',
+      mod: () => 0.01 },
+    { text: '建议教练大胆用某个状态正佳的球员。', avail: () => squadUclTagCount() > 5,
+      mod: () => 0.02 },
+    { text: '给球队里的年轻人打气，缓解大赛怯场。',
+      avail: () => ['lb_winger', 'winger_pt', 'cb_eng', 'cm_youth_it', 'cb_fr_young', 'belgian_star'].some(id => gameStats.signedPlayers.includes(id)),
+      mod: () => 0.01 },
+    { text: '和紧张的球队核心谈话。',
+      avail: () => ['winger_pt', 'cm_youth_it', 'lb_winger'].some(id => gameStats.signedPlayers.includes(id)),
+      mod: () => 0.01 },
+    { text: '告诉队员们，米兰的球迷们期待着你们能赢下奖杯。', avail: () => gameStats.fans > 80,
+      mod: () => 0.01 }
+];
+// 可用项不足 3 个时用中性项补足，保证始终有 3 个选择
+const uclFinalFallbacks = [
+    { text: '鼓励球员，相信他们之间的团队协作。', mod: () => 0 },
+    { text: '叮嘱球队稳住心态，按既定战术执行。', mod: () => 0 },
+    { text: '让球员放平心态，全力享受这场决赛。', mod: () => 0 }
+];
+
+function pickUclFinalChoices() {
+    const chosen = uclShuffle(uclFinalOptions.filter(o => o.avail())).slice(0, 3);
+    for (let i = 0; chosen.length < 3 && i < uclFinalFallbacks.length; i++) chosen.push(uclFinalFallbacks[i]);
+    return chosen;
+}
+
+// "最后一战"：欧冠蓝色对阵页（全称+简写、决赛场地、随机抽取的三条策略）
 function showUclFinalCard() {
     const opp = gameStats.uclFixtures.final;
     const info = { full: opp.name, abbr: uclTeamAbbr[opp.name] || '' };
+    const venue = uclFinalVenues[gameStats.season] || uclFinalVenues[1];
+    const homeAdv = oppHasHomeAdvantage(opp, venue);
+    const narr1 = homeAdv
+        ? `下一轮，你们将要踏入${euroLabel()}决赛的赛场，对方球队具有主场优势，而米兰队里有一半球员对${euroLabel()}赛场还不太熟悉，你们的主教练皮奥利，更是在此之前从未执教过进入${euroLabel()}决赛的球队。`
+        : `下一轮，你们将要踏入${euroLabel()}决赛的赛场，队里有一半球员对${euroLabel()}赛场还不太熟悉，你们的主教练皮奥利，更是在此之前从未执教过进入${euroLabel()}决赛的球队。`;
     const html = `
         <div class="ucl-final-board">
             <div class="ucl-final-team">
@@ -3967,16 +4039,13 @@ function showUclFinalCard() {
                 <div class="ucl-final-name">${info.full}</div>
             </div>
         </div>
-        <div class="ucl-final-evals">
-            <div><span>球迷</span>${uclFanEval(gameStats.fans)}</div>
-            <div><span>媒体</span>${uclMediaEval(gameStats.media)}</div>
-        </div>
-        <div class="ucl-final-narr">下一轮，你们将要踏入${euroLabel()}决赛的赛场，队里有一半球员对${euroLabel()}赛场还不太熟悉，你们的主教练皮奥利，更是在此之前从未执教过进入${euroLabel()}决赛的球队。他们听从你的建议，你的一切对于${euroLabel()}赛场的建议，你选择：</div>`;
-    renderUclCard('最后一战', html, [
-        { text: '鼓励球员，相信他们之间的团队协作。', onClick: () => playUclFinal(5, 0) },
-        { text: '注重防守，面对强大的对手不能自乱阵脚。', onClick: () => playUclFinal(5, 0.04) },
-        { text: '全力进攻，将重点放在磨练已久的锋线上。', onClick: () => playUclFinal(5, 0.06) }
-    ]);
+        <div class="ucl-final-venue">${venue.city}·${venue.stadium}</div>
+        <div class="ucl-final-narr">${narr1}</div>
+        <div class="ucl-final-narr">他们听从你的建议，你的一切对于${euroLabel()}赛场的建议，你选择：</div>`;
+    renderUclCard('最后一战', html, pickUclFinalChoices().map(o => ({
+        text: o.note ? `${o.text}${o.note}` : o.text,
+        onClick: () => playUclFinal(o)
+    })));
 }
 
 // 赛后检查是否到欧战节点（小组赛果 / 淘汰赛决策 / 决赛最后一战）；显示则返回 true
@@ -4092,9 +4161,10 @@ document.getElementById('show-standings-btn').addEventListener('click', () => {
     updateLeagueRanking();
     const list = document.getElementById('standings-list');
     list.innerHTML = '';
+    const total = leagueTeams.length;
     leagueTeams.forEach((team, i) => {
         const rank = i + 1;
-        const zone = rank <= 4 ? 'zone-ucl' : rank <= 6 ? 'zone-uel' : '';
+        const zone = rank <= 4 ? 'zone-ucl' : rank <= 6 ? 'zone-uel' : rank > total - 3 ? 'zone-releg' : '';
         const row = document.createElement('div');
         row.className = 'standings-row' + (zone ? ' ' + zone : '') +
             (team.name === 'AC Milan' ? ' is-milan' : '');
@@ -4173,6 +4243,8 @@ function applyLoadedSave(save) {
     decisionPoints = save.decisionPoints;
     pendingTransferSlots = save.pendingTransferSlots || 0;
     leagueTeams = save.leagueTeams;
+    // 由存档的当前意甲队伍还原意甲池（不含 AC Milan），保证升降级延续
+    serieATeams = leagueTeams.filter(t => t.name !== 'AC Milan').map(t => ({ name: t.name, category: t.category }));
     difficultySelection.classList.add('hidden');
     mainInterface.classList.remove('hidden');
     for (const stat of ['trust', 'media', 'fans', 'player'])
