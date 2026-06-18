@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=1.0, maximum-scale=5.0">
     <title>ACM球队总监模拟器1.5</title>
+    <link rel="icon" type="image/svg+xml" href="SVG/SA/ACM.svg">
     <link rel="stylesheet" href="style.css">
     <!-- Umami 访问统计 -->
     <script defer src="https://cloud.umami.is/script.js" data-website-id="15f089cb-1e59-488e-a4d8-b9e6b1952431"></script>
@@ -16,7 +17,7 @@
         <div id="test-notice-modal" class="modal">
             <div class="modal-content test-notice-content">
                 <h2>创作者声明</h2>
-                <p class="test-notice-intro">当前版本为：1.5</p>
+                <p class="test-notice-intro">当前版本为：（内测版本）1.5</p>
                 <p class="test-notice-intro">您在游玩中遇到的 bug 可以通过 <strong>wb@加酸黄瓜三明治</strong> 反馈！如果您担心被屏蔽，也可以发送邮件至 <strong>lanviofs@gmail.com</strong>。</p>
                 <p class="test-notice-intro">从模拟数据来看，困难模式的综合通关率仅有 1/3，如您选择困难模式，请善用存档功能。</p>
                 <p class="test-notice-intro">您可以从以下方面提出建议：</p>
@@ -373,7 +374,9 @@
                     <div class="panel-label">上一轮比赛结果</div>
                     <div class="last-score-value">
                         <span id="last-score-home">AC Milan</span>
+                        <img id="last-score-home-crest" class="score-crest" alt="">
                         <span id="last-score-num">-</span>
+                        <img id="last-score-away-crest" class="score-crest" alt="">
                         <span id="last-score-away"></span>
                     </div>
                 </div>

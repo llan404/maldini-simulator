@@ -1130,17 +1130,84 @@ const teams = [
     { name: '卡利亚里', category: 'low' },
     { name: '乌迪内斯', category: 'low' },
     { name: '斯帕尔', category: 'low' },
-    { name: '帕尔马', category: 'low' },
     { name: '弗罗西诺内', category: 'low' },
     { name: '恩波利', category: 'low' },
     { name: '切沃', category: 'low' }
 ];
 
-// 意乙池：每赛季垫底3队降级后，从这里随机抽3队补入意甲（均归为弱队）
-const serieBTeams = ['帕尔马', '科莫', '威尼斯', '克雷莫纳', '卡坦扎罗', '巴勒莫', '布雷西亚', '科森扎'];
+// 意乙系球队名单（不在第一赛季初始意甲中的队）：第一赛季初始意甲固定补入"科莫"，其余 6 队构成初始意乙池
+const serieBTeams = ['帕尔马', '科莫', '威尼斯', '克雷莫纳', '卡坦扎罗', '巴勒莫', '布雷西亚'];
 
-// 当前意甲池（不含 AC Milan），随升降级动态变化；新游戏时由 teams 复制
+// 第一赛季初始意甲固定补入的意乙队
+const FIRST_PROMOTED = '科莫';
+
+// 升降级全集（不含 AC Milan）= teams 18 支 + 意乙系 7 支（含科莫）= 25 支，固定不变。
+// 任一时刻：意甲池 serieATeams 恒 19 支；意乙池 = 全集中不在 serieATeams 的队（恒 6 支）。
+// 升降级即在这 25 支之间循环搬运，因此降级队会回到意乙池、下赛季可再升（球队 category 始终保留）。
+const allLeagueTeams = teams.concat(serieBTeams.map(name => ({ name, category: 'low' })));
+
+// 当前意甲池（不含 AC Milan），随升降级动态变化；新游戏时为 teams + 科莫
 let serieATeams = teams.map(t => ({ ...t }));
+
+// 球队队徽（SVG 文件夹；文件名见实际文件）。无对应文件的球队（欧战对手等）不显示图标
+const teamCrests = {
+    'AC Milan': 'ACM.svg',
+    '尤文图斯': 'juventus-4.svg',
+    '那不勒斯': 'napoli-1.svg',
+    '国际米兰': 'inter-milan-2021.svg',
+    '罗马': 'as-roma-1.svg',
+    '拉齐奥': 'lazio.svg',
+    '亚特兰大': 'Atalanta-BC-v1993.svg',
+    '佛罗伦萨': 'ACF-Fiorentina-v2003.svg',
+    '都灵': 'torino-fc.svg',
+    '桑普多利亚': 'Unione-Calcio-Sampdoria-v1997.svg',
+    '萨索洛': 'US-Sassuolo-Calcio-v2010.svg',
+    '热那亚': 'Genoa-CFC-v1998.svg',
+    '博洛尼亚': 'bologna-fc-1.svg',
+    '卡利亚里': 'Cagliari-Calcio-v2015.svg',
+    '乌迪内斯': 'Udinese-Calcio-v2010.svg',
+    '弗罗西诺内': 'Frosinone-Calcio-v2011.svg',
+    '恩波利': 'Empoli-FC-v2021.svg',
+    '切沃': 'AC_Chievo_Verona.svg',
+    '帕尔马': 'Parma-Calcio-1913-v2016.svg',
+    '斯帕尔': 'spal.svg',
+    '科莫': 'Como-1907-v2019-mono.svg',
+    '威尼斯': 'Venezia-FC-v2022.svg',
+    '克雷莫纳': 'US-Cremonese-v1997.svg',
+    '卡坦扎罗': 'US-Catanzaro-1929-v2018.svg',
+    '巴勒莫': 'Palermo-FC-v2019.svg',
+    '布雷西亚': 'brescia.svg'
+};
+// 队徽所在目录（意甲队徽在 SVG/SA/、欧战队徽在 SVG/E/；如再移动只改这两处）
+const CREST_DIR = 'SVG/SA/';
+const EURO_CREST_DIR = 'SVG/E/';
+
+// 欧冠/欧联球队队徽（意甲队仍走 teamCrests）。文件见 SVG/E/
+const euroCrests = {
+    '皇家马德里': 'Real-Madrid-CF-v2002.svg', '曼城': 'Manchester-City-v2016.svg',
+    '拜仁慕尼黑': 'FC-Bayern-Munchen-v2024.svg', '利物浦': 'Liverpool-Football-Club-v2024-minor.svg',
+    '巴黎圣日尔曼': 'Paris-Saint-Germain-v2013.svg', '切尔西': 'Chelsea-FC-v2006.svg',
+    '马德里竞技': 'Atletico-Madrid-v2024.svg', '巴塞罗那': 'FC-Barcelona-v2002.svg',
+    '多特蒙德': 'Borussia-Dortmund-v1993.svg', '热刺': 'Tottenham-Hotspur-Football-Club-v2006.svg',
+    '阿贾克斯': 'AFC-Ajax-v1991.svg', '本菲卡': 'Sport-Lisboa-e-Benfica-v1999.svg',
+    '波尔图': 'Futebol-Clube-do-Porto-v2002.svg', '莱比锡红牛': 'RB-Leipzig-v2020.svg',
+    '舍里夫': 'sheriff-3.svg', '布鲁日': 'Club-Brugge-KV-v2017.svg',
+    '萨尔茨堡红牛': 'Red-Bull-Salzburg-v2007.svg', '顿涅茨克矿工': 'shakhtar.svg',
+    '萨格勒布迪纳摩': 'Logo_GNK_Dinamo_Zagreb_(2019).svg',
+    '塞维利亚': 'Sevilla-Futbol-Club-v1995.svg', '曼联': 'Manchester-United-Football-Club-v1998.svg',
+    '阿森纳': 'Arsenal-FC-v2002.svg', '法兰克福': 'Eintracht-Frankfurt-v1998.svg',
+    '勒沃库森': 'Bayer-04-Leverkusen-v2006.svg', '皇家社会': 'Real-Sociedad-de-Futbol-v1997.svg',
+    '西汉姆联': 'West-Ham-United-Football-Club-v2016.svg', '摩纳哥': 'AS-Monaco-v2021.svg',
+    '费耶诺德': 'Feyenoord-Rotterdam-v2024.svg', '卡拉巴赫': 'Qarabag-FK-v0000.svg',
+    '费伦茨瓦罗斯': 'ferencv-ros.svg'
+};
+
+// 队徽图片路径：先查意甲队徽（SVG/SA/），再查欧战队徽（SVG/E/）；都没有返回空串，由调用处兜底
+function crestSrc(name) {
+    if (teamCrests[name]) return CREST_DIR + teamCrests[name];
+    if (euroCrests[name]) return EURO_CREST_DIR + euroCrests[name];
+    return '';
+}
 
 let currentRandomEvents = [];
 let randomEventIndex = 0;
@@ -1176,16 +1243,25 @@ function initializeLeague() {
     })));
 }
 
-// 赛季末升降级：上赛季垫底3队降入意乙，从意乙池随机抽3队（弱队）补入意甲池
+// 当前意乙池 = 升降级全集中不在意甲池的队（恒 6 支，含上赛季的降级队）。
+function getSerieBPool() {
+    const aNames = serieATeams.map(t => t.name);
+    return allLeagueTeams.filter(t => !aNames.includes(t.name));
+}
+
+// 赛季末升降级：意甲（除米兰）垫底 3 队降入意乙池，同时从意乙池抽 3 队补入意甲。
+// 升级候选取自"重置 serieATeams 之前"的意乙池，因此本赛季降级的 3 队不会被立刻抽回；
+// 它们被移出意甲后即自动归入意乙池（意乙池由 getSerieBPool 推导），下赛季可再升 —— 意乙池循环使用。
+// 升降数 = min(3, 意乙池队数)，保证意甲始终 19 队（含 AC Milan 共 20），避免奇数导致排程崩溃。
 function applyRelegation() {
+    const pool = getSerieBPool();
+    const n = Math.min(3, pool.length);
+    if (n === 0) return;
     const ranked = leagueTeams.slice().sort((a, b) => b.points - a.points);
-    const relegated = ranked.filter(t => t.name !== 'AC Milan').slice(-3).map(t => t.name);
+    const relegated = ranked.filter(t => t.name !== 'AC Milan').slice(-n).map(t => t.name);
     const survivors = serieATeams.filter(t => !relegated.includes(t.name));
-    const survivorNames = survivors.map(t => t.name);
-    // 候选：意乙池中不在意甲、且非本赛季刚降级的球队
-    const candidates = serieBTeams.filter(n => !survivorNames.includes(n) && !relegated.includes(n));
-    const promoted = candidates.sort(() => Math.random() - 0.5).slice(0, 3).map(name => ({ name, category: 'low' }));
-    serieATeams = survivors.concat(promoted);
+    const promoted = pool.slice().sort(() => Math.random() - 0.5).slice(0, n).map(t => ({ ...t }));
+    serieATeams = survivors.concat(promoted); // (19 - n) 留级 + n 升级 = 19；降级队移出后归入意乙池
 }
 
 function getTeamByName(name) {
@@ -1216,7 +1292,8 @@ function getMatchProbability(teamA, teamB) {
 function simulateOtherMatches(excludedOpponentName) {
     const availableTeams = leagueTeams.filter(team => team.name !== 'AC Milan' && team.name !== excludedOpponentName);
     shuffleArray(availableTeams);
-    for (let i = 0; i < availableTeams.length; i += 2) {
+    // i + 1 < length：球队数为奇数时跳过最后一支，避免 teamB 为 undefined 崩溃
+    for (let i = 0; i + 1 < availableTeams.length; i += 2) {
         const teamA = availableTeams[i];
         const teamB = availableTeams[i + 1];
         const prob = getMatchProbability(teamA, teamB);
@@ -1262,6 +1339,14 @@ function updateScoreboard() {
     document.getElementById('last-score-home').textContent = hasMatch ? 'AC Milan' : '';
     document.getElementById('last-score-num').textContent = hasMatch ? gameStats.lastScore : '';
     document.getElementById('last-score-away').textContent = hasMatch ? gameStats.lastOpponentDisplay : '';
+    // 比分两侧队徽：AC Milan—队徽—比分—对手队徽—对手名
+    const setCrest = (id, name) => {
+        const el = document.getElementById(id);
+        if (name) { el.src = crestSrc(name); el.style.display = ''; el.onerror = () => { el.style.display = 'none'; }; }
+        else { el.style.display = 'none'; el.removeAttribute('src'); }
+    };
+    setCrest('last-score-home-crest', hasMatch ? 'AC Milan' : null);
+    setCrest('last-score-away-crest', hasMatch ? gameStats.lastOpponentDisplay : null);
     updateSuspicionCard();
 }
 
@@ -1279,7 +1364,14 @@ function updateSuspicionCard() {
 }
 
 function playRound(opponentName) {
-    const opponent = getTeamByName(opponentName);
+    let opponent = getTeamByName(opponentName);
+    if (!opponent) {
+        // 防御：赛程里的队已不在当前联赛（升降级不同步），改取一支有效对手，避免崩溃卡死
+        const pool = leagueTeams.filter(t => t.name !== 'AC Milan');
+        opponent = pool[Math.floor(Math.random() * pool.length)];
+        opponentName = opponent.name;
+        lastOpponentName = opponentName;
+    }
     // 第二赛季第16轮（亚特兰大）： 0:5 
     const forcedLoss = gameStats.season === 2 && scheduleIndex === 16 && opponentName === '亚特兰大';
     const winRate = getWinRate(opponent.category);
@@ -1732,10 +1824,12 @@ function initializeGame(difficulty) {
     gameStats = { trust: initVal, media: initVal, fans: initVal, player: initVal, budget: 1000, points: 0, ranking: 1, round: 0, lastScore: '', lastOpponentDisplay: '', consecutiveNonWins: 0, consecutiveLosses: 0, usedRandomEvents: [], southStandEventUsed: false, betKingEventUsed: false, rebateEventCount: 0, randomPity: 0, transferEventUsed: false, carCrashEventUsed: false, sinkOrSwimEventUsed: false, bigDataEventUsed: false, derbyLossEventPending: false, derbyWinEventPending: false, warningEventShown: false, gameEnded: false, season: 1, futureRandomEvents: [], usedMainlineEvents: [], newCoachDone: false, xmasDone: false, oldFriendDone: false, winterWindowDone: false, winterSlotBonus: 0, winterReturnCost: 0, signedPlayers: [], news01Pending: false, news01Done: false, effectiveDone: false, lockerBrawlPending: false, lockerBrawlDone: false, supportTaskActive: false, zlatanSupport: 0, wonScudetto1: false, hasUCL: false, uclBanNextSeason: false, uclFixtures: null, uclStage: null, uclQualified: false, uclGroupPos: 0, uclOutRound: 0, euroType: 'ucl', lastSeasonRanking: 0, uclTagShown: false, mug1Done: false, mug2Done: false, mugPactDone: false, mugPactPending: false, player07WinterCost: 0, player07Trust: 0, player07Removed: false, player01Trust: 0, emoOutburstDone: false, nextLeftBack3Done: false, transferRumorDone: false, donnaNegoDone: false, summerWarnShown: false, winterWarnShown: false, player04Discount: 0, buyoutTomoriDone: false, overtimeFineUsed: false, tomoriNewsPending: false, tomoriNewsDone: false, leaoNewsPending: false, leaoNewsDone: false, betKing1Done: false, betKing2Done: false, betKing3Done: false, betKingSkip: false, betKingResolved: false, farCallDone: false, magicPhoneUnlocked: false, magicPhoneUses: 0, scudettoCount: 0, uclTitleCount: 0, season4TitlesBefore: 0, uclReachedFinal: false, suspicion: 0, hesitantContract1Done: false, hesitantContract2Done: false, omniscient1Done: false, omniscient2Done: false, pressOfficerDone: false, nextLeftBack4Done: false, leftBack4Resolved: false, southStandTalkDone: false, southStandPending: false, footballDisputeDone: false, deadEndDone: false, lastMatchLost: false, shownWarnings: { trustCrisis: false, trustCritical: false, mediaCrisis: false, mediaCritical: false, playerCrisis: false, playerCritical: false, fansCrisis: false, fansCritical: false }, difficulty };
     pendingTransferSlots = 0;
     lastOpponentName = '';
-    matchSchedule = generateMatchSchedule();
-    scheduleIndex = 0;
     serieATeams = teams.map(t => ({ ...t }));
+    // 第一赛季固定 20 队（含 AC Milan）：teams 18 + 科莫；后续每赛季末由 applyRelegation 循环维持
+    serieATeams.push({ name: FIRST_PROMOTED, category: 'low' });
     initializeLeague();
+    matchSchedule = generateMatchSchedule();   // 必须在 serieATeams/leagueTeams 就绪后排程
+    scheduleIndex = 0;
     updateLeagueRanking();
     for (const stat of ['trust', 'media', 'fans', 'player'])
         updateProgressBar(`${stat}-bar`, initVal);
@@ -1839,7 +1933,8 @@ const randomEventModal = document.getElementById('random-event-modal');
 function generateMatchSchedule() {
     // 每队主客场各踢一次，共38轮
     const schedule = [];
-    teams.forEach(t => { schedule.push(t.name); schedule.push(t.name); });
+    // 用当前意甲池（19 队，含升降级后的队伍）排程：每队主客各一次 = 38 轮
+    serieATeams.forEach(t => { schedule.push(t.name); schedule.push(t.name); });
     shuffleArray(schedule);
     // 消除相邻重复（同一支队伍连续两场）
     for (let i = 0; i < schedule.length - 1; i++) {
@@ -1883,8 +1978,8 @@ function forceFixture(schedule, round, teamName) {
 
 function drawOpponent() {
     if (scheduleIndex >= matchSchedule.length) {
-        // 超出赛程（不应发生），退回随机
-        return teams[Math.floor(Math.random() * teams.length)].name;
+        // 超出赛程（不应发生），退回随机（取当前意甲池，确保在 leagueTeams 中）
+        return serieATeams[Math.floor(Math.random() * serieATeams.length)].name;
     }
     const name = matchSchedule[scheduleIndex++];
     lastOpponentName = name;
@@ -3471,12 +3566,12 @@ function startNewSeason() {
     // 第三赛季及以后开局开启夏季转会窗（第二轮结束后开始；可买 08、09）
     if (gameStats.season >= 3) pendingTransferSlots = 3;
     lastOpponentName = '';
-    matchSchedule = generateMatchSchedule();
-    scheduleIndex = 0;
     matchHistory = [];
     choiceHistory = [];
     applyRelegation();
     initializeLeague();
+    matchSchedule = generateMatchSchedule();   // 升降级后再排程，避免赛程含已降级球队
+    scheduleIndex = 0;
     updateLeagueRanking();
     updateScoreboard();
     decisionPoints = 0;
@@ -3716,7 +3811,7 @@ document.getElementById('test-ending-btn').addEventListener('click', function() 
 // 开始比赛
 startMatchBtn.addEventListener('click', function() {
     startMatchBtn.disabled = true;
-
+  try {
     const opponentName1 = drawOpponent();
     const matchResult1 = playRound(opponentName1);
     gameStats.round = Math.min(38, gameStats.round + 1);
@@ -3741,6 +3836,11 @@ startMatchBtn.addEventListener('click', function() {
         });
         startMatchBtn.disabled = true;
     }
+  } catch (err) {
+    // 安全网：开始比赛过程中若有异常，别让按钮卡死，记录到控制台便于排查
+    console.error('开始比赛出错：', err);
+    startMatchBtn.disabled = false;
+  }
 });
 
 // ===== 公共工具 =====
@@ -3773,13 +3873,13 @@ const uclPools = {
         { name:'皇家马德里', tier:'S' }, { name:'曼城', tier:'S' }, { name:'拜仁慕尼黑', tier:'S' }, { name:'利物浦', tier:'S' }, { name:'巴黎圣日尔曼', tier:'S' }, { name:'切尔西', tier:'S' },
         { name:'国际米兰', tier:'A' }, { name:'马德里竞技', tier:'A' }, { name:'尤文图斯', tier:'A' }, { name:'巴塞罗那', tier:'A' }, { name:'多特蒙德', tier:'A' }, { name:'热刺', tier:'A' },
         { name:'阿贾克斯', tier:'B' }, { name:'本菲卡', tier:'B' }, { name:'波尔图', tier:'B' }, { name:'亚特兰大', tier:'B' }, { name:'莱比锡红牛', tier:'B' },
-        { name:'舍里夫', tier:'C' }, { name:'布鲁日', tier:'C' }, { name:'萨尔茨堡红牛', tier:'C' }, { name:'顿涅茨克矿工', tier:'C' }, { name:'萨格勒布迪纳摩', tier:'C' }, { name:'红星', tier:'C' }
+        { name:'舍里夫', tier:'C' }, { name:'布鲁日', tier:'C' }, { name:'萨尔茨堡红牛', tier:'C' }, { name:'顿涅茨克矿工', tier:'C' }, { name:'萨格勒布迪纳摩', tier:'C' }
     ],
     uel: [
         { name:'塞维利亚', tier:'S' }, { name:'曼联', tier:'S' }, { name:'阿森纳', tier:'S' }, { name:'巴塞罗那', tier:'S' }, { name:'国际米兰', tier:'S' }, { name:'尤文图斯', tier:'S' },
         { name:'罗马', tier:'A' }, { name:'法兰克福', tier:'A' }, { name:'勒沃库森', tier:'A' }, { name:'亚特兰大', tier:'A' }, { name:'皇家社会', tier:'A' }, { name:'阿贾克斯', tier:'A' }, { name:'波尔图', tier:'A' }, { name:'本菲卡', tier:'A' },
-        { name:'西汉姆联', tier:'B' }, { name:'摩纳哥', tier:'B' }, { name:'费耶诺德', tier:'B' }, { name:'流浪者', tier:'B' }, { name:'布拉加', tier:'B' },
-        { name:'迪德朗日', tier:'C' }, { name:'卡拉巴赫', tier:'C' }, { name:'卢多戈雷茨', tier:'C' }, { name:'费伦茨瓦罗斯', tier:'C' }, { name:'林茨', tier:'C' }, { name:'舍里夫', tier:'C' }
+        { name:'西汉姆联', tier:'B' }, { name:'摩纳哥', tier:'B' }, { name:'费耶诺德', tier:'B' },
+        { name:'卡拉巴赫', tier:'C' }, { name:'费伦茨瓦罗斯', tier:'C' }, { name:'舍里夫', tier:'C' }
     ]
 };
 function currentUclPool() { return uclPools[gameStats.euroType] || uclPools.ucl; }
@@ -3789,10 +3889,10 @@ const uclTeamAbbr = {
     '皇家马德里':'RMA', '曼城':'MCI', '拜仁慕尼黑':'BAY', '利物浦':'LIV', '巴黎圣日尔曼':'PSG', '切尔西':'CHE',
     '国际米兰':'INT', '马德里竞技':'ATM', '尤文图斯':'JUV', '巴塞罗那':'BAR', '多特蒙德':'DOR', '热刺':'TOT',
     '阿贾克斯':'AJA', '本菲卡':'BEN', '波尔图':'POR', '亚特兰大':'ATA', '莱比锡红牛':'RBL',
-    '舍里夫':'SHE', '布鲁日':'CLB', '萨尔茨堡红牛':'RBS', '顿涅茨克矿工':'SHK', '萨格勒布迪纳摩':'DZG', '红星':'CZV',
+    '舍里夫':'SHE', '布鲁日':'CLB', '萨尔茨堡红牛':'RBS', '顿涅茨克矿工':'SHK', '萨格勒布迪纳摩':'DZG',
     '塞维利亚':'SEV', '曼联':'MUN', '阿森纳':'ARS', '罗马':'ROM', '法兰克福':'SGE', '勒沃库森':'LEV', '皇家社会':'RSO',
-    '西汉姆联':'WHU', '摩纳哥':'ASM', '费耶诺德':'FEY', '流浪者':'RAN', '布拉加':'BRA',
-    '迪德朗日':'DUD', '卡拉巴赫':'QAR', '卢多戈雷茨':'LUD', '费伦茨瓦罗斯':'FTC', '林茨':'LSK'
+    '西汉姆联':'WHU', '摩纳哥':'ASM', '费耶诺德':'FEY',
+    '卡拉巴赫':'QAR', '费伦茨瓦罗斯':'FTC'
 };
 
 // ---- 米兰欧冠有效实力 / 胜率（按设定公式）----
@@ -4027,15 +4127,21 @@ function showUclFinalCard() {
     const narr1 = homeAdv
         ? `下一轮，你们将要踏入${euroLabel()}决赛的赛场，对方球队具有主场优势，而米兰队里有一半球员对${euroLabel()}赛场还不太熟悉，你们的主教练皮奥利，更是在此之前从未执教过进入${euroLabel()}决赛的球队。`
         : `下一轮，你们将要踏入${euroLabel()}决赛的赛场，队里有一半球员对${euroLabel()}赛场还不太熟悉，你们的主教练皮奥利，更是在此之前从未执教过进入${euroLabel()}决赛的球队。`;
+    // 对阵两侧改用队徽；缺图时降级为缩写，保证版式不塌
+    const badge = (name, abbr) => {
+        const src = crestSrc(name);
+        return src ? `<img class="ucl-final-crest" src="${src}" alt="">`
+                   : `<div class="ucl-final-abbr">${abbr}</div>`;
+    };
     const html = `
         <div class="ucl-final-board">
             <div class="ucl-final-team">
-                <div class="ucl-final-abbr">ACM</div>
+                ${badge('AC Milan', 'ACM')}
                 <div class="ucl-final-name">AC米兰</div>
             </div>
             <div class="ucl-final-vs">VS</div>
             <div class="ucl-final-team">
-                <div class="ucl-final-abbr">${info.abbr}</div>
+                ${badge(opp.name, info.abbr)}
                 <div class="ucl-final-name">${info.full}</div>
             </div>
         </div>
@@ -4111,7 +4217,15 @@ document.getElementById('show-schedule-btn').addEventListener('click', () => {
         roundEl.textContent = `R${roundNum}`;
 
         const nameEl = document.createElement('span');
-        nameEl.textContent = opponentName;
+        const crestFile = teamCrests[opponentName];
+        if (crestFile) {
+            const crest = document.createElement('img');
+            crest.className = 'sch-crest';
+            crest.src = CREST_DIR + crestFile;
+            crest.alt = '';
+            nameEl.appendChild(crest);
+        }
+        nameEl.appendChild(document.createTextNode(opponentName));
 
         const resultEl = document.createElement('span');
         resultEl.className = 'sch-result';
@@ -4140,7 +4254,16 @@ document.getElementById('show-schedule-btn').addEventListener('click', () => {
             ur.textContent = `R${roundNum}`;
             const un = document.createElement('span');
             un.className = 'sch-name';
-            un.textContent = `${euroLabel()}${u.stage}·${u.name}`;
+            const uCrest = crestSrc(u.name);
+            if (uCrest) {
+                const img = document.createElement('img');
+                img.className = 'sch-crest';
+                img.src = uCrest;
+                img.alt = '';
+                img.onerror = () => { img.style.display = 'none'; };
+                un.appendChild(img);
+            }
+            un.appendChild(document.createTextNode(`${euroLabel()}${u.stage}·${u.name}`));
             const ures = document.createElement('span');
             ures.className = 'sch-result upcoming';
             ures.textContent = eliminated ? '出局' : (gameStats.round >= roundNum ? '已赛' : '待赛');
@@ -4168,9 +4291,11 @@ document.getElementById('show-standings-btn').addEventListener('click', () => {
         const row = document.createElement('div');
         row.className = 'standings-row' + (zone ? ' ' + zone : '') +
             (team.name === 'AC Milan' ? ' is-milan' : '');
+        const crestFile = teamCrests[team.name];
+        const crestImg = crestFile ? `<img class="st-crest" src="${CREST_DIR}${crestFile}" alt="">` : '';
         row.innerHTML = `
             <span class="st-rank">${rank}</span>
-            <span class="st-name">${team.name}</span>
+            <span class="st-name">${crestImg}${team.name}</span>
             <span class="st-points">${team.points}分</span>`;
         list.appendChild(row);
     });
