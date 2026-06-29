@@ -3,7 +3,7 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #F5F5DC; /* 米白色 */
+    background-color: #F2ECE0; /* 米白色 */
     color: #8B0000; /* 不刺眼的红色 */
     display: flex;
     justify-content: center;
@@ -69,7 +69,7 @@ h1::after {
 }
 
 .modal-content {
-    background-color: #F5F5DC;
+    background-color: #F2ECE0;
     padding: 18px 14px;
     border: 2px solid #8B0000;
     border-radius: 10px;
@@ -77,7 +77,14 @@ h1::after {
     max-width: 360px;
     margin: 0 16px;
     text-align: center;
+    scrollbar-width: thin;
+    scrollbar-color: #c8b89c transparent;
 }
+/* 浅色弹窗滚动条适配米色背景（深色结局卡由 .ending-content 单独覆盖）*/
+.modal-content::-webkit-scrollbar { width: 8px; }
+.modal-content::-webkit-scrollbar-track { background: transparent; }
+.modal-content::-webkit-scrollbar-thumb { background: #c8b89c; border-radius: 4px; }
+.modal-content::-webkit-scrollbar-thumb:hover { background: #b0a080; }
 
 #ending-modal {
     background-color: rgba(0, 0, 0, 0.88);
@@ -95,14 +102,23 @@ h1::after {
     box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
     max-height: 90vh;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #4a443d transparent;
 }
+/* 结局卡滚动条适配深色背景，避免默认灰色刺眼 */
+.modal-content.ending-content::-webkit-scrollbar { width: 8px; }
+.modal-content.ending-content::-webkit-scrollbar-track { background: transparent; }
+.modal-content.ending-content::-webkit-scrollbar-thumb { background: #4a443d; border-radius: 4px; }
+.modal-content.ending-content::-webkit-scrollbar-thumb:hover { background: #5a544d; }
 
 /* 结局插图（隐藏结局"明天"等） */
 .ending-image {
     display: block;
     width: 100%;
+    height: auto; /* 配合 <img> 的 width/height 属性自动预留宽高比，避免加载回流 */
     border-radius: 3px;
     margin: 4px 0 20px;
+    background: #15110e; /* 加载期间的占位底色，与结局卡背景接近 */
 }
 .ending-image.hidden { display: none; }
 
@@ -125,6 +141,10 @@ h1::after {
     font-family: Georgia, 'Times New Roman', serif;
     font-weight: 700;
 }
+/* 标题以标点结尾时（如"意 外？"），居中会因标点右侧留白显得偏左，整体右移补偿使其视觉居中 */
+#ending-title.trailing-punct { transform: translateX(0.5em); }
+/* 标题以引号/括号开头时（如「‘她来了’」），开头留白使其显得偏右，整体左移补偿 */
+#ending-title.leading-punct { transform: translateX(-0.2em); }
 
 .ending-rule {
     width: 36px;
@@ -172,7 +192,7 @@ h1::after {
 
 button {
     background-color: #8B0000;
-    color: #F5F5DC;
+    color: #F2ECE0;
     border: none;
     padding: 10px 20px;
     border-radius: 5px;
@@ -334,7 +354,8 @@ button:hover {
 }
 
 #random-event-description {
-    font-style: italic;
+    font-style: normal;
+    text-align: justify;
     color: #000000;
 }
 
@@ -360,7 +381,7 @@ button:hover {
 
 #random-event-modal.warning .random-event-option {
     background-color: #003366;
-    color: #F5F5DC;
+    color: #F2ECE0;
     border: 1px solid #001F4D;
     padding: 8px 20px;
     border-radius: 20px;
@@ -404,7 +425,7 @@ button:hover {
 }
 
 .difficulty-option {
-    background-color: #F5F5DC;
+    background-color: #F2ECE0;
     border: 1.5px solid #8B0000;
     border-radius: 10px;
     padding: 14px 16px;
@@ -477,14 +498,15 @@ button:hover {
 }
 
 .stats-box, .variables-box, .events-box {
-    border: 2px solid #1c1916;
-    border-radius: 14px;
+    border: 1.5px solid #6b4f3a;
+    border-radius: 6px;
     margin: 10px 0;
     padding: 18px;
-    background-color: #F5F5DC;
+    background-color: #F7F0E2;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    box-shadow: 0 2px 10px rgba(90, 67, 52, 0.12);
 }
 
 .stats-box {
@@ -512,11 +534,6 @@ button:hover {
     flex-direction: column;
     gap: 6px;
     transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 24px 40px rgba(0, 0, 0, 0.12);
 }
 
 /* 红鸟的不满：横条卡片，跨满整行；右侧 5 个小点 */
@@ -560,6 +577,29 @@ button:hover {
     align-items: center;
     gap: 8px;
 }
+
+/* 数值卡右上角问号：点击弹出该数值说明 */
+.stat-help {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 17px;
+    height: 17px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid #a09486;
+    background: transparent;
+    color: #a09486;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+}
+.stat-help:hover { background: #a09486; color: #fff; }
 
 .stat-icon {
     width: 34px;
@@ -675,54 +715,86 @@ button:hover {
 }
 
 .last-score-panel {
-    flex: 1 1 40%;
+    flex: 1 1 100%;
     min-width: 130px;
-    background: #F5F5DC;
+    min-height: 58px;
+    background: #FBF3E4;
     border-radius: 18px;
-    padding: 16px;
-    border: 1px solid #8B0000;
+    padding: 10px 16px;
+    border: 1px solid #EBDFC9;
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
 }
 
+/* 第0轮（本赛季未开赛）占位：淡灰、居中 */
 .panel-label {
-    font-size: 0.95rem;
-    color: #7a6753;
+    font-size: 1rem;
+    color: #b3a896;
     font-weight: 700;
+    text-align: center;
+    width: 100%;
 }
 
 .last-score-value {
     display: flex;
     align-items: center;
+    justify-content: center;
+    width: 100%;
     color: #2d1f13;
 }
 
+/* 左右两半等宽、向中间对齐，使冒号落在面板（=页面）中轴线上 */
+.score-side {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.score-side-home { justify-content: flex-end; }
+.score-side-away { justify-content: flex-start; }
+
 .score-crest {
-    width: 1.4em; height: 1.4em; object-fit: contain;
-    flex-shrink: 0; margin: 0 4px;
-}
-
-#last-score-home {
-    flex: 1;
-    text-align: right;
-    font-size: 0.9rem;
-    font-weight: 800;
-}
-
-#last-score-num {
+    width: 1.7em; height: 1.7em; object-fit: contain;
     flex-shrink: 0;
-    padding: 0 6px;
-    font-size: 0.9rem;
-    font-weight: 800;
 }
 
+.score-team {
+    font-size: 1.05rem;
+    font-weight: 500;
+    white-space: nowrap;
+    position: relative;
+}
+/* 英文(主队 AC Milan)用 Playfair Display，中文(客队)用默认字体；各自微调垂直位置，使两者中心都落在比分横中线上 */
+#last-score-home {
+    font-family: 'Playfair Display', serif;
+    font-weight: 600;
+    top: 1px;
+}
 #last-score-away {
-    flex: 1;
-    text-align: left;
-    font-size: 0.9rem;
-    font-weight: 800;
+    top: 2px;
+}
+
+.score-num {
+    flex-shrink: 0;
+    font-size: 1.9rem;
+    font-weight: 600;
+    line-height: 1;
+    font-family: 'Oswald', sans-serif;
+}
+
+.score-colon {
+    padding: 0 5px;
+    color: #7a6753;
+}
+
+/* 胜方比分标红 */
+.score-win {
+    color: #8B0000;
 }
 
 .summary-grid {
@@ -734,7 +806,7 @@ button:hover {
 }
 
 .variable {
-    background: #F5F5DC;
+    background: #F7F0E2;
     border: 1px solid #8B0000;
     border-radius: 18px;
     padding: 14px;
@@ -774,23 +846,29 @@ button:hover {
 
 .event-btn {
     padding: 9px 6px;
-    background-color: #8B0000;
-    color: #F5F5DC;
-    border: none;
+    background-color: #F2ECE0;
+    color: #1c1916;
+    border: 1px solid #6b4f3a;
     border-radius: 11px;
     cursor: pointer;
     white-space: normal;
     line-height: 1.22;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 0.9rem;
     text-align: center;
-    box-shadow: 0 2px 6px rgba(139, 0, 0, 0.30);
-    transition: background-color 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 0 #6b0000; /* 底部暗红实色，模拟按钮厚度 */
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
 }
 
 .event-btn:hover {
-    background-color: #A52A2A;
-    box-shadow: 0 4px 10px rgba(139, 0, 0, 0.36);
+    transform: translateY(-3px);
+    box-shadow: 0 7px 0 #6b0000; /* 浮起，厚度加深 */
+    background-color: #FBF6EC; /* 变亮，而非变红 */
+}
+
+.event-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 #6b0000; /* 按下压实 */
 }
 
 .event-btn:disabled {
@@ -872,7 +950,7 @@ button:hover {
 #start-match {
     padding: 9px 22px;
     background-color: #8B0000;
-    color: #F5F5DC;
+    color: #F2ECE0;
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -888,17 +966,17 @@ button:hover {
     cursor: not-allowed;
 }
 
-/* 临时测试按钮 */
-#next-chapter-btn {
+/* ===== 测试面板（调试用，完成后整体删除）===== */
+#test-panel-btn {
     position: fixed;
-    bottom: 48px;
+    bottom: 14px;
     right: 14px;
-    padding: 5px 10px;
+    padding: 5px 12px;
     font-size: 0.72rem;
     background: rgba(20, 20, 20, 0.55);
     color: #aaa;
     border: 1px dashed #555;
-    border-radius: 2px;
+    border-radius: 3px;
     cursor: pointer;
     z-index: 9999;
     opacity: 0.5;
@@ -906,33 +984,53 @@ button:hover {
     transition: opacity 0.2s;
 }
 
-#next-chapter-btn:hover {
+#test-panel-btn:hover {
     opacity: 1;
     background: rgba(20, 20, 20, 0.8);
     color: #ddd;
 }
 
-#test-ending-btn {
+#test-panel {
     position: fixed;
-    bottom: 14px;
+    bottom: 46px;
     right: 14px;
-    padding: 5px 10px;
-    font-size: 0.72rem;
-    background: rgba(20, 20, 20, 0.55);
-    color: #999;
-    border: 1px solid #444;
-    border-radius: 3px;
-    z-index: 9999;
-    opacity: 0.5;
-    letter-spacing: 0.06em;
-    transition: opacity 0.2s;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 190px;
+    padding: 10px;
+    background: rgba(20, 20, 20, 0.94);
+    border: 1px dashed #666;
+    border-radius: 6px;
 }
 
-#test-ending-btn:hover {
-    opacity: 1;
-    background: rgba(20, 20, 20, 0.8);
-    color: #ddd;
+#test-panel.hidden { display: none; }
+
+#test-panel .test-panel-title {
+    font-size: 0.7rem;
+    color: #ccc;
+    letter-spacing: 0.1em;
+    text-align: center;
+    margin-bottom: 2px;
 }
+
+#test-panel button {
+    padding: 7px 8px;
+    font-size: 0.72rem;
+    background: rgba(60, 60, 60, 0.85);
+    color: #e0e0e0;
+    border: 1px solid #555;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+    letter-spacing: 0.04em;
+}
+
+#test-panel button:hover { background: rgba(95, 95, 95, 0.95); }
+
+#test-panel #test-panel-close { background: transparent; color: #999; border-color: #444; }
+#test-panel #test-panel-close:hover { background: rgba(60, 60, 60, 0.6); color: #ccc; }
 
 /* 主线剧情事件卡片（同赛季简报风格） */
 #random-event-modal.mainline {
@@ -1082,7 +1180,18 @@ button:hover {
     letter-spacing: 0.01em;
     border-bottom: 2px solid #1c1916;
     padding-bottom: 12px;
-    margin-bottom: 0;
+    margin-bottom: 6px;
+    position: relative;
+}
+/* 粗黑线下再叠一根细黑线（报纸双线） */
+#random-event-modal.news #random-event-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    height: 1px;
+    background-color: #1c1916;
 }
 
 #random-event-modal.news.compilation #random-event-title::before {
@@ -1144,6 +1253,90 @@ button:hover {
 }
 
 #random-event-modal.news .random-event-option:hover {
+    background: rgba(28, 25, 22, 0.05);
+    border-color: rgba(28, 25, 22, 0.5);
+    color: #1c1916;
+}
+
+/* 新闻卡片统一使用宋体（报纸感；西文回退 serif）*/
+#random-event-modal.news #random-event-title,
+#random-event-modal.news #random-event-description,
+#random-event-modal.news .news-item-title,
+#random-event-modal.news .news-source,
+#random-event-modal.news .random-event-option {
+    font-family: 'SimSun', 'NSimSun', serif;
+}
+
+/* 开场"马尔蒂尼上任"采用新闻样式（《米兰体育报》）*/
+#event-modal { background-color: rgba(0, 0, 0, 0.6); }
+#event-modal .modal-content {
+    background-color: #f7f4ee;
+    border: 1px solid #d8cfbf;
+    border-top: 6px double #1c1916;
+    border-radius: 2px;
+    padding: 24px 24px 20px;
+    text-align: left;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
+}
+#event-modal h2 {
+    color: #1c1916;
+    font-family: 'SimSun', 'NSimSun', serif;
+    font-size: 1.32rem;
+    font-weight: 800;
+    line-height: 1.35;
+    border-bottom: 2px solid #1c1916;
+    padding-bottom: 12px;
+    margin: 0 0 6px;
+    position: relative;
+}
+#event-modal h2::before {
+    content: "新闻";
+    display: block;
+    font-size: 0.56rem;
+    letter-spacing: 0.4em;
+    color: #6b6256;
+    font-weight: 700;
+    margin-bottom: 9px;
+}
+#event-modal h2::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -4px;
+    height: 1px;
+    background-color: #1c1916;
+}
+#event-modal .news-source {
+    display: block;
+    font-size: 0.66rem;
+    color: #8a7f6d;
+    letter-spacing: 0.08em;
+    padding: 10px 0 12px;
+    border-bottom: 1px dotted #c7bca7;
+    margin-bottom: 12px;
+    font-family: 'SimSun', serif;
+}
+#event-modal p {
+    font-size: 0.87rem;
+    color: #2d2820;
+    line-height: 1.85;
+    text-align: justify;
+    font-family: 'SimSun', 'NSimSun', serif;
+    text-indent: 2em;
+    margin: 0 0 18px;
+}
+#event-modal button {
+    background: transparent;
+    color: #4a4337;
+    border: 1px solid rgba(28, 25, 22, 0.25);
+    padding: 9px 14px;
+    border-radius: 2px;
+    font-size: 0.83rem;
+    width: 100%;
+    font-family: 'SimSun', serif;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+#event-modal button:hover {
     background: rgba(28, 25, 22, 0.05);
     border-color: rgba(28, 25, 22, 0.5);
     color: #1c1916;
@@ -1447,11 +1640,12 @@ button:hover {
 /* 底部四按钮行 */
 /* 赛季任务与游戏存档合并为一个大方框，两组按钮之间用细线隔开 */
 .btn-rows-box {
-    border: 2px solid #1c1916;
-    border-radius: 14px;
+    border: 1.5px solid #6b4f3a;
+    border-radius: 6px;
     margin: 10px 0;
     padding: 12px;
-    background-color: #F5F5DC;
+    background-color: #F7F0E2;
+    box-shadow: 0 2px 10px rgba(90, 67, 52, 0.12);
 }
 
 .bottom-btn-row {
@@ -1496,6 +1690,15 @@ button:hover {
     background: rgba(139, 0, 0, 0.06);
     color: #6b0000;
 }
+
+/* 底部四项（赛季任务/赛程/排名/球队消息）字体改黑（边框仍为红） */
+.bottom-btn-row button { color: #1c1916; }
+.bottom-btn-row button:hover { color: #1c1916; }
+
+/* 「球队消息」未读红点（通知开启的分区有未读时显示） */
+#show-team-news-btn { position: relative; }
+.tn-dot { position: absolute; top: 5px; right: 7px; width: 7px; height: 7px; border-radius: 50%; background: #d4302f; box-shadow: 0 0 0 1.5px #fff; }
+.tn-dot.hidden { display: none; }
 
 /* 赛季任务查看弹窗 */
 #season-tasks-modal {
@@ -1624,9 +1827,18 @@ button:hover {
 /* 测试反馈弹窗 */
 .modal-content.test-notice-content {
     text-align: left;
-    max-height: 80vh;
-    overflow-y: auto;
 }
+/* 两页堆叠在同一网格单元：弹窗高度恒等于较高的第一页，切到第二页也不缩放、无滚动条 */
+.test-notice-pages { display: grid; }
+.test-notice-page { grid-area: 1 / 1; min-width: 0; }
+.test-notice-page.tn-hidden { visibility: hidden; } /* 隐藏页仍占位 → 维持第一页高度 */
+.test-notice-footer { padding-top: 10px; margin-top: 6px; border-top: 1px solid rgba(28, 25, 22, 0.08); }
+/* 三角形翻页：◀ 1/2 ▶ */
+.test-notice-pager { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 8px; }
+.tn-arrow { background: transparent; border: none; color: #8B0000; font-size: 1.05rem; line-height: 1; padding: 4px 10px; cursor: pointer; border-radius: 6px; transition: background .15s; }
+.tn-arrow:disabled { color: #cabfae; cursor: default; }
+.tn-arrow:not(:disabled):hover { background: rgba(139, 0, 0, 0.08); }
+.tn-page-ind { font-size: 0.78rem; color: #7a6753; min-width: 3.2em; text-align: center; letter-spacing: 0.05em; }
 
 .test-notice-content h2 {
     text-align: center;
@@ -1652,12 +1864,15 @@ button:hover {
 
 .test-notice-contact {
     font-size: 0.82rem;
-    line-height: 1.75;
     color: #7a6753;
     margin-bottom: 16px;
 }
+/* 每条致谢一段，条目之间留明显空隙；条内换行保持紧凑 */
+.test-notice-contact p { margin: 0 0 0.95em; line-height: 1.55; }
+.test-notice-contact p:last-child { margin-bottom: 0; }
 
-#close-test-notice {
+#close-test-notice,
+#test-notice-next {
     display: block;
     margin: 4px auto 0;
 }
@@ -1751,6 +1966,9 @@ button:hover {
     font-weight: 700;
 }
 
+/* 正文中的英文人名等：使用 Palatino Linotype 字体 */
+.en-name { font-family: 'Palatino Linotype', Georgia, serif; }
+
 #season-intro-continue {
     background: transparent;
     color: #7a6753;
@@ -1835,7 +2053,7 @@ button:hover {
     border-radius: 0;
 }
 
-.schedule-content h2 { text-align: center; margin: 4px 0 10px; font-size: 1rem; }
+.schedule-content h2 { text-align: center; margin: 4px 0 10px; font-size: 1rem; color: #1c1916; }
 
 #schedule-list { display: flex; flex-direction: column; gap: 3px; margin-bottom: 14px; }
 
@@ -1854,8 +2072,8 @@ button:hover {
 .schedule-row.current { background: rgba(139,0,0,0.07); border-color: #8B0000; font-weight: 600; }
 .schedule-row.upcoming { color: #7a6753; }
 
-.sch-crest  { height: 1.25em; width: 1.25em; object-fit: contain; vertical-align: -0.28em; margin-right: 5px; }
-.st-crest   { height: 1.2em; width: 1.2em; object-fit: contain; vertical-align: -0.26em; margin-right: 5px; }
+.sch-crest  { display: inline-block; flex-shrink: 0; height: 1.25em; width: 1.25em; object-fit: contain; vertical-align: -0.28em; margin-right: 5px; }
+.st-crest   { display: inline-block; flex-shrink: 0; height: 1.2em; width: 1.2em; object-fit: contain; vertical-align: -0.26em; margin-right: 5px; }
 .sch-round  { color: #7a6753; font-size: 0.7rem; }
 .sch-result { font-size: 0.72rem; font-weight: 600; white-space: nowrap; }
 .sch-result.win  { color: #2f6e2e; }
@@ -1874,6 +2092,10 @@ button:hover {
 }
 .schedule-row.ucl-row .sch-round { color: #2f6ea1; font-weight: 600; }
 .schedule-row.ucl-row .sch-name { color: #2f6ea1; }
+.schedule-row.transfer-row .sch-round  { color: #2f6e2e; font-weight: 600; }
+.schedule-row.transfer-row .sch-name   { color: #2f6e2e; font-weight: 600; }
+.schedule-row.transfer-row .sch-result { color: #2f6e2e; }
+.sch-transfer-icon { display: inline-block; flex-shrink: 0; height: 1.1em; width: 1.1em; vertical-align: -0.22em; margin-right: 5px; }
 
 #close-schedule-modal {
     width: 100%; margin-top: 6px;
@@ -1927,6 +2149,257 @@ button:hover {
 
 .history-empty { color: #7a6753; font-size: 0.8rem; text-align: center; padding: 20px 0; }
 
+/* ===== 球队消息·总监终端（手机界面，固定长宽比；点界面外关闭）===== */
+#team-news-modal { background-color: rgba(0, 0, 0, 0.62); }
+/* 终端打开时锁定主界面滚动：滑动手机界面不再带动背后页面 */
+body.terminal-modal-open { overflow: hidden; }
+.terminal-phone {
+    height: min(80vh, 680px);
+    aspect-ratio: 9 / 18;        /* 固定长宽比（整体略缩短）：内容多少都不改变界面尺寸，两侧留白 */
+    max-width: 90vw;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 32px;
+    overflow: hidden;
+    border: 1px solid #d8ccb4;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+}
+/* 状态栏：背景与终端一致（白），左=时间，中=「关闭」灵动岛，右=信号(TIM 5G)；图标改深色 */
+.terminal-statusbar {
+    position: relative;
+    flex-shrink: 0;
+    background: #fff;
+    color: #1c1916;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 16px;
+}
+.ts-time { font-family: 'Oswald', sans-serif; font-size: 0.9rem; font-weight: 600; letter-spacing: 0.04em; }
+.ts-signal { display: flex; align-items: center; gap: 5px; }
+.ts-signal svg { fill: #1c1916; }
+.ts-carrier { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; }
+.ts-net { font-size: 0.64rem; font-weight: 600; }
+/* 「灵动岛」关闭按钮：绝对定位居中于状态栏（时间靠左自然宽度、不占等分空间），写「关闭」，点选关闭终端 */
+.terminal-island {
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex; align-items: center; justify-content: center;
+    min-width: 62px; height: 26px; padding: 0 16px;
+    background: #000; color: #ececec;
+    border: none; border-radius: 14px;
+    font-size: 0.74rem; letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: background 0.16s ease, transform 0.12s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.terminal-island:hover { background: #1c1c1c; }
+.terminal-island:active { transform: translate(-50%, -50%) scale(0.95); background: #2a2a2a; }
+
+.terminal-screen { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px 15px 12px; }
+
+/* 分区头部 */
+.tm-sec-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.tm-sec-title { font-size: 1.4rem; font-weight: 800; color: #1c1916; letter-spacing: 0.02em; }
+/* 分区通知开关（铃铛）：不突兀的小图标，亮=开、划掉=关 */
+.tm-notify { flex-shrink: 0; background: transparent; border: none; padding: 0; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; color: #c2bbb0; cursor: pointer; transition: color .15s, background .15s; }
+.tm-notify svg { width: 19px; height: 19px; }
+.tm-notify.on { color: #8B0000; }
+.tm-notify:hover { background: rgba(0, 0, 0, 0.05); }
+.tm-sec-sub { font-size: 0.72rem; color: #9a8f7d; margin-top: 3px; }
+.tm-home-rule { height: 1px; background: rgba(28, 25, 22, 0.12); margin-bottom: 14px; }
+
+/* 消息列表 */
+.tm-msg-list { display: flex; flex-direction: column; gap: 10px; }
+.tm-msg { background: #f6f6f6; border: 1px solid #ececec; border-radius: 14px; padding: 11px 13px; }
+.tm-msg-unread { border-left: 3px solid #8B0000; }
+.tm-msg-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.tm-msg-from { font-size: 0.82rem; font-weight: 700; color: #8B0000; }
+.tm-msg-dot { width: 7px; height: 7px; border-radius: 50%; background: #d4302f; }
+.tm-msg-subject { font-size: 0.86rem; font-weight: 600; color: #1c1916; margin-bottom: 3px; }
+.tm-msg-text { font-size: 0.8rem; color: #3a2a1a; line-height: 1.65; }
+
+/* 论坛点赞/点踩（帖子右上角）*/
+.forum-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 5px; }
+.forum-votes { flex-shrink: 0; display: flex; align-items: center; gap: 12px; }
+.forum-vote {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: none; border: none; padding: 0; cursor: pointer;
+    color: #9a8f7d; font-size: 0.72rem; line-height: 1;
+    transition: color 0.12s;
+}
+.forum-vote svg { width: 15px; height: 15px; }
+.forum-vote.up.voted { color: #2f7d33; }     /* 已点赞：绿 */
+.forum-vote.down.voted { color: #c0392b; }   /* 已点踩：红 */
+/* 赛果播报正文 + 下方球迷回复（灰色方框，缩进于播报左侧，营造回复串） */
+.forum-broadcast { font-weight: 600; }
+.forum-replies { margin-top: 8px; margin-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+.forum-reply {
+    font-size: 0.8rem; line-height: 1.5; color: #555;
+    background: #ededed; border-radius: 8px; padding: 7px 11px;
+    text-align: left; /* 占整行：flex 列默认 stretch，回复框撑满（缩进后）整行 */
+}
+
+.tm-empty { text-align: center; color: #9a8f7d; font-size: 0.82rem; padding: 36px 10px; line-height: 1.8; }
+
+/* 管理层邮件·Gmail 式收件箱 */
+.mail-list { display: flex; flex-direction: column; }
+.mail-row {
+    display: flex; align-items: center; gap: 11px;
+    width: 100%; text-align: left;
+    background: none; border: none;
+    border-bottom: 1px solid rgba(28, 25, 22, 0.08);
+    padding: 11px 3px;
+    cursor: pointer;
+    transition: background 0.12s;
+}
+.mail-row:hover { background: rgba(0, 0, 0, 0.025); }
+/* 未读=原色；已读=整体变暗（不再用加粗区分未读）*/
+.mail-row:not(.mail-unread) { opacity: 0.48; }
+.mail-ico { width: 22px; height: 22px; flex-shrink: 0; }
+.mail-row-main { flex: 1; min-width: 0; overflow: hidden; } /* 普通块容器，保证子元素省略号生效 */
+.mail-row-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.mail-row-from { display: block; font-size: 0.92rem; color: #1c1916; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mail-row-time { flex-shrink: 0; font-size: 0.66rem; color: #9a8f7d; white-space: nowrap; } /* 收到时间，右上角 */
+.mail-row-line2 { display: block; margin-top: 2px; font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* 预览：省略号截断 */
+.mail-row-subject { color: #3a2a1a; }
+.mail-row-snippet { color: #9a8f7d; }
+.mail-end { text-align: center; color: #b3a896; font-size: 0.72rem; padding: 16px 0 6px; margin-top: 4px; border-top: 1px dashed #d8d2c4; } /* 列表底部：淡虚线 + 暂无更多邮件 */
+.dm-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #d4302f; margin-left: 6px; vertical-align: middle; }
+
+/* 邮件/私信详情（标准格式：标题/发件人/收件人/正文，全部靠左、首字符对齐）*/
+.mail-detail-head { margin-bottom: 12px; text-align: left; }
+.mail-back { /* 灰色方形按钮 */
+    display: inline-flex; align-items: center;
+    background: #e7e1d5;
+    border: 1px solid #d5cbb8;
+    border-radius: 5px;
+    color: #5a5045;
+    font-size: 0.86rem;
+    padding: 5px 14px 5px 11px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.mail-back:hover { background: #ddd5c6; }
+.mail-back-arrow { font-size: 1.3rem; line-height: 1; margin-right: 7px; } /* 箭头放大、离中文远一点 */
+.mail-detail-fields { display: flex; flex-direction: column; gap: 5px; text-align: left; }
+.mail-field { display: flex; font-size: 0.84rem; font-weight: 400; color: #1c1916; line-height: 1.6; } /* 与正文同字号、不加粗 */
+.mail-field-label { flex-shrink: 0; width: 4.4em; color: #7a6753; } /* 固定宽度，使冒号后的首字落在同一竖线上 */
+.mail-detail-rule { height: 1px; background: rgba(28, 25, 22, 0.1); margin: 13px 0 15px; }
+.mail-detail-body { font-size: 0.84rem; color: #2a2018; line-height: 1.95; text-align: left; }
+.mail-para { text-indent: 0; margin: 0 0 0.9em; } /* 正文全部顶格 */
+.mail-para:last-child { margin-bottom: 0; }
+.mail-greeting { text-indent: 0; }
+
+/* 社媒私信：头像 + 对话框（聊天气泡）*/
+.dm-avatar {
+    flex-shrink: 0;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: #b3a896;            /* 默认头像：灰底小人头 */
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+}
+.dm-avatar svg { width: 64%; height: 64%; }
+.dm-chat-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.dm-chat-name { font-size: 0.9rem; font-weight: 700; color: #1c1916; }
+.dm-chat { display: flex; flex-direction: column; align-items: flex-start; gap: 9px; }
+.dm-bubble {
+    max-width: 82%;
+    align-self: flex-start;
+    background: #f1f1f1;
+    border: 1px solid #eaeaea;
+    border-radius: 4px 16px 16px 16px; /* 左上小角，像收到的对话框 */
+    padding: 9px 13px;
+    font-size: 0.82rem;
+    color: #2a2018;
+    line-height: 1.7;
+    text-align: left; /* 气泡内文字靠左 */
+}
+/* 交互式私信：玩家(右)气泡、对方「正在输入」、回复选项 */
+.dm-bubble.dm-out {
+    align-self: flex-end;
+    background: #1c1c1c;
+    border-color: #1c1c1c;
+    color: #fff;
+    border-radius: 16px 16px 4px 16px; /* 右下小角，像发出的对话框 */
+}
+.dm-bubble.dm-typing { display: inline-flex; align-items: center; gap: 4px; padding: 12px 14px; }
+.dm-typing span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #9a9a9a;
+    animation: dm-typing-blink 1.2s infinite ease-in-out;
+}
+.dm-typing span:nth-child(2) { animation-delay: 0.2s; }
+.dm-typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dm-typing-blink {
+    0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+    30% { opacity: 1; transform: translateY(-2px); }
+}
+.dm-reply { display: flex; flex-direction: column; gap: 7px; margin-top: 14px; }
+.dm-reply:empty { display: none; }
+.dm-reply-btn {
+    align-self: flex-end;
+    max-width: 82%;
+    background: #fff;
+    border: 1px solid #1c1c1c;
+    border-radius: 16px;
+    padding: 8px 14px;
+    font-size: 0.8rem;
+    color: #1c1916;
+    cursor: pointer;
+    text-align: right;
+    transition: background 0.14s ease, transform 0.1s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.dm-reply-btn:hover { background: #f1f1f1; }
+.dm-reply-btn:active { transform: scale(0.97); background: #e8e8e8; }
+
+/* 球员档案 */
+.tm-player-list { display: flex; flex-direction: column; gap: 8px; }
+.tm-player-row { display: flex; flex-direction: column; gap: 9px; background: #f6f6f6; border: 1px solid #ececec; border-radius: 12px; padding: 12px 15px; }
+.tm-player-line { display: flex; align-items: center; justify-content: space-between; }
+.tm-player-name { font-size: 0.88rem; font-weight: 600; color: #1c1916; display: flex; align-items: center; gap: 6px; }
+.tm-player-ucl { font-size: 0.6rem; color: #fff; background: #8B0000; border-radius: 4px; padding: 1px 5px; }
+.tm-player-stat { font-size: 0.78rem; color: #2f6e2e; font-weight: 600; }
+/* 成长值方格进度条 */
+.tm-growth { display: flex; align-items: center; gap: 9px; }
+.tm-growth-label { font-size: 0.7rem; color: #6b6b6b; font-weight: 600; white-space: nowrap; }
+.tm-growth-bar { display: flex; gap: 3px; flex: 1; }
+.tm-growth-cell { flex: 1; height: 11px; border-radius: 2px; background: #e3dfd6; }
+.tm-growth-cell.on { background: #c92a2a; }
+
+/* 底部标签栏：选中=淡红 */
+.terminal-tabbar { flex-shrink: 0; display: flex; border-top: 1px solid rgba(28, 25, 22, 0.1); background: #fff; }
+.terminal-tab {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    background: none; border: none; cursor: pointer;
+    padding: 9px 2px;
+    color: #9a8f7d;
+    transition: color 0.15s;
+}
+.terminal-tab .tt-icon { position: relative; display: flex; }
+.terminal-tab svg { width: 21px; height: 21px; }
+.terminal-tab .tt-label { font-size: 0.62rem; letter-spacing: 0.04em; }
+.terminal-tab.active { color: #d96a6a; background: rgba(217, 106, 106, 0.14); }   /* 选中：淡红字+淡红底 */
+.tt-badge {
+    position: absolute;
+    top: -7px; right: -11px;       /* 更靠右上角，避免遮挡图标 */
+    min-width: 13px; height: 13px; /* 变小 */
+    padding: 0 3px;
+    border-radius: 7px;
+    background: #d4302f;           /* 红色 */
+    color: #fff;
+    font-size: 0.52rem;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    border: 1.5px solid #fff;
+}
+
 #close-history-modal {
     width: 100%; margin-top: 6px;
     padding: 9px; background: transparent; border: 1.5px solid #1c1916;
@@ -1947,7 +2420,7 @@ button:hover {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
-    background: #e9dcbb;
+    background: #f0e7d0;
     border-radius: 0 9px 9px 9px;
     padding: 12px 12px 10px;
     margin-top: 12px;
@@ -1961,7 +2434,7 @@ button:hover {
     left: 0;
     width: 46px;
     height: 13px;
-    background: #e9dcbb;
+    background: #f0e7d0;
     border-radius: 7px 7px 0 0;
 }
 
@@ -2008,7 +2481,7 @@ button:hover {
 
 /* ========== 排名（积分榜）弹窗 ========== */
 .standings-content { text-align: center; padding: 18px 14px; max-height: 82vh; overflow-y: auto; border-radius: 0; }
-.standings-content h2 { margin: 4px 0 10px; font-size: 1rem; }
+.standings-content h2 { margin: 4px 0 10px; font-size: 1rem; color: #1c1916; }
 
 .standings-legend {
     display: flex;
@@ -2123,9 +2596,16 @@ button:hover {
     border: 1.5px solid #c8b48a;
     border-radius: 14px;
     text-align: left;
-    max-height: 88vh;
-    overflow-y: auto;
+    /* 固定高度：保持原转会窗的大尺寸，签约视图跟随同尺寸；表头/底栏固定、中段内部滚动 */
+    height: min(90vh, 720px);
+    display: flex;
+    flex-direction: column;
 }
+#tm-market-view, #tm-sign-view { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+/* ID 选择器优先级高于 .hidden，需显式覆盖，否则切换时两视图上下重叠 */
+#tm-market-view.hidden, #tm-sign-view.hidden { display: none; }
+#tm-market-scroll, .sn-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+#tm-market-view > .tm-header, #tm-sign-view > .tm-header, .tm-footer, .sn-footer { flex: none; }
 
 .tm-header {
     display: flex;
@@ -2271,8 +2751,11 @@ button:hover {
     display: flex;
     flex-direction: column;
     gap: 5px;
+    min-height: 150px; /* 统一卡片下限，配合占位卡保证翻页面板高度一致 */
     transition: border-color 0.2s;
 }
+/* 占位卡：补满每页 4 张，不可见、只撑版面（翻页不改变面板大小） */
+.tm-player-card.tm-card-empty { visibility: hidden; border: none; background: none; }
 
 .tm-player-card.tm-bought {
     border-color: #2f6e2e;
@@ -2310,6 +2793,7 @@ button:hover {
 .tm-tag-risk      { background-color: #fff3cd; color: #856404; }
 .tm-tag-return    { background-color: #f8d7da; color: #a11d28; }
 .tm-tag-ucl       { background-color: #1e5a9e; color: #eaf2fb; }
+.tm-tag-starter   { background-color: #fbe0e0; color: #b32424; } /* 淡红「首发」：谈判许诺首发位置 */
 .tm-tags { display: flex; gap: 4px; flex-shrink: 0; align-items: flex-start; }
 
 .tm-card-desc {
@@ -2350,6 +2834,63 @@ button:hover {
     color: #aaa;
     cursor: default;
 }
+
+/* ===== 意向签约 / 意向谈判 ===== */
+/* 已选意向卡片高亮 + 撤回按钮态 */
+.tm-player-card.tm-intended { border-color: #2f6e2e; background-color: #f4fbf4; }
+.tm-sign-btn.tm-sign-on { background: #1f5a1e; }
+.tm-sign-btn.tm-sign-on:hover:not(:disabled) { background: #2f6e2e; }
+/* 谈判破裂卡片 */
+.tm-player-card.tm-nego-failed { border-color: #b3433f; background-color: #fdf3f3; opacity: 0.85; }
+
+/* 谈判意向条（达标线 = 红色竖标） */
+.tm-intent { margin-top: 4px; display: flex; flex-direction: column; gap: 3px; }
+.tm-intent-bar { position: relative; height: 8px; background: #ece4d0; border-radius: 5px; overflow: hidden; }
+.tm-intent-fill { height: 100%; background: #c9a24a; border-radius: 5px; transition: width 0.3s ease; }
+.tm-intent-fill.tm-intent-ok { background: #2f6e2e; }
+.tm-intent-th { position: absolute; top: -1px; width: 2px; height: 10px; background: #8B0000; }
+.tm-intent-label { font-size: 0.56rem; color: #777; }
+
+/* 谈判选项（两行：动作名 + 说明/台词） */
+.tm-neg-opts { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+.tm-neg-btn {
+    display: flex; flex-direction: column; gap: 1px;
+    width: 100%; padding: 7px 11px; text-align: left;
+    background: #fff; color: #1c1916;
+    border: 1.3px solid #c9a24a; border-radius: 7px;
+    cursor: pointer; transition: background 0.16s;
+}
+.tm-neg-name { font-size: 0.72rem; font-weight: 700; }
+.tm-neg-sub  { font-size: 0.6rem; color: #8a7a52; }
+.tm-neg-btn:hover:not(:disabled) { background: #faf4e6; }
+.tm-neg-btn:disabled { border-color: #ddd5c4; color: #b3a98f; cursor: default; }
+.tm-neg-btn:disabled .tm-neg-sub { color: #c2b89c; }
+
+/* 谈判结果 */
+.tm-neg-result { margin-top: 4px; padding: 5px 0; text-align: center; border-radius: 6px; font-size: 0.66rem; font-weight: 700; }
+.tm-neg-ok   { background: #e7f5e7; color: #2f6e2e; }
+.tm-neg-fail { background: #fbeaea; color: #8B0000; }
+
+/* ===== 球员签约谈判视图（转会窗内跳转，同尺寸；#tm-market-view/#tm-sign-view 切换） ===== */
+.sn-body { padding: 13px 13px 4px; }
+.sn-card {
+    background: #fff; border: 1.5px solid #e0d4b0; border-radius: 10px;
+    padding: 13px; display: flex; flex-direction: column; gap: 9px;
+}
+.sn-card .tm-player-name { font-size: 0.92rem; }
+.sn-card .tm-card-desc { font-size: 0.68rem; }
+.sn-card .tm-card-stats { font-size: 0.7rem; flex: none; }
+.sn-card .tm-intent-label { font-size: 0.62rem; }
+.sn-footer { display: flex; gap: 9px; padding: 10px 13px 13px; }
+.sn-back-btn, .sn-sign-btn {
+    flex: 1; padding: 9px 0; border: none; border-radius: 8px;
+    font-size: 0.74rem; cursor: pointer; transition: background 0.16s;
+}
+.sn-back-btn { background: #e8e0d0; color: #5a4f3f; }
+.sn-back-btn:hover { background: #ddd3bf; }
+.sn-sign-btn { background: #2f6e2e; color: #fff; }
+.sn-sign-btn:hover:not(:disabled) { background: #3d8a3b; }
+.sn-sign-btn:disabled { background: #d8d0c4; color: #aaa; cursor: default; }
 
 .tm-sell-players {
     padding: 5px 11px 9px;

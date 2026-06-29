@@ -3,34 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=1.0, maximum-scale=5.0">
-    <title>ACM球队总监模拟器1.5</title>
+    <title>ACM球队总监模拟器1.6</title>
     <link rel="icon" type="image/svg+xml" href="SVG/SA/ACM.svg">
     <link rel="stylesheet" href="style.css">
+    <!-- 比分数字 Oswald / 英文队名 Playfair Display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
     <!-- Umami 访问统计 -->
     <script defer src="https://cloud.umami.is/script.js" data-website-id="15f089cb-1e59-488e-a4d8-b9e6b1952431"></script>
 </head>
 <body>
     <div id="game-container">
-        <h1>ACM球队总监模拟器1.5</h1>
+        <h1>ACM球队总监模拟器1.6</h1>
         
         <!-- 创作者声明（开场第一屏） -->
         <div id="test-notice-modal" class="modal">
             <div class="modal-content test-notice-content">
-                <h2>创作者声明</h2>
-                <p class="test-notice-intro">当前版本为：（内测版本）1.5</p>
-                <p class="test-notice-intro">您在游玩中遇到的 bug 可以通过 <strong>wb@加酸黄瓜三明治</strong> 反馈！如果您担心被屏蔽，也可以发送邮件至 <strong>lanviofs@gmail.com</strong>。</p>
-                <p class="test-notice-intro">从模拟数据来看，困难模式的综合通关率仅有 1/3，如您选择困难模式，请善用存档功能。</p>
-                <p class="test-notice-intro">您可以从以下方面提出建议：</p>
-                <ol class="test-notice-list">
-                    <li>UI设计问题/页面风格问题</li>
-                    <li>剧情不符合预期/随机事件触发问题</li>
-                    <li>可玩性不够/应该加入某些事件</li>
-                    <li>错别字</li>
-                    <li>难度太高/太低</li>
-                    <li>我有其他建议</li>
-                </ol>
-                <p class="test-notice-contact">特别感谢：<br>@同人女终有一报 提供了大量测试建议<br>@金卷兰舶 提供了大量有关事件和测试的建议<br>@黒直/@NakedDream 绘制了结局CG并提供了测试建议<br>@清灯晓 提供了大量测试建议</p>
-                <button id="close-test-notice">了解</button>
+                <div class="test-notice-pages">
+                    <!-- 第一页：声明与建议 -->
+                    <div class="test-notice-page" id="test-notice-page-1">
+                        <h2>创作者声明</h2>
+                        <p class="test-notice-intro">当前版本为：（内测版本）1.6</p>
+                        <p class="test-notice-intro">修改了页面布局，增加了球队消息</p>
+                        <p class="test-notice-intro">您在游玩中遇到的 bug 可以通过 <strong>wb@加酸黄瓜三明治</strong> 反馈！如果您担心被屏蔽，也可以发送邮件至 <strong>lanviofs@gmail.com</strong>。</p>
+                        <p class="test-notice-intro">从模拟数据来看，困难模式的综合通关率仅有 1/3，如您选择困难模式，请善用存档功能。</p>
+                        <p class="test-notice-intro">AI使用声明：游戏所有文本部分未使用AI生成的内容。部分欧足联声明使用了AI翻译。</p>
+                        <p class="test-notice-intro">您可以从以下方面提出建议：</p>
+                        <ol class="test-notice-list">
+                            <li>UI设计问题/页面风格问题</li>
+                            <li>剧情不符合预期/随机事件触发问题</li>
+                            <li>可玩性不够/应该加入某些事件</li>
+                            <li>部分机制的说明不够清晰</li>
+                            <li>我有其他建议</li>
+                        </ol>
+                    </div>
+                    <!-- 第二页：特别感谢 -->
+                    <div class="test-notice-page tn-hidden" id="test-notice-page-2">
+                        <h2>特别感谢</h2>
+                        <div class="test-notice-contact">
+                            <p><strong>@同人女终有一报</strong> 提供了大量测试建议。</p>
+                            <p><strong>@金卷兰舶</strong> 提供了大量有关事件、隐藏结局和测试的建议。</p>
+                            <p><strong>@清灯晓</strong> 提供了大量事件和操作手感的测试建议。</p>
+                            <p><strong>@Jasmine</strong> 提供了大量测试建议。</p>
+                            <p><strong>@log</strong> 提供了大量测试建议。</p>
+                            <p><strong>@黒直</strong> 绘制了结局CG，提供了大量有关赛程、随机事件的建议。</p>
+                            <p><strong>@NAKEDREAM（米画师）</strong>绘制了结局CG。</p>
+                            <p>结局‘意外？’的文案来自<strong>@Bentornato</strong> 翻译发布的《马尔蒂尼共和报专访完整版》。（已授权）</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="test-notice-footer">
+                    <div class="test-notice-pager">
+                        <button class="tn-arrow" id="tn-prev" aria-label="上一页" disabled>◀</button>
+                        <span class="tn-page-ind" id="tn-page-ind">1 / 2</span>
+                        <button class="tn-arrow" id="tn-next" aria-label="下一页">▶</button>
+                    </div>
+                    <button id="close-test-notice">了解</button>
+                </div>
             </div>
         </div>
 
@@ -38,7 +68,8 @@
         <div id="event-modal" class="modal hidden">
             <div class="modal-content">
                 <h2>马尔蒂尼上任</h2>
-                <p>2018年8月初，AC米兰宣布俱乐部传奇保罗·马尔蒂尼将以管理层身份回归，结束自2009年退役后长达九年的缺席。</p>
+                <span class="news-source">新闻来源：《米兰体育报》</span>
+                <p>2018年8月初，AC米兰宣布俱乐部传奇<span class="highlight-red">保罗·马尔蒂尼</span>将以管理层身份回归，结束自2009年退役后长达九年的缺席。</p>
                 <button id="close-event">关闭</button>
             </div>
         </div>
@@ -114,42 +145,49 @@
         <!-- 转会市场弹窗 -->
         <div id="transfer-market-modal" class="modal hidden">
             <div class="modal-content tm-panel">
-                <div class="tm-header">
-                    <div class="tm-header-left">
-                        <div class="tm-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+                <!-- 视图①：转会市场列表 -->
+                <div id="tm-market-view">
+                    <div class="tm-header">
+                        <div class="tm-header-left">
+                            <div class="tm-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+                            </div>
+                            <div>
+                                <div class="tm-season-label" id="tm-season-label">转会市场 · 第二赛季</div>
+                                <div class="tm-window-title" id="tm-window-title">夏季转会窗</div>
+                            </div>
                         </div>
-                        <div>
-                            <div class="tm-season-label" id="tm-season-label">转会市场 · 第二赛季</div>
-                            <div class="tm-window-title" id="tm-window-title">夏季转会窗</div>
+                        <div class="tm-header-right">
+                            <div class="tm-stat-chip">
+                                <div class="tm-chip-label">剩余预算</div>
+                                <div class="tm-chip-value" id="tm-budget">€1000万</div>
+                            </div>
+                            <div class="tm-stat-chip">
+                                <div class="tm-chip-label">引援名额</div>
+                                <div class="tm-chip-value" id="tm-slots">3/3</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="tm-header-right">
-                        <div class="tm-stat-chip">
-                            <div class="tm-chip-label">剩余预算</div>
-                            <div class="tm-chip-value" id="tm-budget">€1000万</div>
+                    <div id="tm-market-scroll">
+                        <div class="tm-section-title" id="tm-buy-title">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
+                            <span id="tm-buy-title-text">可签入球员</span>
                         </div>
-                        <div class="tm-stat-chip">
-                            <div class="tm-chip-label">引援名额</div>
-                            <div class="tm-chip-value" id="tm-slots">3/3</div>
+                        <div class="tm-players-grid" id="tm-buy-players"></div>
+                        <div class="tm-pagination" id="tm-buy-pagination"></div>
+                        <div class="tm-section-title" id="tm-sell-title">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7 7 7-7"/></svg>
+                            可出售套现
                         </div>
+                        <div class="tm-sell-players" id="tm-sell-players"></div>
+                    </div>
+                    <div class="tm-footer">
+                        <div class="tm-strength-info">球员状态 <span id="tm-strength-before">50</span> <span class="tm-arrow">→</span> <span id="tm-strength-after">50</span></div>
+                        <button id="tm-close-btn">关闭转会窗，继续赛季</button>
                     </div>
                 </div>
-                <div class="tm-section-title">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7-7 7 7"/></svg>
-                    可签入球员
-                </div>
-                <div class="tm-players-grid" id="tm-buy-players"></div>
-                <div class="tm-pagination" id="tm-buy-pagination"></div>
-                <div class="tm-section-title">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7 7 7-7"/></svg>
-                    可出售套现
-                </div>
-                <div class="tm-sell-players" id="tm-sell-players"></div>
-                <div class="tm-footer">
-                    <div class="tm-strength-info">球员状态 <span id="tm-strength-before">50</span> <span class="tm-arrow">→</span> <span id="tm-strength-after">50</span></div>
-                    <button id="tm-close-btn">关闭转会窗，继续赛季</button>
-                </div>
+                <!-- 视图②：球员签约谈判（同一窗口内跳转，由 renderSignNego 填充） -->
+                <div id="tm-sign-view" class="hidden"></div>
             </div>
         </div>
 
@@ -207,6 +245,24 @@
                 <div class="season-intro-rule"></div>
                 <div id="history-list"></div>
                 <button id="close-history-modal">关闭</button>
+            </div>
+        </div>
+
+        <!-- 球队消息弹窗（总监终端·手机界面；点击界面外关闭）-->
+        <div id="team-news-modal" class="modal hidden">
+            <div class="terminal-phone">
+                <div class="terminal-statusbar">
+                    <span class="ts-time" id="ts-time">9:41</span>
+                    <button class="terminal-island" id="terminal-island" type="button" aria-label="关闭终端">关闭</button>
+                    <span class="ts-signal">
+                        <span class="ts-carrier">TIM</span>
+                        <svg class="ts-bars" viewBox="0 0 19 16" width="18" height="13"><rect x="0" y="11" width="3.2" height="5" rx="1"/><rect x="5.2" y="8" width="3.2" height="8" rx="1"/><rect x="10.4" y="4.5" width="3.2" height="11.5" rx="1"/><rect x="15.6" y="1" width="3.2" height="15" rx="1"/></svg>
+                        <span class="ts-net">5G</span>
+                        <svg class="ts-batt" viewBox="0 0 27 13" width="25" height="12"><rect x="0.6" y="0.6" width="22" height="11.8" rx="3" fill="none" stroke="#1c1916" stroke-width="1.2"/><rect x="2.3" y="2.3" width="16" height="8.4" rx="1.5"/><rect x="24" y="4" width="2.2" height="5" rx="1"/></svg>
+                    </span>
+                </div>
+                <div class="terminal-screen" id="terminal-screen"></div>
+                <div class="terminal-tabbar" id="terminal-tabbar"></div>
             </div>
         </div>
 
@@ -373,11 +429,17 @@
                 <div class="last-score-panel">
                     <div class="panel-label">上一轮比赛结果</div>
                     <div class="last-score-value">
-                        <span id="last-score-home">AC Milan</span>
-                        <img id="last-score-home-crest" class="score-crest" alt="">
-                        <span id="last-score-num">-</span>
-                        <img id="last-score-away-crest" class="score-crest" alt="">
-                        <span id="last-score-away"></span>
+                        <span class="score-side score-side-home">
+                            <span id="last-score-home" class="score-team">AC Milan</span>
+                            <img id="last-score-home-crest" class="score-crest" alt="">
+                            <span id="score-home-goals" class="score-num"></span>
+                        </span>
+                        <span class="score-colon score-num">:</span>
+                        <span class="score-side score-side-away">
+                            <span id="score-away-goals" class="score-num"></span>
+                            <img id="last-score-away-crest" class="score-crest" alt="">
+                            <span id="last-score-away" class="score-team"></span>
+                        </span>
                     </div>
                 </div>
                 <div class="summary-grid">
@@ -394,10 +456,11 @@
                     <button id="show-tasks-btn">赛季任务</button>
                     <button id="show-schedule-btn">赛程</button>
                     <button id="show-standings-btn">排名</button>
-                    <button id="show-history-btn">决策记录</button>
+                    <button id="show-team-news-btn">球队消息<span class="tn-dot hidden"></span></button>
                 </div>
                 <div class="meta-btn-row">
                     <button id="magic-phone-btn" class="magic-phone-btn hidden">魔力电话</button>
+                    <button id="show-history-btn">决策记录</button>
                     <button id="show-archive-btn">游戏存档</button>
                     <button id="show-gallery-btn">结局图鉴</button>
                 </div>
@@ -405,8 +468,22 @@
         </div>
     </div>
     
-    <button id="next-chapter-btn">下一章</button>
-    <button id="test-ending-btn">结局</button>
+    <!-- ===== 测试面板（调试用，完成后整体删除：本块 + script.js 测试面板监听 + style.css 测试面板样式）===== -->
+    <button id="test-panel-btn">测试</button>
+    <div id="test-panel" class="hidden">
+        <div class="test-panel-title">测试面板</div>
+        <button id="test-add-stats">四项数值 +10 · 预算 +1000</button>
+        <button id="test-add-round">当前回合 +2</button>
+        <button id="test-next-season">跳转下一章</button>
+        <button id="test-goto-ending">跳转结局</button>
+        <button id="test-panel-close">关闭</button>
+    </div>
+    <script src="terminalContent.js"></script>
+    <!-- 事件/结局/谈判文案（须先于 script.js；mainlineContent 用 Object.assign 追加，须在 eventContent 之后）-->
+    <script src="eventContent.js"></script>
+    <script src="mainlineContent.js"></script>
+    <script src="endingContent.js"></script>
+    <script src="negotiationContent.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
