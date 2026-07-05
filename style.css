@@ -2150,7 +2150,8 @@ button:hover {
 .history-empty { color: #7a6753; font-size: 0.8rem; text-align: center; padding: 20px 0; }
 
 /* ===== 球队消息·总监终端（手机界面，固定长宽比；点界面外关闭）===== */
-#team-news-modal { background-color: rgba(0, 0, 0, 0.62); }
+/* 终端打开：背后主界面毛玻璃化（浅暗底 + 高斯模糊） */
+#team-news-modal { background-color: rgba(18, 14, 10, 0.34); backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px); }
 /* 终端打开时锁定主界面滚动：滑动手机界面不再带动背后页面 */
 body.terminal-modal-open { overflow: hidden; }
 .terminal-phone {
@@ -2230,7 +2231,9 @@ body.terminal-modal-open { overflow: hidden; }
     background: none; border: none; padding: 0; cursor: pointer;
     color: #9a8f7d; font-size: 0.72rem; line-height: 1;
     transition: color 0.12s;
+    -webkit-tap-highlight-color: transparent; /* 去掉移动端点按后残留的高亮方块 */
 }
+.forum-vote:focus, .forum-vote:focus-visible { outline: none; } /* 点选后不残留焦点框 */
 .forum-vote svg { width: 15px; height: 15px; }
 .forum-vote.up.voted { color: #2f7d33; }     /* 已点赞：绿 */
 .forum-vote.down.voted { color: #c0392b; }   /* 已点踩：红 */
@@ -2246,6 +2249,10 @@ body.terminal-modal-open { overflow: hidden; }
 .tm-empty { text-align: center; color: #9a8f7d; font-size: 0.82rem; padding: 36px 10px; line-height: 1.8; }
 
 /* 管理层邮件·Gmail 式收件箱 */
+/* 终端邮件/私信字体：跨平台系统黑体栈（iOS 苹方 / 安卓 思源黑体·鸿蒙 / Win 雅黑，各取原生、免安装）。
+   data-sec 由 buildTerminalTabbar 设置；仅作用于邮件+私信，论坛/球员保持基础字体 */
+#terminal-screen[data-sec="email"],
+#terminal-screen[data-sec="dm"] { font-family: "PingFang SC", "HarmonyOS Sans SC", "Source Han Sans SC", "Noto Sans SC", "Microsoft YaHei", sans-serif; }
 .mail-list { display: flex; flex-direction: column; }
 .mail-row {
     display: flex; align-items: center; gap: 11px;
@@ -2307,6 +2314,9 @@ body.terminal-modal-open { overflow: hidden; }
 .dm-chat-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .dm-chat-name { font-size: 0.9rem; font-weight: 700; color: #1c1916; }
 .dm-chat { display: flex; flex-direction: column; align-items: flex-start; gap: 9px; }
+/* 同一人的多条消息：每条一个 block（最后送达在最上），block 间用灰线 + 留白分隔 */
+.dm-msg-block { display: flex; flex-direction: column; align-items: flex-start; gap: 9px; align-self: stretch; }
+.dm-msg-sep { align-self: stretch; height: 0; border-top: 1px solid #e0ddd5; }
 .dm-bubble {
     max-width: 82%;
     align-self: flex-start;
@@ -2339,7 +2349,16 @@ body.terminal-modal-open { overflow: hidden; }
     0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
     30% { opacity: 1; transform: translateY(-2px); }
 }
-.dm-reply { display: flex; flex-direction: column; gap: 7px; margin-top: 14px; }
+/* 私信内嵌的球员卡片（球探引荐，消息64）：样式B 圆角卡 + 数值胶囊，靠左像一条对方消息 */
+.dm-scout-card { align-self: flex-start; max-width: 82%; text-align: left; background: #fff; border: 1px solid #ece5d6; border-radius: 16px; padding: 13px 15px; box-shadow: 0 3px 10px rgba(60,48,30,.10); }
+.dm-sc-eyebrow { font-size: 0.56rem; letter-spacing: 0.16em; font-weight: 800; color: #b08a2a; margin-bottom: 7px; }
+.dm-sc-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.dm-sc-name { font-weight: 800; color: #2a2620; font-size: 0.92rem; flex: 1; }
+.dm-sc-desc { font-size: 0.75rem; color: #6f6656; line-height: 1.55; margin-bottom: 10px; }
+.dm-sc-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.dm-sc-chip { background: #f5f1e8; border: 1px solid #ece4d3; border-radius: 20px; padding: 3px 10px; font-size: 0.72rem; color: #5a5040; }
+.dm-sc-price { background: #241f18; color: #f3ede0; border-color: #241f18; font-weight: 600; }
+.dm-reply { display: flex; flex-direction: column; align-self: stretch; align-items: flex-end; gap: 7px; margin-top: 14px; }
 .dm-reply:empty { display: none; }
 .dm-reply-btn {
     align-self: flex-end;
@@ -2351,12 +2370,16 @@ body.terminal-modal-open { overflow: hidden; }
     font-size: 0.8rem;
     color: #1c1916;
     cursor: pointer;
-    text-align: right;
+    text-align: left; /* 左对齐：长回复换行时不再因右对齐而出现错位缩进 */
     transition: background 0.14s ease, transform 0.1s ease;
     -webkit-tap-highlight-color: transparent;
 }
 .dm-reply-btn:hover { background: #f1f1f1; }
 .dm-reply-btn:active { transform: scale(0.97); background: #e8e8e8; }
+/* 带代价的回复：主文案一行 + 灰标签红数字小字（方案D） */
+.dm-reply-act { display: block; }
+.dm-reply-cost { display: block; margin-top: 3px; font-size: 0.68rem; color: #9a9384; }
+.dm-reply-cost b { color: #b3352b; font-weight: 700; }
 
 /* 球员档案 */
 .tm-player-list { display: flex; flex-direction: column; gap: 8px; }

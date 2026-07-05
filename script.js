@@ -96,6 +96,11 @@ let gameStats = {
     winterWarnShown: false,
     player21Discount: 0,
     force21Window: false,
+    forceWindowPlayers: [],      // 下个转会窗保证出现的球员id（如消息64球探引荐，仅一窗后清空；情报另存 transferIntel 持久）
+    scout64Pending: null,        // 消息64：选「感兴趣」后待下一轮下发「球员条件」私信 {playerId,round}
+    scout64ActiveId: null,       // 消息64：当前交涉中的球员id（非空=进行中，未结束前不引荐下一位；跨赛季保留）
+    scout64Offered: [],          // 消息64：已引荐过的 NPC id（不重复引荐）
+    scout64SeasonCount: 0,       // 消息64：本赛季已引荐人数（上限 SCOUT64_MAX_PER_SEASON，赛季初重置）
     donnaLeftFreeRound: 0,
     calhaLeftRound: 0,
     s4WonUcl: false,
@@ -104,10 +109,10 @@ let gameStats = {
     starterPromise: [],          // 谈判中「许诺首发位置」过的球员id（终端球员档案显示淡红「首发」标签）
     playerGrowth: {},            // 已签球员成长值 id→1~10（青年初始1/老将初始5；每赛季+1；欧冠标签球员之和→欧冠胜率加成）
     forumPosts: [],              // 球迷论坛动态帖子（每场联赛后生成：{from,broadcast,replies[],round,unread}；新帖在前）
+    dynamicDMs: [],              // 运行时生成的私信（如消息60·球探求购，带 trigger 记送达时间；随 gameStats 存档）
+    purchasePrice: {},           // 已签球员实际成交价 id→万欧元（含谈判加价；供消息60求购报价 ×1.1）
     buyoutTomoriDone: false,
     overtimeFineUsed: false,
-    tomoriNewsPending: false,
-    tomoriNewsDone: false,
     leaoNewsPending: false,
     leaoNewsDone: false,
     betKing1Done: false,
@@ -122,6 +127,7 @@ let gameStats = {
     uclTitleCount: 0,
     season4TitlesBefore: 0,
     uclReachedFinal: false,
+    uclFinalCount: 0, // 累计进入欧冠决赛次数（不随赛季重置），>1 时「最后一战」旁白改为「缺乏经验」版
     suspicion: 0,
     hesitantContract1Done: false,
     hesitantContract2Done: false,
@@ -459,6 +465,7 @@ function crestSrc(name) {
 let currentRandomEvents = [];
 let randomEventIndex = 0;
 let pendingWarnings = [];
+let afterDerbyCallback = null; // 德比赛果弹窗结束后的接续（赛后：德比 → 预警 → 主线/随机）
 let isSeasonTransition = false;
 let matchSchedule = [];
 let scheduleIndex = 0;
@@ -865,7 +872,8 @@ function renderSeasonTasksPanel() {
         titleEl.textContent = typeof intro.title === 'function' ? intro.title() : intro.title;
         renderTaskList(listEl, intro);
     }
-    if ((season === 2 || season === 3) && gameStats.supportTaskActive) {
+    // 必要的支持=可选任务：未完成则跨赛季常驻「赛季任务」（任意赛季都显示）；完成后仅在原赛季(2/3)显示「已完成」
+    if (gameStats.supportTaskActive && (gameStats.zlatanSupport < 3 || season === 2 || season === 3)) {
         renderSupportTask(listEl);
     }
 }
@@ -1133,7 +1141,7 @@ function updateProgressBar(barId, value) {
 function initializeGame(difficulty) {
     // 初始化数值
     const initVal = difficulty === 'hard' ? 40 : 50;
-    gameStats = { trust: initVal, media: initVal, fans: initVal, player: initVal, budget: 1000, points: 0, ranking: 1, round: 0, lastScore: '', lastOpponentDisplay: '', consecutiveNonWins: 0, consecutiveLosses: 0, usedRandomEvents: [], southStandEventUsed: false, betKingEventUsed: false, rebateEventCount: 0, randomPity: 0, transferEventUsed: false, carCrashEventUsed: false, sinkOrSwimEventUsed: false, bigDataEventUsed: false, derbyLossEventPending: false, derbyWinEventPending: false, warningEventShown: false, gameEnded: false, season: 1, deliveredEmails: {}, architectureRound: 0, notifyPrefs: { email: true, dm: true, forum: true, players: true }, futureRandomEvents: [], usedMainlineEvents: [], newCoachDone: false, xmasDone: false, oldFriendDone: false, winterWindowDone: false, winterSlotBonus: 0, winterNoBudget: false, winterReturnCost: 0, winterReturnIntent: 0, signedPlayers: [], news01Pending: false, news01Done: false, ibraNewsPending: false, ibraNewsDone: false, effectiveDone: false, lockerBrawlPending: false, lockerBrawlDone: false, supportTaskActive: false, zlatanSupport: 0, wonScudetto1: false, hasUCL: false, uclBanNextSeason: false, uclFixtures: null, uclStage: null, uclQualified: false, uclGroupPos: 0, uclOutRound: 0, euroType: 'ucl', lastSeasonRanking: 0, uclTagShown: false, mug1Done: false, mug2Done: false, mugPactDone: false, mugPactPending: false, eslDone: false, esl2Pending: false, esl2Done: false, eslResolution: '', eslResolutionDone: false, sameNameDone: false, player07WinterCost: 0, player07Trust: 0, player07Removed: false, player01Trust: 0, emoOutburstDone: false, nextLeftBack3Done: false, transferRumorDone: false, donnaNegoDone: false, summerWarnShown: false, winterWarnShown: false, player21Discount: 0, force21Window: false, donnaLeftFreeRound: 0, calhaLeftRound: 0, s4WonUcl: false, lastSeasonWonUcl: false, transferIntel: [], starterPromise: [], playerGrowth: {}, forumPosts: [], buyoutTomoriDone: false, overtimeFineUsed: false, tomoriNewsPending: false, tomoriNewsDone: false, leaoNewsPending: false, leaoNewsDone: false, betKing1Done: false, betKing2Done: false, betKing3Done: false, betKingSkip: false, betKingResolved: false, farCallDone: false, magicPhoneUnlocked: false, magicPhoneUses: 0, scudettoCount: 0, uclTitleCount: 0, season4TitlesBefore: 0, uclReachedFinal: false, suspicion: 0, hesitantContract1Done: false, hesitantContract2Done: false, hesitantContract2Pending: false, omniscient1Done: false, omniscient2Done: false, pressOfficerDone: false, nextLeftBack4Done: false, leftBack4Resolved: false, southStandTalkDone: false, southStandPending: false, footballDisputeDone: false, deadEndDone: false, godByeDone: false, lastMatchLost: false, shownWarnings: { trustCrisis: false, trustCritical: false, mediaCrisis: false, mediaCritical: false, playerCrisis: false, playerCritical: false, fansCrisis: false, fansCritical: false }, difficulty };
+    gameStats = { trust: initVal, media: initVal, fans: initVal, player: initVal, budget: 1000, points: 0, ranking: 1, round: 0, lastScore: '', lastOpponentDisplay: '', consecutiveNonWins: 0, consecutiveLosses: 0, usedRandomEvents: [], southStandEventUsed: false, betKingEventUsed: false, rebateEventCount: 0, randomPity: 0, transferEventUsed: false, carCrashEventUsed: false, sinkOrSwimEventUsed: false, bigDataEventUsed: false, derbyLossEventPending: false, derbyWinEventPending: false, warningEventShown: false, gameEnded: false, season: 1, deliveredEmails: {}, architectureRound: 0, notifyPrefs: { email: true, dm: true, forum: true, players: true }, futureRandomEvents: [], usedMainlineEvents: [], newCoachDone: false, xmasDone: false, oldFriendDone: false, winterWindowDone: false, winterSlotBonus: 0, winterNoBudget: false, winterReturnCost: 0, winterReturnIntent: 0, signedPlayers: [], news01Pending: false, news01Done: false, ibraNewsPending: false, ibraNewsDone: false, effectiveDone: false, lockerBrawlPending: false, lockerBrawlDone: false, supportTaskActive: false, zlatanSupport: 0, wonScudetto1: false, hasUCL: false, uclBanNextSeason: false, uclFixtures: null, uclStage: null, uclQualified: false, uclGroupPos: 0, uclOutRound: 0, euroType: 'ucl', lastSeasonRanking: 0, uclTagShown: false, mug1Done: false, mug2Done: false, mugPactDone: false, mugPactPending: false, eslDone: false, esl2Pending: false, esl2Done: false, eslResolution: '', eslResolutionDone: false, sameNameDone: false, player07WinterCost: 0, player07Trust: 0, player07Removed: false, player01Trust: 0, emoOutburstDone: false, nextLeftBack3Done: false, transferRumorDone: false, donnaNegoDone: false, summerWarnShown: false, winterWarnShown: false, player21Discount: 0, force21Window: false, forceWindowPlayers: [], scout64Pending: null, scout64ActiveId: null, scout64Offered: [], scout64SeasonCount: 0, donnaLeftFreeRound: 0, calhaLeftRound: 0, s4WonUcl: false, lastSeasonWonUcl: false, transferIntel: [], starterPromise: [], playerGrowth: {}, forumPosts: [], dynamicDMs: [], purchasePrice: {}, buyoutTomoriDone: false, overtimeFineUsed: false, leaoNewsPending: false, leaoNewsDone: false, betKing1Done: false, betKing2Done: false, betKing3Done: false, betKingSkip: false, betKingResolved: false, farCallDone: false, magicPhoneUnlocked: false, magicPhoneUses: 0, scudettoCount: 0, uclTitleCount: 0, season4TitlesBefore: 0, uclReachedFinal: false, uclFinalCount: 0, suspicion: 0, hesitantContract1Done: false, hesitantContract2Done: false, hesitantContract2Pending: false, omniscient1Done: false, omniscient2Done: false, pressOfficerDone: false, nextLeftBack4Done: false, leftBack4Resolved: false, southStandTalkDone: false, southStandPending: false, footballDisputeDone: false, deadEndDone: false, godByeDone: false, lastMatchLost: false, shownWarnings: { trustCrisis: false, trustCritical: false, mediaCrisis: false, mediaCritical: false, playerCrisis: false, playerCritical: false, fansCrisis: false, fansCritical: false }, difficulty };
     pendingTransferSlots = 0;
     lastOpponentName = '';
     serieATeams = teams.map(t => ({ ...t }));
@@ -1365,27 +1373,27 @@ const transferBuyPlayers = [
     {
         id: 'lb_winger', name: '飞翼左后卫', tier: 1, tag: '潜力股', tagColor: 'potential',
         desc: '攻守兼备的现代边卫，甚至十分擅长助攻，跑起来像一台失控的跑车。有人说他上场只会吃红牌，也许他性格暴躁，也许他只是渴望一个机会来证明自己。',
-        effects: { player: 4, media: -2 }, cost: 2000, signIntent: 35
+        effects: { player: 4, media: -2 }, cost: 2000, signIntent: 60
     },
     {
         id: 'winger_pt', name: '葡萄牙边锋', tier: 1, tag: '潜力股', tagColor: 'potential',
         desc: '20岁，速度和盘带俱佳，不契合前教练的培养思路，表现出极强的可塑性。他的缺点都可以改正，他的优点却很难在其他球员身上发现。',
-        effects: { player: 5 }, cost: 3500, signIntent: 40
+        effects: { player: 5 }, cost: 3500, signIntent: 60
     },
     {
         id: 'striker_fr', name: '法国中锋', tier: 1, tag: '潜力股', tagColor: 'potential',
         desc: '以几乎白送的价格挂牌，有人说现代足球已经没有他的容身之地。他自称儿时的偶像是你曾经的队友，因此才想来到米兰。',
-        effects: { player: 4, fans: 3 }, cost: 100
+        effects: { player: 4, fans: 3 }, cost: 100, signIntent: 55
     },
     {
         id: 'cb_eng', name: '全能型工兵', tier: 1, tag: '即战力', tagColor: 'ready',
         desc: '35岁，出身于本土青训，他曾多次被租借，踢过边翼卫和中场，速度和身体早已不是巅峰，主教练信任他，更多是因为他的经验和稳定性。',
-        effects: { player: 5 }, cost: 300
+        effects: { player: 5 }, cost: 300, signIntent: 50
     },
     {
         id: 'gk_talent', name: '天才守门员', tier: 1, tag: '潜力股', tagColor: 'potential',
         desc: '反应神速，几乎是一位无死角门将。没人相信一个新人能顶替刚刚离队的传奇门神，他的心态极佳，但是否适合米兰还未可知。',
-        effects: { player: 5 }, cost: 1300
+        effects: { player: 5 }, cost: 1300, signIntent: 48
     },
     {
         id: 'maestro', name: '上帝的指挥', tier: 1, tag: '即战力', tagColor: 'ready', uclTag: true,
@@ -1401,7 +1409,7 @@ const transferBuyPlayers = [
     {
         id: 'daniel_maldini', name: '丹尼尔·马尔蒂尼', tier: 0, tag: '青训', tagColor: 'potential',
         desc: '青年队里技术细腻的小将，青训教练认为他已有征战意甲的实力——他和你共用一个姓氏。',
-        effects: { player: 3 }, cost: 1200
+        effects: { player: 3 }, cost: 1200, signIntent: 55
     },
     {
         id: 'belgian_star', name: '下一代新星', tier: 1, tag: '潜力股', tagColor: 'potential', uclTag: true,
@@ -1412,73 +1420,73 @@ const transferBuyPlayers = [
     {
         id: 'dm_cro', name: '克罗地亚铁腰', tier: 2, tag: '即战力', tagColor: 'ready',
         desc: '通过高效的比赛阅读能力覆盖整片中场，他的合同还剩最后一年，十分抢手，经纪人已经在和别的球队总监喝咖啡了。',
-        effects: { player: 6 }, cost: 3500
+        effects: { player: 6 }, cost: 3500, signIntent: 35
     },
     {
         id: 'amf_fk', name: '任意球前腰', tier: 2, tag: '高风险', tagColor: 'risk',
         desc: '22岁，当打之年，在更衣室和队友打成一片，但他的经纪人胃口不小，谈判桌上他的眼睛总望着别处：米兰城不止一家球队。',
-        effects: { player: 6, fans: 3 }, cost: 4000
+        effects: { player: 6, fans: 3 }, cost: 4000, signIntent: 35
     },
     {
         id: 'dm_pt', name: '葡萄牙后腰', tier: 2, tag: '高风险', tagColor: 'risk',
         desc: '拦截凶狠，身材高大，性格火爆。平均三场就会吃一次牌，曾有在更衣室和队友大打出手的传闻，辱骂过教练。如果管不住他，就别签下这个定时炸弹。',
-        effects: { player: 7, trust: -5 }, cost: 3000
+        effects: { player: 7, trust: -5 }, cost: 3000, signIntent: 45
     },
     {
         id: 'winger_amateur', name: '业余的边锋', tier: 2, tag: '高风险', tagColor: 'risk',
         desc: '他踢过很长时间的低级别联赛，如果不是球探报告，你甚至不能确定他是一名职业球员。他愿意为任何赛场机会拼命，任何机会。',
-        effects: { player: 2 }, cost: 550
+        effects: { player: 2 }, cost: 550, signIntent: 58
     },
     {
         id: 'cb_control', name: '控制型中卫', tier: 2, tag: '即战力', tagColor: 'ready',
         desc: '195cm，33岁，沉稳可靠，他的经验足够帮助任何一家处在重建期的球队度过磨合期，但他的跑动能力下滑明显，防守技巧上也有一些短板。',
-        effects: { player: 4 }, cost: 1800
+        effects: { player: 4 }, cost: 1800, signIntent: 48
     },
     {
         id: 'mid_bel', name: '进攻型中场', tier: 2, tag: '高风险', tagColor: 'risk',
         desc: '从顶级球队租借来的小个子，灵光一现的时候能在狭小空间里给出一脚直塞，但他大概会在租借期满后走人。',
-        effects: { player: 6, fans: 4 }, cost: 2800
+        effects: { player: 6, fans: 4 }, cost: 2800, signIntent: 40
     },
     {
         id: 'striker_vet', name: '养老的前锋', tier: 2, tag: '高风险', tagColor: 'risk',
         desc: '35岁，昔日的世界级射手，拿着高额薪水被俱乐部无情抛弃，他的脚法和经验都还在，关键球的处理仍然不失水准，但他对任何俱乐部的热情都已经远去，签下他意味着承担高额的薪资。',
-        effects: { player: 5, fans: 5, trust: -3 }, cost: 4500
+        effects: { player: 5, fans: 5, trust: -3 }, cost: 4500, signIntent: 38
     },
     {
         id: 'striker_ger', name: '德国攻击手', tier: 2, tag: '高风险', tagColor: 'risk',
         desc: '26岁，社交媒体有百万级别的粉丝，签下他意味着进一步扩大在社媒上的影响力，教练私下对你表示过轻微的怀疑，他的技术真的适配米兰吗？',
-        effects: { player: 3, fans: 9, media: 5 }, cost: 5000
+        effects: { player: 3, fans: 9, media: 5 }, cost: 5000, signIntent: 45
     },
     {
         id: 'mid_steady', name: '稳健型中场', tier: 2, tag: '高风险', tagColor: 'risk',
         desc: '33岁，既能扫荡又能后插，关键时刻总是不吝啬牺牲自己的体力，性格直爽，和更衣室关系良好。他的经纪人没有隐瞒球员的身体状况，正是这份体检报告让你犹豫。',
-        effects: { player: 5, trust: 2 }, cost: 2000
+        effects: { player: 5, trust: 2 }, cost: 2000, signIntent: 50
     },
     {
         id: 'cb_den', name: '丹麦中卫', tier: 2, tag: '即战力', tagColor: 'ready',
         desc: '冷静、稳健，几乎不犯错。中规中矩的价格，中规中矩的描述。你也许就是需要这样一位没什么特点的后卫。',
-        effects: { player: 4 }, cost: 2200
+        effects: { player: 4 }, cost: 2200, signIntent: 45
     },
     {
         id: 'rb_esp', name: '西班牙边卫', tier: 2, tag: '即战力', tagColor: 'ready',
         desc: '29岁，经验丰富，攻防两端都拿得出手，即插即用毫无磨合成本。问题是他名气大、要价高、且已经过了巅峰期。',
-        effects: { player: 5 }, cost: 3800
+        effects: { player: 5 }, cost: 3800, signIntent: 42
     },
     {
         id: 'cb_eng_loan', name: '英格兰中卫', tier: 2, tag: '即战力', tagColor: 'ready',
         desc: '身体素质强硬，风格稳健。你们需要一位中卫，前东家的首发名单里没有他的位置，培养他之后，是否能留住他呢？',
-        effects: { player: 5 }, cost: 2800
+        effects: { player: 5 }, cost: 2800, signIntent: 50
     },
     {
         id: 'striker_glass', name: '玻璃进攻手', tier: 2, tag: '高风险', tagColor: 'risk',
         desc: '25岁却已经有过三次大伤，状态好的时候能左右一场比赛，旧伤发作的时候一个赛季踢不了十场。出场频率和作用都是未知数。',
-        effects: { player: 7 }, cost: 2000
+        effects: { player: 7 }, cost: 2000, signIntent: 45
     },
     // 23 ·（原 08）法国中后卫 → 移入 NPC 池（tier 2）
     {
         id: 'cb_fr_young', name: '法国中后卫', tier: 2, tag: '潜力股', tagColor: 'potential',
         desc: '他是个只有二十一岁的稚嫩球员，球队如何塑造他，决定了他会成为哪种球员。',
-        effects: { player: 3 }, cost: 50
+        effects: { player: 3 }, cost: 50, signIntent: 48
     }
 ];
 // 01-09 号核心球员（tier 1）均带"欧冠"标签（第三赛季夏窗后才在转会窗显示）
@@ -1517,6 +1525,12 @@ const signDMTrigger = {
     cm_youth_it: 'signTonali', daniel_maldini: 'signDaniel', belgian_star: 'signDeket',
     mid_bel: 'signBrahim', cb_den: 'signKjaer', cb_eng_loan: 'signTomori', cb_fr_young: 'signKalulu'
 };
+// 私信发件人（球员本人）→ 球员id：回复其本人私信一次，该球员成长值 +1（`dmAnswerReply`）。多纳鲁马非在册球员、无成长值，不列入
+const DM_SENDER_PLAYER = {
+    '特奥': 'lb_winger', '莱奥': 'winger_pt', '吉鲁': 'striker_fr', '弗洛伦齐': 'cb_eng',
+    '麦尼昂': 'gk_talent', '伊布拉希莫维奇': 'maestro', '托纳利': 'cm_youth_it', '丹尼尔': 'daniel_maldini',
+    '德凯特拉雷': 'belgian_star', '迪亚斯': 'mid_bel', '克亚尔': 'cb_den', '托莫里': 'cb_eng_loan', '卡卢卢': 'cb_fr_young'
+};
 
 // ===== 球员成长值（1~10）=====
 // 老将（03吉鲁/06伊布/10铁腰/19克亚尔）初始 5，其余青年球员初始 1；每赛季自然 +1，上限 10
@@ -1527,6 +1541,90 @@ function initPlayerGrowth(id) {
 function playerGrowthOf(id) {
     return gameStats.playerGrowth[id] != null ? gameStats.playerGrowth[id] : (OLD_PLAYER_IDS.includes(id) ? 5 : 1);
 }
+// 私信60（AAA专业球探·豪门求购）：已签青年球员（初始成长值1，非老将）成长值≥3后，逐一收到求购短信；
+// 纯剧情对话（不真的卖人）。动态生成、带唯一 trigger 记送达时间，推入 gameStats.dynamicDMs（随存档持久化）。
+const SCOUT_OFFER_GROWTH = 3;
+function maybeScoutOffer() {
+    if (!gameStats.dynamicDMs) gameStats.dynamicDMs = [];
+    for (const id of gameStats.signedPlayers) {
+        if (OLD_PLAYER_IDS.includes(id)) continue;            // 老将初始就≥5，非「成长值1」球员
+        if (playerGrowthOf(id) < SCOUT_OFFER_GROWTH) continue;
+        const key = 'scoutOffer_' + id;
+        if (gameStats.deliveredEmails && gameStats.deliveredEmails[key]) continue; // 该球员已发过
+        const p = transferBuyPlayers.find(b => b.id === id);  // 需转会市场名（08丹尼尔不在市场，跳过）
+        if (!p) continue;
+        const paid = (gameStats.purchasePrice && gameStats.purchasePrice[id] != null) ? gameStats.purchasePrice[id] : p.cost;
+        const price = Math.round(paid * 1.1);                 // 实际成交价 +10%
+        gameStats.dynamicDMs.push({
+            from: 'AAA专业球探', unread: true, trigger: key, playerId: id,
+            bubbles: [`马尔蒂尼先生。抱歉打扰您，有一只绝对可以称得上是豪门的球队求购米兰队伍中的${p.name}，他们第一轮出价${price}万欧元，您有这个意向吗？`],
+            replies: [
+                { text: '这名球员是米兰的非卖品。', answer: '好的，看起来您对第一轮报价不满意。' },
+                { text: '我会考虑的。', answer: '别的球队如果有报价，我也会和您跟进。' }
+            ]
+        });
+        deliverEmail(key);   // 记送达时间（供收件箱排序）+ 刷新红点
+        return;              // 每轮最多一条，逐轮下发避免刷屏
+    }
+}
+
+// 私信64（球探团队·引荐 NPC 池球员）：第二赛季起、空闲时逐轮随机引荐一名「未引荐过、未签下」的 NPC（tier 2），发其转会窗卡片。
+// 选「感兴趣」→ 下一轮下发「球员条件」私信；答应任一条件 → 扣相应数值 + 解锁其签约「情报加持」(transferIntel) + 保证其下个转会窗出现(forceWindowPlayers)。
+// 一名球员的交涉结束前（64a 选不感兴趣 / 64b 任一选项，均带 scoutDone 清 scout64ActiveId；或该球员在转会窗被签下）不引荐下一位；所有状态随 gameStats 跨赛季保留。
+const SCOUT64_START_SEASON = 2;   // 第二赛季起
+const SCOUT64_CHANCE = 0.1;       // 空闲时每轮引荐概率（可调）
+const SCOUT64_MAX_PER_SEASON = 2; // 每赛季最多引荐人数（赛季初 scout64SeasonCount 归零）
+function maybeScout64() {
+    if (!gameStats.dynamicDMs) gameStats.dynamicDMs = [];
+    if (!gameStats.scout64Offered) gameStats.scout64Offered = [];
+    const scoutAns = '我们已获得球员的初步意向。';
+    // 64b：选「感兴趣」后的下一轮，球探带回球员开出的条件
+    if (gameStats.scout64Pending && gameStats.round > gameStats.scout64Pending.round) {
+        const id = gameStats.scout64Pending.playerId;
+        const bKey = 'scout64b_' + id;
+        if (!(gameStats.deliveredEmails && gameStats.deliveredEmails[bKey])) {
+            gameStats.dynamicDMs.push({
+                from: '球探团队', unread: true, trigger: bKey, playerId: id,
+                bubbles: ['球员提出了一些条件。'],
+                replies: [
+                    { text: '给球员更多广告分成。', cost: { label: '媒体声望', value: '-10' }, effects: { media: -10 }, grantIntel: true, scoutDone: true, answer: scoutAns },
+                    { text: '答应以他为球队核心。', cost: { label: '球员状态', value: '-10' }, effects: { player: -10 }, grantIntel: true, scoutDone: true, answer: scoutAns },
+                    { text: '承诺管理层无权干涉球员合同。', cost: { label: '管理层信任度', value: '-10' }, effects: { trust: -10 }, grantIntel: true, scoutDone: true, answer: scoutAns },
+                    { text: '给球员一笔额外奖金。', cost: { label: '球队预算', value: '-500w' }, effects: { budget: -500 }, grantIntel: true, scoutDone: true, answer: scoutAns },
+                    { text: '还是算了吧。', scoutDone: true, pass: true, answer: '好的，总监。' }
+                ]
+            });
+            deliverEmail(bKey);
+        }
+        gameStats.scout64Pending = null;
+    }
+    // 64a：无进行中的交涉、本赛季名额未满时，第二赛季起每轮按概率引荐一名尚未引荐、未签下的 NPC
+    if (!gameStats.scout64ActiveId && !gameStats.scout64Pending
+        && gameStats.season >= SCOUT64_START_SEASON
+        && (gameStats.scout64SeasonCount || 0) < SCOUT64_MAX_PER_SEASON
+        && Math.random() < SCOUT64_CHANCE) {
+        const pool = transferBuyPlayers.filter(p => p.tier === 2
+            && !gameStats.signedPlayers.includes(p.id)
+            && !gameStats.scout64Offered.includes(p.id));
+        if (pool.length) {
+            const p = pool[Math.floor(Math.random() * pool.length)];
+            const aKey = 'scout64a_' + p.id;
+            gameStats.scout64Offered.push(p.id);
+            gameStats.scout64ActiveId = p.id;  // 交涉进行中：本流程结束前不再引荐下一位
+            gameStats.scout64SeasonCount = (gameStats.scout64SeasonCount || 0) + 1; // 本赛季引荐 +1
+            gameStats.dynamicDMs.push({
+                from: '球探团队', unread: true, trigger: aKey, playerId: p.id,
+                bubbles: ['Ciao, Paolo', '我们在市场上发现一些新球员。', { card: p.id }, '你觉得怎么样？'],
+                replies: [
+                    { text: '感兴趣。', answer: '好的，我们这就去接触球员。', interest: true },
+                    { text: '不感兴趣。', answer: '我们有新消息再告诉你。', scoutDone: true }
+                ]
+            });
+            deliverEmail(aKey);
+        }
+    }
+}
+
 // 欧冠胜率加成：所有已签「欧冠标签」球员成长值之和 × 每点 0.2%，封顶 +10%
 const UCL_GROWTH_RATE = 0.002, UCL_GROWTH_CAP = 0.10;
 function uclGrowthWinBonus() {
@@ -1574,6 +1672,15 @@ function fillWithNpc(result) {
         const t21 = transferBuyPlayers.find(p => p.id === 'cb_eng_loan');
         if (t21) { out.push(applyDisc(t21)); have.add('cb_eng_loan'); }
         gameStats.force21Window = false;
+    }
+    // 消息64 球探引荐：被承诺的球员下个转会窗保证出现（仅这一窗，随后清空；情报另存 transferIntel 持久不清）
+    if (gameStats.forceWindowPlayers && gameStats.forceWindowPlayers.length) {
+        for (const fid of gameStats.forceWindowPlayers) {
+            if (gameStats.signedPlayers.includes(fid) || have.has(fid)) continue;
+            const fp = transferBuyPlayers.find(p => p.id === fid);
+            if (fp) { out.push(applyDisc(fp)); have.add(fid); }
+        }
+        gameStats.forceWindowPlayers = [];
     }
     // 列入 coreDebut 的 NPC（19、23）只经 availableCorePlayers 在其首次出现窗起登场，故此处排除，避免提前出现/重复
     const npc = transferBuyPlayers.filter(p => p.tier === 2 && !gameStats.signedPlayers.includes(p.id)
@@ -1661,8 +1768,14 @@ function tmRenderBuyCard(card, p) {
     if (canStart) card.querySelector('.tm-sign-btn').addEventListener('click', () => tmStartNego(p));
 }
 
-// 初始意向：球员数据可加 signIntent 覆盖（默认 NEG_START；高者可直接「立刻签约」）
-function tmInitIntent(p) { return p.signIntent != null ? p.signIntent : NEG_START; }
+// 初始意向：现在每名球员数据都带固定 signIntent（见 transferBuyPlayers），按角色设定手工定值；06=伊布浮动（winterReturnIntent，随「曾经的传奇」选择）
+// 无 signIntent 时才回退到 35–55 随机（中心约 NEG_START=45）；仅在创建 nego 状态时调用一次，结果锁入 tmState.nego[id].intent，本窗口内稳定
+// 困难模式：全体初始意向统一 −10（含随机兜底），下限 0；例外：07(cm_youth_it)恒 100、06伊布(maestro)浮动值均不下调
+const HARD_INTENT_KEEP = ['cm_youth_it', 'maestro'];
+function tmInitIntent(p) {
+    const base = p.signIntent != null ? p.signIntent : 35 + Math.floor(Math.random() * 21);
+    return gameStats.difficulty === 'hard' && !HARD_INTENT_KEEP.includes(p.id) ? Math.max(0, base - 10) : base;
+}
 function tmHasIntel(p) { return (gameStats.transferIntel || []).includes(p.id); }
 
 let signNego = null; // 当前正在谈判的球员
@@ -1788,10 +1901,15 @@ function closeSignNego() {
 function signPlayerFinal(p, finalCost) {
     tmState.purchased.add(p.id);
     if (!gameStats.signedPlayers.includes(p.id)) gameStats.signedPlayers.push(p.id);
+    if (!gameStats.purchasePrice) gameStats.purchasePrice = {};
+    gameStats.purchasePrice[p.id] = finalCost; // 记实际成交价（含谈判加价），供消息60求购报价
     initPlayerGrowth(p.id); // 签下即设初始成长值（老将5/青年1）
     if (signDMTrigger[p.id]) deliverEmail(signDMTrigger[p.id]); // 签下 → 其本人私信
     if (p.id === 'maestro' && !gameStats.news01Done) gameStats.news01Pending = true;
     if (p.id === 'winger_pt' && !gameStats.leaoNewsDone) gameStats.leaoNewsPending = true;
+    // 消息64：签下的正是球探正在交涉的球员 → 交涉结束（清 busy、取消待发 64b），放行下一位；若 DM 尚未回复，回复时球探恭贺（见 dmAnswerReply）
+    if (gameStats.scout64ActiveId === p.id) gameStats.scout64ActiveId = null;
+    if (gameStats.scout64Pending && gameStats.scout64Pending.playerId === p.id) gameStats.scout64Pending = null;
     updateBudget(-finalCost);
     Object.entries(p.effects).forEach(([k, v]) => updateStat(k, v));
     choiceHistory.push({
@@ -1917,7 +2035,7 @@ function startNextNegotiation() {
 
 function openNegotiation(key) {
     const sc = negotiationScripts[key];
-    negState = { key, round: 0, value: sc.start, lastDelta: null };
+    negState = { key, round: 0, value: sc.start, lastDelta: null, pendBudget: 0 };
     negShowChrome(true);
     document.getElementById('neg-title').textContent = `续约谈判 · 第${toChineseNum(gameStats.season)}赛季`;
     document.getElementById('neg-subtitle').textContent = sc.sub;
@@ -1951,26 +2069,36 @@ function renderNegotiation() {
         deltaEl.textContent = `${d >= 0 ? '↗' : '↘'} 上一轮${negDeltaNarration(d)}，意向 ${d >= 0 ? '+' : ''}${d}`;
     }
 
+    // 谈判中已承诺的预算（续约成功后才结算，拉锯/破裂不扣）
+    const pendEl = document.getElementById('neg-pending');
+    pendEl.textContent = negState.pendBudget ? `续约成功后，待结算：预算 ${negState.pendBudget > 0 ? '+' : ''}${negState.pendBudget}w` : '';
+
     const oc = document.getElementById('neg-options');
     oc.innerHTML = '';
     rd.options.forEach(opt => {
-        const badge = negBadge(opt.delta);
+        // 引号台词作为灰色小字显示在选项动作文字下方
+        const qi = opt.text.indexOf('“');
+        const action = qi >= 0 ? opt.text.slice(0, qi).trim() : opt.text;
+        const quote = qi >= 0 ? opt.text.slice(qi) : '';
+        const badges = [];
+        if (opt.budget) badges.push({ cls: opt.budget < 0 ? 'neg-badge-red' : 'neg-badge-green', text: `预算 ${opt.budget > 0 ? '+' : ''}${opt.budget}w` });
+        const ib = negBadge(opt.delta);
+        badges.push({ cls: ib.cls, text: ib.text });
         const b = document.createElement('button');
         b.className = 'neg-option';
-        b.innerHTML = `
-            <div class="neg-opt-main">
-                <div class="neg-opt-text">${opt.text}</div>
-                <div class="neg-opt-badge ${badge.cls}">${badge.text}</div>
-            </div>
-            <div class="neg-opt-desc">${opt.desc}</div>`;
-        b.addEventListener('click', () => negChoose(opt.delta));
+        b.innerHTML = `<div class="neg-opt-text">${action}</div>`
+            + (quote ? `<div class="neg-opt-quote">${quote}</div>` : '')
+            + `<div class="neg-opt-badges">${badges.map(x => `<span class="neg-opt-badge ${x.cls}">${x.text}</span>`).join('')}</div>`
+            + `<div class="neg-opt-desc">${opt.desc}</div>`;
+        b.addEventListener('click', () => negChoose(opt));
         oc.appendChild(b);
     });
 }
 
-function negChoose(delta) {
-    negState.value = Math.max(0, Math.min(100, negState.value + delta));
-    negState.lastDelta = delta;
+function negChoose(opt) {
+    negState.value = Math.max(0, Math.min(100, negState.value + opt.delta));
+    negState.lastDelta = opt.delta;
+    if (opt.budget) negState.pendBudget += opt.budget;
     negState.round++;
     if (negState.round >= 4) { showNegFeedback(); return; }
     renderNegotiation();
@@ -1984,6 +2112,7 @@ function showNegFeedback() {
     if (negState.key === 'calhanoglu' && (zone === 'tug' || zone === 'break')) gameStats.calhaLeftRound = gameStats.round;
     const fb = sc.feedback[zone];
     negShowChrome(false); // 结算页去掉空发言框与意向条
+    document.getElementById('neg-pending').textContent = '';
     document.getElementById('neg-round').textContent = '谈判结束';
     const deltaEl = document.getElementById('neg-delta');
     deltaEl.classList.remove('hidden', 'pos');
@@ -2002,13 +2131,16 @@ function showNegFeedback() {
     const btn = document.createElement('button');
     btn.className = 'neg-confirm';
     btn.textContent = '确认';
+    // 续约成功才结算已承诺的预算（拉锯/破裂不扣报价预算）
+    const eff = { ...fb.effects };
+    if (zone === 'renew' && negState.pendBudget) eff.budget = (eff.budget || 0) + negState.pendBudget;
     btn.addEventListener('click', () => {
-        Object.entries(fb.effects).forEach(([k, val]) => updateStat(k, val));
+        Object.entries(eff).forEach(([k, val]) => updateStat(k, val));
         choiceHistory.push({
             round: gameStats.round,
             eventName: `续约谈判·${sc.name}`,
             optionText: { renew: '成功续约', tug: '谈判拉锯，暂时留队', break: '谈判破裂，球员离队' }[zone],
-            effects: fb.effects,
+            effects: eff,
             kind: 'special'
         });
         document.getElementById('negotiation-modal').classList.add('hidden');
@@ -2199,14 +2331,14 @@ function selectRandomEvents() {
     }
     // 邮件30（伊万·加齐迪斯·告别）：第五赛季第 1 轮（赛季刚开始）送达
     if (gameStats.season === 5 && gameStats.round >= 1 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.gazidisFarewell)) deliverEmail('gazidisFarewell');
-    // 邮件31（杰里·卡迪纳尔·红鸟前进的方向）：第五赛季第 1 轮（赛季刚开始）送达
+    // 邮件31（格里·卡尔迪纳莱·红鸟前进的方向）：第五赛季第 1 轮（赛季刚开始）送达
     if (gameStats.season === 5 && gameStats.round >= 1 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.cardinaleDirection)) deliverEmail('cardinaleDirection');
     // 邮件32（马萨拉·有关德凯特拉雷）：第五赛季第 12 轮、且未签下 09 德凯特拉雷(belgian_star)时送达
     if (gameStats.season === 5 && gameStats.round >= 12 && !gameStats.signedPlayers.includes('belgian_star')
         && !(gameStats.deliveredEmails && gameStats.deliveredEmails.deketSuggest)) deliverEmail('deketSuggest');
-    // 邮件33（杰里·卡迪纳尔·预算之争）：第五赛季第 26 轮送达
+    // 邮件33（格里·卡尔迪纳莱·预算之争）：第五赛季第 26 轮送达
     if (gameStats.season === 5 && gameStats.round >= 26 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.budgetDispute)) deliverEmail('budgetDispute');
-    // 邮件34（杰里·卡迪纳尔·欧冠的表现）：第五赛季欧冠出局（决赛前出局，含小组未出线/淘汰赛止步；屈居亚军 uclOutRound=36 不触发）后送达
+    // 邮件34（格里·卡尔迪纳莱·欧冠的表现）：第五赛季欧冠出局（决赛前出局，含小组未出线/淘汰赛止步；屈居亚军 uclOutRound=36 不触发）后送达
     if (gameStats.season === 5 && gameStats.euroType === 'ucl' && gameStats.uclOutRound > 0 && gameStats.uclOutRound < 36
         && !(gameStats.deliveredEmails && gameStats.deliveredEmails.uclEliminated)) deliverEmail('uclEliminated');
     // 私信22（特奥·染发庆祝）：签下01且上赛季夺意甲冠军 → 赛季第1轮送达（idempotent，仅一次）
@@ -2227,6 +2359,44 @@ function selectRandomEvents() {
     // 私信27（伊布·给中卫加练）：第四赛季夏窗（R2 开窗）后第3轮起送达，需06在队
     if (gameStats.season === 4 && gameStats.round >= 3 && gameStats.signedPlayers.includes('maestro')
         && !(gameStats.deliveredEmails && gameStats.deliveredEmails.ibraCbDm)) deliverEmail('ibraCbDm');
+    // 私信29（AC米兰·再见面的那天）：第五赛季第38轮送达
+    if (gameStats.season === 5 && gameStats.round >= 38 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.milanFarewell)) deliverEmail('milanFarewell');
+    // 私信50（科斯塔库塔·升任技术总监）：第二赛季第1轮送达
+    if (gameStats.season === 2 && gameStats.round >= 1 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.costacurtaDirector)) deliverEmail('costacurtaDirector');
+    // 私信53（马萨拉·反对签老将）：第二赛季第16轮送达，且需「新教练」已选选项2（承诺冬窗按教练想法选人 → 已送达 pioliCoach2/消息52）
+    if (gameStats.season === 2 && gameStats.round >= 16 && gameStats.deliveredEmails && gameStats.deliveredEmails.pioliCoach2
+        && !gameStats.deliveredEmails.massaraVeterans) deliverEmail('massaraVeterans');
+    // 私信54（安布罗西尼·点评0:5惨败）：第二赛季「圣诞夜惊魂」触发后送达
+    if (gameStats.season === 2 && gameStats.xmasDone && !(gameStats.deliveredEmails && gameStats.deliveredEmails.xmasAmbrosini)) deliverEmail('xmasAmbrosini');
+    // 私信57（博班·内鬼风波）：第二赛季邮件15（rangnickLeak）送达两轮后送达
+    if (gameStats.season === 2 && gameStats.deliveredEmails && gameStats.deliveredEmails.rangnickLeak
+        && gameStats.round >= gameStats.deliveredEmails.rangnickLeak.r + 2 && !gameStats.deliveredEmails.bobanRangnick) deliverEmail('bobanRangnick');
+    // 私信58（博班·告别）：第二赛季邮件18（bobanFired）送达后送达
+    if (gameStats.season === 2 && gameStats.deliveredEmails && gameStats.deliveredEmails.bobanFired
+        && !gameStats.deliveredEmails.bobanGoodbye) deliverEmail('bobanGoodbye');
+    // 私信55（加图索·那孩子愿意来）：第三赛季「童年的马克杯Ⅰ」(mug1Done)触发后送达
+    if (gameStats.season === 3 && gameStats.mug1Done && !(gameStats.deliveredEmails && gameStats.deliveredEmails.mug1Gattuso)) deliverEmail('mug1Gattuso');
+    // 私信56（皇家马德里·欧超派对）：第三赛季「欧洲超级联赛Ⅱ」(esl2Done)触发后送达
+    if (gameStats.season === 3 && gameStats.esl2Done && !(gameStats.deliveredEmails && gameStats.deliveredEmails.esl2Madrid)) deliverEmail('esl2Madrid');
+    // 私信59（特奥·想做的事太多）：「下一个左后卫Ⅰ」(emoOutburst)触发后送达
+    if (gameStats.emoOutburstDone && !(gameStats.deliveredEmails && gameStats.deliveredEmails.theoManyThings)) deliverEmail('theoManyThings');
+    // 私信61（丹尼尔·一线队教练来电）：第三赛季「同一个姓氏」前两轮（第30轮起、事件前）送达
+    if (gameStats.season === 3 && gameStats.round >= 30 && !gameStats.sameNameDone
+        && !(gameStats.deliveredEmails && gameStats.deliveredEmails.danielPreCall)) deliverEmail('danielPreCall');
+    // 私信62（多纳鲁马·离队告别）：第四赛季多纳鲁马离队（donnaLeftFreeRound>0）后送达
+    if (gameStats.season === 4 && gameStats.donnaLeftFreeRound > 0
+        && !(gameStats.deliveredEmails && gameStats.deliveredEmails.donnaFarewell)) deliverEmail('donnaFarewell');
+    // 私信63（马萨拉·麦尼昂谈判）：邮件25(maignanSign)送达两回合后送达；送达即把麦尼昂(gk_talent)加入 transferIntel，解锁其签约「情报加持」
+    if (gameStats.season === 4 && gameStats.deliveredEmails && gameStats.deliveredEmails.maignanSign
+        && gameStats.round >= gameStats.deliveredEmails.maignanSign.r + 2 && !gameStats.deliveredEmails.massaraMaignan) {
+        deliverEmail('massaraMaignan');
+        if (!gameStats.transferIntel) gameStats.transferIntel = [];
+        if (!gameStats.transferIntel.includes('gk_talent')) gameStats.transferIntel.push('gk_talent'); // 解锁麦尼昂签约「情报加持」
+    }
+    // 私信60（球探求购）：已签青年球员成长值达阈值后逐轮下发（每轮最多一条）
+    maybeScoutOffer();
+    // 私信64（球探引荐 NPC + 解锁情报）：64a 送达 / 选感兴趣后下一轮 64b
+    maybeScout64();
 
     // 第二赛季剧本事件（按轮次必定触发，优先于其他随机事件）
     if (gameStats.season === 2) {
@@ -2246,6 +2416,7 @@ function selectRandomEvents() {
         if (gameStats.round >= 26 && !gameStats.effectiveDone &&
             gameStats.signedPlayers.includes('maestro')) {
             gameStats.effectiveDone = true;
+            if (!gameStats.ibraNewsDone) gameStats.ibraNewsPending = true; // 卓有成效后 → 当赛季随机触发"伊布的续约谈判"新闻
             return ['effective'];
         }
         // "坐视不理"50% 触发的更衣室斗殴（下回合）
@@ -2460,7 +2631,7 @@ function selectRandomEvents() {
         gameStats.leaoNewsPending = false; gameStats.leaoNewsDone = true;
         selectedEvents.push('newsLeao');
     }
-    // 伊布的续约谈判：第二赛季拿到魔力电话后，本赛季内随机某轮触发（每轮 35% 概率）
+    // 伊布的续约谈判：第二赛季「卓有成效」触发后（R26），本赛季内随机某轮触发（每轮 35% 概率）
     if (gameStats.ibraNewsPending && !gameStats.ibraNewsDone && gameStats.season === 2 && Math.random() < 0.35) {
         gameStats.ibraNewsPending = false; gameStats.ibraNewsDone = true;
         selectedEvents.push('newsIbraRenewal');
@@ -2639,12 +2810,8 @@ function showRandomEvents() {
     }
     // 欧冠节点（小组赛果 / 淘汰赛之夜）
     if (maybeShowUclCard()) return;
-    // 德比赛果：不独占本轮、不干扰随机事件——先展示德比，再照常抽随机事件并列入队；
-    // 若本轮被转会窗/欧冠占用，则德比保留 pending 顺延到下一轮，不丢失
-    const derbyFirst = [];
-    if (gameStats.derbyWinEventPending) { gameStats.derbyWinEventPending = false; derbyFirst.push('derbyWin'); }
-    if (gameStats.derbyLossEventPending) { gameStats.derbyLossEventPending = false; derbyFirst.push(17); }
-    currentRandomEvents = derbyFirst.concat(selectRandomEvents());
+    // 德比赛果已在 closeResultBtn（赛后第一步）最高优先级单独展示，此处只抽常规随机/主线事件
+    currentRandomEvents = selectRandomEvents();
     randomEventIndex = 0;
     showNextRandomEvent();
 }
@@ -2723,6 +2890,12 @@ function showNextRandomEvent() {
         randomEventModal.classList.remove('news');
         randomEventModal.classList.remove('ucl');
         randomEventModal.classList.remove('magic');
+        if (afterDerbyCallback) { // 德比弹窗看完 → 接续预警 + 主线/随机
+            const cb = afterDerbyCallback;
+            afterDerbyCallback = null;
+            cb();
+            return;
+        }
         if (pendingSeasonEndCallback) {
             // 当前事件展示完后，检查是否有新入队的主线事件（如 euroNight2 结束后 farewell 被推入）
             const nextMainlineIdx = gameStats.futureRandomEvents.findIndex(e =>
@@ -2935,8 +3108,6 @@ function showNextRandomEvent() {
             }
             if (option.unlockMagicPhone) {
                 gameStats.magicPhoneUnlocked = true; updateMagicPhoneBtn();
-                // 第二赛季拿到魔力电话 → 当赛季随机触发"伊布的续约谈判"新闻
-                if (gameStats.season === 2 && !gameStats.ibraNewsDone) gameStats.ibraNewsPending = true;
             }
             if (option.nextEvent && !gameStats.gameEnded) {
                 currentRandomEvents.splice(randomEventIndex + 1, 0, option.nextEvent);
@@ -3066,6 +3237,7 @@ function startNewSeason() {
     gameStats.euroType = (wonEuro || prevRanking <= 4) ? 'ucl' : 'uel';
     gameStats.hasUCL = qualifies;
     gameStats.uclReachedFinal = false; // 每赛季欧冠是否进入决赛，重置
+    gameStats.scout64SeasonCount = 0;  // 消息64：本赛季球探引荐名额重置（上限 SCOUT64_MAX_PER_SEASON）
     // 第四赛季任务按此前已获得的意甲冠军数确定（迟来的冠军 / 第n个冠军 / 进欧冠决赛）
     if (gameStats.season === 4) gameStats.season4TitlesBefore = gameStats.scudettoCount;
     // 第三赛季起，01-09 的"欧冠"标签在转会窗显示（无论是否打欧冠）
@@ -3114,8 +3286,8 @@ function startNewSeason() {
     gameStats.effectiveDone = false;
     gameStats.lockerBrawlPending = false;
     gameStats.lockerBrawlDone = false;
-    // 兹拉坦支持点任务延续到第三赛季（满 3 → 触发远方来电）；进入第四赛季才清理
-    if (gameStats.season >= 4) {
+    // 必要的支持=可选任务：完成(满3→已触发远方来电)后进入第四赛季清理；未完成则不清理、跨赛季常驻「赛季任务」直到完成
+    if (gameStats.season >= 4 && gameStats.zlatanSupport >= 3) {
         gameStats.supportTaskActive = false;
         gameStats.zlatanSupport = 0;
     }
@@ -3178,17 +3350,8 @@ function showSeasonResult(passed) {
         return;
     }
     pendingSeasonResultContinue = null; // 通过路径不复用遗憾离场的继续回调
-    // 排名进入欧战区（≤6）或拿到欧战冠军 → 赛季结算卡片；否则沿用旧"下一个赛季"弹窗
-    if (gameStats.ranking <= 6 || gameStats.uclStage === 'champion') {
-        showSeasonSettlement();
-        return;
-    }
-    const modal = document.getElementById('season-result-modal');
-    modal.classList.remove('passed', 'failed');
-    modal.classList.add('passed');
-    document.getElementById('season-result-title').textContent = '下一个赛季';
-    document.getElementById('season-result-text').textContent = getSeasonResultText();
-    modal.classList.remove('hidden');
+    // 通过赛季任务 → 一律走「赛季结算」卡（按最终排名 / 欧战夺冠给结语与预算）
+    showSeasonSettlement();
 }
 
 // 主线样式卡片（红色，复用随机事件弹窗）
@@ -3248,7 +3411,9 @@ function getSeasonSettlement() {
     }
     if (wonUCL) return { budget: 1250, text: '尽管你们在联赛排名不佳，仅仅处于欧联区，但谁让大耳朵杯已经被米兰收入囊中。受欧足联条款影响，作为当赛季的欧冠冠军，你们有资格直接参加下赛季的欧冠小组赛。教练的大智慧让你们不再纠结于联赛，管理层对球队的预算增加了。（球队预算+1250w）' };
     if (wonUEL) return { budget: 750, text: 'AC Milan获得了欧联冠军！虽然在联赛排名中，米兰再一次跌入欧联区，但你们作为本赛季欧联冠军，受欧足联条款影响，有资格直接参加下个赛季的欧冠小组赛。媒体影响力上升的同时，球队的预算小幅度上升了。（球队预算+750w）' };
-    return { budget: 250, text: 'AC Milan最终的成绩稳定在了欧联区，球队有资格参加下赛季的欧洲联赛，在欧联中，球队仍然可以争取奖金和曝光度。管理层仍然希望球队每年都能踢上欧冠，对于广告招商和球员签约具有正面影响。管理层给球队的预算小幅度上升了。（球队预算+250w）' };
+    if (r <= 6) return { budget: 250, text: 'AC Milan最终的成绩稳定在了欧联区，球队有资格参加下赛季的欧洲联赛，在欧联中，球队仍然可以争取奖金和曝光度。管理层仍然希望球队每年都能踢上欧冠，对于广告招商和球员签约具有正面影响。管理层给球队的预算小幅度上升了。（球队预算+250w）' };
+    // 排名 7+：无任何欧战资格（仅在以非排名任务通过赛季时可能出现）
+    return { budget: 250, text: 'AC Milan最终排在了意甲中游，遗憾无缘下赛季的欧洲赛场。虽然没能挤进欧战区，但你完成了管理层这个赛季交付的任务，这支年轻的球队仍在一步步搭建。管理层认可你的工作，给球队的预算小幅度上升了。（球队预算+250w）' };
 }
 
 function showSeasonSettlement() {
@@ -3257,27 +3422,6 @@ function showSeasonSettlement() {
     gameStats.budget += s.budget;
     document.getElementById('budget').textContent = gameStats.budget + '万欧元';
     renderMainlineCard('赛季结算', s.text, [{ text: '确认', onClick: proceedAfterSeason }]);
-}
-
-// 赛季结算正文：第二赛季按最终排名给出不同结语
-function getSeasonResultText() {
-    if (gameStats.season === 2) {
-        const base = '皮奥利的战术终于捏合成型。重启后的米兰判若两队，球员们的表现让人眼前一亮。';
-        const tail = '比排名更重要的是，这支年轻的米兰，正在攀升的路上。';
-        let middle;
-        if (gameStats.ranking === 1) {
-            // 两个赛季都夺冠 → 第二颗星
-            middle = gameStats.wonScudetto1
-                ? '赛季末，你们拿到了意甲冠军，给米兰修上了戴标20次意甲冠军的第二颗星！'
-                : '赛季末，你们拿到了意甲冠军！';
-        } else if (gameStats.ranking <= 4) {
-            middle = '赛季末，你们超额完成了任务，拿到了欧冠资格。';
-        } else {
-            middle = '赛季末，你们没能进欧冠，但拿到了欧战资格。';
-        }
-        return base + middle + tail;
-    }
-    return '你完美的完成了这个赛季的任务，你仍然是这支球队不可动摇的球队总监。';
 }
 
 document.getElementById('season-result-continue').addEventListener('click', function() {
@@ -3390,13 +3534,29 @@ closeResultBtn.addEventListener('click', function() {
 
     applyWarningEffects();
     if (gameStats.gameEnded) return;
+    // 德比赛果弹窗最高优先级：赛后立即触发，先于预警弹窗与主线，不顺延到下一回合
+    const derbyQueue = [];
+    if (gameStats.derbyWinEventPending) { gameStats.derbyWinEventPending = false; derbyQueue.push('derbyWin'); }
+    if (gameStats.derbyLossEventPending) { gameStats.derbyLossEventPending = false; derbyQueue.push(17); }
+    if (derbyQueue.length) {
+        afterDerbyCallback = runPostMatchFlow; // 德比看完 → 预警弹窗 + 主线/随机
+        currentRandomEvents = derbyQueue;
+        randomEventIndex = 0;
+        showNextRandomEvent();
+        return;
+    }
+    runPostMatchFlow();
+});
+
+// 赛后预警弹窗 + 随机/主线事件（德比弹窗之后接续）
+function runPostMatchFlow() {
     pendingWarnings = getNewWarnings();
     if (gameStats.media > 80 && !gameStats.warningEventShown) {
         gameStats.warningEventShown = true;
         pendingWarnings.push(statWarningEvents.find(e => e.key === 'mediaHigh'));
     }
     showNextPendingWarning();
-});
+}
 
 // ===== 测试面板（调试用，完成后整体删除：含 index.html #test-panel 与 style.css 对应样式）=====
 document.getElementById('test-panel-btn').addEventListener('click', () => {
@@ -3710,9 +3870,10 @@ function playUclKnockout(decision) {
     const advanced = Math.random() < (wr.win + 0.5 * wr.draw); // 平局点球各半
     applyUclRewards(uclRewards[info.key][advanced ? 'win' : 'out']);
     const score = uclScore(advanced);
+    addUclForumThread(opp.name, advanced, score, advanced); // 论坛欧冠赛果帖（胜→晋级下一轮，故 hasNext=胜）
     if (advanced) {
         gameStats.uclStage = info.next;
-        if (info.next === 'final') gameStats.uclReachedFinal = true;
+        if (info.next === 'final') { gameStats.uclReachedFinal = true; gameStats.uclFinalCount = (gameStats.uclFinalCount || 0) + 1; }
         const bonus = uclRewards[info.key].win.budget;
         renderUclCard(`晋级${info.nextLabel}！`,
             `你们以 <b>${score}</b> 击败${opp.name}，<span class="ucl-hl">晋级${info.nextLabel}！</span><br>球队获得奖金${bonus}w欧元！`,
@@ -3733,6 +3894,7 @@ function playUclFinal(option) {
     const won = Math.random() < (wr.win + 0.5 * wr.draw);
     applyUclRewards(uclRewards.final[won ? 'win' : 'out']);
     const score = uclScore(won);
+    addUclForumThread(opp.name, won, score, false, true); // 决赛：单独池 uclFinalWin/Lose（待补文案，未提供前不发帖）
     if (won) {
         gameStats.uclStage = 'champion';
         const bonus = uclRewards.final.win.budget;
@@ -3812,9 +3974,13 @@ function showUclFinalCard() {
     const info = { full: opp.name, abbr: uclTeamAbbr[opp.name] || '' };
     const venue = uclFinalVenues[gameStats.season] || uclFinalVenues[1];
     const homeAdv = oppHasHomeAdvantage(opp, venue);
+    // 首次进决赛：皮奥利「从未执教过决赛球队」；第二次起（uclFinalCount>1）：改为「缺乏经验」版
+    const pioli = gameStats.uclFinalCount > 1
+        ? `而你们的主教练皮奥利，更是对执教${euroLabel()}决赛缺乏经验。`
+        : `你们的主教练皮奥利，更是在此之前从未执教过进入${euroLabel()}决赛的球队。`;
     const narr1 = homeAdv
-        ? `下一轮，你们将要踏入${euroLabel()}决赛的赛场，对方球队具有主场优势，而米兰队里有一半球员对${euroLabel()}赛场还不太熟悉，你们的主教练皮奥利，更是在此之前从未执教过进入${euroLabel()}决赛的球队。`
-        : `下一轮，你们将要踏入${euroLabel()}决赛的赛场，队里有一半球员对${euroLabel()}赛场还不太熟悉，你们的主教练皮奥利，更是在此之前从未执教过进入${euroLabel()}决赛的球队。`;
+        ? `下一轮，你们将要踏入${euroLabel()}决赛的赛场，对方球队具有主场优势，而米兰队里有一半球员对${euroLabel()}赛场还不太熟悉，${pioli}`
+        : `下一轮，你们将要踏入${euroLabel()}决赛的赛场，队里有一半球员对${euroLabel()}赛场还不太熟悉，${pioli}`;
     // 对阵两侧改用队徽；缺图时降级为缩写，保证版式不塌
     const badge = (name, abbr) => {
         const src = crestSrc(name);
@@ -4069,7 +4235,7 @@ const TAB_ICON_EMAIL_OPEN = '<svg viewBox="0 0 24 24" fill="none" stroke="curren
 // 注意：terminalContent.js 须在 index.html 中先于本文件引入。
 const terminalSections = {
     email:   { tab: '邮件', app: '总监邮箱',   accent: '#c62828', empty: '暂无邮件',   messages: TERMINAL_CONTENT.email },
-    dm:      { tab: '私信', app: '社媒私信',   accent: '#1c1c1c', empty: '暂无私信',   messages: TERMINAL_CONTENT.dm },
+    dm:      { tab: '私信', app: '社媒私信',   accent: '#1c1c1c', empty: '暂无私信',   get messages() { return (gameStats.dynamicDMs && gameStats.dynamicDMs.length) ? TERMINAL_CONTENT.dm.concat(gameStats.dynamicDMs) : TERMINAL_CONTENT.dm; } },
     forum:   { tab: '论坛', app: '球迷论坛',   accent: '#8B0000', empty: '论坛暂无新帖', get messages() { return gameStats.forumPosts || []; } },
     players: { tab: '球员', app: '球员档案',   accent: '#3a2a52', isPlayers: true }
 };
@@ -4127,6 +4293,8 @@ function setTerminalClock() {
 // 底部标签栏：邮件/私信/论坛/球员，带未读角标；选中项淡红
 function buildTerminalTabbar(activeKey) {
     const bar = document.getElementById('terminal-tabbar');
+    const screenEl = document.getElementById('terminal-screen');
+    if (screenEl) screenEl.dataset.sec = activeKey; // 分区字体切换：邮件=等线、私信=黑体（见 style.css）
     bar.innerHTML = '';
     TERMINAL_ORDER.forEach(key => {
         const sec = terminalSections[key];
@@ -4322,6 +4490,27 @@ const dmAnswerList = answer => Array.isArray(answer) ? answer : (answer ? [answe
 // 一条消息的对方气泡（bubbles 优先，否则旧格式 body 拆段）
 const dmIncoming = m => m.bubbles || (m.body || '').split(/\n{2,}/).filter(Boolean);
 
+// 私信内嵌的球员转会窗卡片（球探引荐用，见消息64）
+function dmScoutCardHTML(p) {
+    const labels = { player: '即战力', fans: '球迷', trust: '信任', media: '媒体' };
+    const chips = Object.entries(p.effects).map(([k, v]) =>
+        `<span class="dm-sc-chip">${labels[k] || k} <span class="${v > 0 ? 'tm-stat-pos' : 'tm-stat-neg'}">${v > 0 ? '+' : ''}${v}</span></span>`).join('');
+    return `<div class="dm-scout-card">
+        <div class="dm-sc-eyebrow">球探报告</div>
+        <div class="dm-sc-top"><span class="dm-sc-name">${p.name}</span><span class="tm-tag ${TM_TAG_CLASS[p.tagColor]}">${p.tag}</span></div>
+        <div class="dm-sc-desc">${p.desc}</div>
+        <div class="dm-sc-chips">${chips}<span class="dm-sc-chip dm-sc-price">€${p.cost}万</span></div>
+    </div>`;
+}
+// 单条气泡渲染：字符串 → 文字气泡；{card:id} → 球员卡片
+function dmBubbleHTML(b) {
+    if (b && typeof b === 'object' && b.card) {
+        const p = transferBuyPlayers.find(x => x.id === b.card);
+        return p ? dmScoutCardHTML(p) : '';
+    }
+    return dmBubbleIn(b);
+}
+
 function openDM(gi) {
     const group = dmThreadGroups[gi];
     if (!group) return;
@@ -4330,75 +4519,97 @@ function openDM(gi) {
     screen.innerHTML =
         `<div class="mail-detail-head"><button class="mail-back" aria-label="返回私信"><span class="mail-back-arrow">‹</span>私信</button></div>
         <div class="dm-chat-head">${dmAvatar(group.from)}<span class="dm-chat-name">${group.from}</span></div>
-        <div class="dm-chat" id="dm-chat"></div>
-        <div class="dm-reply" id="dm-reply"></div>`;
+        <div class="dm-chat" id="dm-chat"></div>`;
     screen.querySelector('.mail-back').addEventListener('click', renderDMInbox);
     renderDMThread(screen, group);
-    screen.scrollTop = 0;
+    screen.scrollTop = screen.scrollHeight; // 打开时锁定到最后一条消息（最下）
     buildTerminalTabbar('dm');
     updateTeamNewsDot(); // 读私信 → 未读减少，刷新红点
 }
 
-// 顺序渲染对话串：逐条消息出对方气泡；遇「有选项且未回复」的消息→出选项暂停，回复后接续其余消息
+// 渲染对话串：同一个人的多条消息，按送达先后从上到下（最后送达在最下），每条消息一个 block、block 间灰线分隔；每条独立回复
 function renderDMThread(screen, group) {
     const chat = screen.querySelector('#dm-chat');
-    const replyBar = screen.querySelector('#dm-reply');
-    const items = group.items;
-    const scrollEnd = () => { screen.scrollTop = screen.scrollHeight; };
-
-    function renderFrom(start) {
-        for (let k = start; k < items.length; k++) {
-            const m = items[k].m;
-            dmIncoming(m).forEach(b => chat.insertAdjacentHTML('beforeend', dmBubbleIn(b)));
-            if (m.replies) {
-                if (m.repliedIndex !== undefined) {
-                    // 已回复：玩家气泡 + 对方回应（无动画），继续后续消息
-                    const r = m.replies[m.repliedIndex];
-                    chat.insertAdjacentHTML('beforeend', dmBubbleOut(r.text));
-                    dmAnswerList(r.answer).forEach(a => chat.insertAdjacentHTML('beforeend', dmBubbleIn(a)));
-                } else {
-                    showReplies(m, k); // 未回复：出选项，暂停于此
-                    scrollEnd();
-                    return;
-                }
+    chat.innerHTML = '';
+    const items = group.items.slice(); // 按送达先后：先收到的在最上，最后送达在最下
+    items.forEach((item, idx) => {
+        const m = item.m;
+        const block = document.createElement('div');
+        block.className = 'dm-msg-block';
+        dmIncoming(m).forEach(b => block.insertAdjacentHTML('beforeend', dmBubbleHTML(b)));
+        if (m.replies) {
+            if (m.repliedIndex !== undefined) {
+                // 已回复：玩家气泡 + 对方回应（重开直接展示完整对话）
+                const r = m.replies[m.repliedIndex];
+                block.insertAdjacentHTML('beforeend', dmBubbleOut(r.text));
+                dmAnswerList(r.answer).forEach(a => block.insertAdjacentHTML('beforeend', dmBubbleIn(a)));
+            } else {
+                // 未回复：本条消息内联出选项（各条消息独立回复）
+                const rb = document.createElement('div');
+                rb.className = 'dm-reply';
+                rb.innerHTML = m.replies.map((r, ix) => {
+                    // 选项可带 cost{label,value}：主文案下方灰色小字标签 + 红色数值（数值只在按钮上提示，不进玩家气泡）
+                    const cost = r.cost ? `<span class="dm-reply-cost">${r.cost.label} <b>${r.cost.value}</b></span>` : '';
+                    return `<button class="dm-reply-btn" type="button" data-idx="${ix}"><span class="dm-reply-act">${r.text}</span>${cost}</button>`;
+                }).join('');
+                rb.querySelectorAll('.dm-reply-btn').forEach(btn =>
+                    btn.addEventListener('click', () => dmAnswerReply(m, +btn.dataset.idx, block, rb)));
+                block.appendChild(rb);
             }
         }
-        replyBar.innerHTML = '';
-        scrollEnd();
-    }
+        chat.appendChild(block);
+        if (idx < items.length - 1) chat.insertAdjacentHTML('beforeend', '<div class="dm-msg-sep"></div>');
+    });
+}
 
-    function showReplies(m, k) {
-        replyBar.innerHTML = m.replies.map((r, ix) =>
-            `<button class="dm-reply-btn" type="button" data-idx="${ix}">${r.text}</button>`).join('');
-        replyBar.querySelectorAll('.dm-reply-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const r = m.replies[+btn.dataset.idx];
-                m.repliedIndex = +btn.dataset.idx; // 记录选择（重开直接展示完整对话）
-                replyBar.innerHTML = '';
-                chat.insertAdjacentHTML('beforeend', dmBubbleOut(r.text));
-                scrollEnd();
-                // 对方回复逐条揭示（每条先「正在输入」1.4s），全部出完再接续后续消息
-                const answers = dmAnswerList(r.answer);
-                const reveal = j => {
-                    if (!chat.isConnected) return;                  // 已离开页面则停止
-                    if (j >= answers.length) { renderFrom(k + 1); return; }
-                    chat.insertAdjacentHTML('beforeend', dmTypingHTML);
-                    scrollEnd();
-                    setTimeout(() => {
-                        const t = chat.querySelector('.dm-typing');
-                        if (!t || !chat.isConnected) return;
-                        t.remove();
-                        chat.insertAdjacentHTML('beforeend', dmBubbleIn(answers[j]));
-                        scrollEnd();
-                        reveal(j + 1);
-                    }, 1400);
-                };
-                reveal(0);
-            });
-        });
+// 选择回复：移除选项 → 玩家气泡 → 对方逐条「正在输入」1.4s 后揭示（保留打字动画）
+function dmAnswerReply(m, idx, block, rb) {
+    m.repliedIndex = idx; // 记录选择
+    rb.remove();
+    const r = m.replies[idx];
+    // 回复球员本人的私信 → 该球员成长值 +1（上限10；未签下也预置，签下时 initPlayerGrowth 不覆盖）
+    const growthId = DM_SENDER_PLAYER[m.from];
+    if (growthId) {
+        if (!gameStats.playerGrowth) gameStats.playerGrowth = {};
+        gameStats.playerGrowth[growthId] = Math.min(10, playerGrowthOf(growthId) + 1);
     }
-
-    renderFrom(0);
+    // 球探引荐(消息64)且该球员已在转会窗签下 → 交涉作废：不扣数值、不推进；除「还是算了吧」外球探统一恭贺，随后放行下一位
+    const scoutSigned = m.from === '球探团队' && m.playerId && gameStats.signedPlayers.includes(m.playerId);
+    let answer = r.answer;
+    if (scoutSigned) {
+        if (gameStats.scout64ActiveId === m.playerId) gameStats.scout64ActiveId = null;
+        if (gameStats.scout64Pending && gameStats.scout64Pending.playerId === m.playerId) gameStats.scout64Pending = null;
+        if (!r.pass) answer = '很高兴看到他加入米兰。'; // 「还是算了吧」(pass)按正常逻辑回复「好的，总监。」
+    } else {
+        // 回复副作用（声明式，随存档持久；与 repliedIndex 同存档周期，无重复结算）：
+        if (r.effects) Object.entries(r.effects).forEach(([k, v]) => updateStat(k, v)); // 扣数值
+        if (r.grantIntel && m.playerId) {                                               // 解锁签约「情报加持」+ 保证下窗出现
+            if (!gameStats.transferIntel) gameStats.transferIntel = [];
+            if (!gameStats.transferIntel.includes(m.playerId)) gameStats.transferIntel.push(m.playerId);
+            if (!gameStats.forceWindowPlayers) gameStats.forceWindowPlayers = [];
+            if (!gameStats.forceWindowPlayers.includes(m.playerId)) gameStats.forceWindowPlayers.push(m.playerId);
+        }
+        if (r.interest && m.playerId) gameStats.scout64Pending = { playerId: m.playerId, round: gameStats.round }; // 触发下一阶段
+        if (r.scoutDone) gameStats.scout64ActiveId = null; // 本次交涉结束 → 球探可引荐下一位
+    }
+    block.insertAdjacentHTML('beforeend', dmBubbleOut(r.text));
+    const answers = dmAnswerList(answer);
+    const screen = document.getElementById('terminal-screen');
+    if (screen) screen.scrollTop = screen.scrollHeight;
+    const reveal = j => {
+        if (j >= answers.length || !block.isConnected) return;
+        block.insertAdjacentHTML('beforeend', dmTypingHTML);
+        if (screen) screen.scrollTop = screen.scrollHeight;
+        setTimeout(() => {
+            const t = block.querySelector('.dm-typing');
+            if (!t || !block.isConnected) return;
+            t.remove();
+            block.insertAdjacentHTML('beforeend', dmBubbleIn(answers[j]));
+            if (screen) screen.scrollTop = screen.scrollHeight;
+            reveal(j + 1);
+        }, 1400);
+    };
+    reveal(0);
 }
 
 // 球迷论坛：每帖右上角点赞/点踩（初始随机数，玩家可点；互斥、可再点取消）
@@ -4427,36 +4638,50 @@ function pickTwo(arr) {
     return [arr[i], arr[j]];
 }
 let weekForumReplies = []; // 本周（两场临近比赛）已用的回复原文，避免两场抽到同一句；每周开赛重置
-// 每场联赛后生成一条论坛赛果帖：播报账号发比分 + 随机 2 条该类别回复（胜/平/负；欧战暂不发）
-function addMatchForumThread(opponent, result, score) {
-    const pool = TERMINAL_CONTENT.forumPool;
-    if (!pool) return;
-    const outcome = result === 'win' ? 'Win' : result === 'loss' ? 'Lose' : 'Draw';
-    // 德比（国际米兰）走专用池，覆盖强弱队池
-    const cat = (opponent.name === '国际米兰' && pool['derby' + outcome])
-        ? pool['derby' + outcome]
-        : pool['league' + outcome + (opponent.category === 'strong' ? 'Strong' : 'Weak')];
-    if (!cat) return;
+// 占位符上下文：{score}=米兰X：Y对手、{goals}=米兰进球、{opp}=对手名；extra 可带 hasNext 等条件
+function forumCtx(oppName, score, extra) {
     const [og, tg] = score.split(':').map(Number);
-    const ctx = { score: `米兰${og}：${tg}${opponent.name}`, goals: og, opp: opponent.name };
+    return Object.assign({ score: `米兰${og}：${tg}${oppName}`, goals: og, opp: oppName, line: `${og}:${tg}` }, extra || {});
+}
+// 压入一条赛果帖（播报 + 随机2条回复）；回复支持 minGoals / needNext 条件，并对本周去重
+function pushForumThread(cat, ctx) {
+    if (!cat) return;
     const fill = s => s.replace(/\{score\}/g, ctx.score).replace(/\{goals\}/g, ctx.goals).replace(/\{opp\}/g, ctx.opp);
     const rawText = r => typeof r === 'string' ? r : r.text;
-    // 入池条件：满足 minGoals（米兰进球数足够）且 本周另一场未用过该句
-    let eligible = cat.replies.filter(r =>
-        (typeof r === 'string' || r.minGoals == null || og >= r.minGoals) && !weekForumReplies.includes(rawText(r)));
-    if (eligible.length < 2) eligible = cat.replies.filter(r => typeof r === 'string' || r.minGoals == null || og >= r.minGoals); // 去重后不足2条则放开
+    const ok = r => typeof r === 'string'
+        || ((r.minGoals == null || ctx.goals >= r.minGoals) && (!r.needNext || ctx.hasNext) && (r.forScore == null || r.forScore === ctx.line));
+    let eligible = cat.replies.filter(r => ok(r) && !weekForumReplies.includes(rawText(r)));
+    if (eligible.length < 2) eligible = cat.replies.filter(ok); // 去重后不足2条则放开
     const picked = pickTwo(eligible);
     picked.forEach(r => weekForumReplies.push(rawText(r))); // 记入本周已用，供同周另一场去重
-    const replies = picked.map(r => fill(rawText(r)));
     if (!gameStats.forumPosts) gameStats.forumPosts = [];
     gameStats.forumPosts.unshift({ // 新帖在最上
-        from: pool.broadcaster,
+        from: TERMINAL_CONTENT.forumPool.broadcaster,
         broadcast: fill(cat.broadcast),
-        replies,
+        replies: picked.map(r => fill(rawText(r))),
         round: gameStats.round,
         unread: true
     });
     updateTeamNewsDot(); // 新赛果帖 → 刷新主按钮红点
+}
+// 联赛赛果帖：胜/平/负 × 强弱；对手=国际米兰走德比专用池
+function addMatchForumThread(opponent, result, score) {
+    const pool = TERMINAL_CONTENT.forumPool;
+    if (!pool) return;
+    const outcome = result === 'win' ? 'Win' : result === 'loss' ? 'Lose' : 'Draw';
+    const cat = (opponent.name === '国际米兰' && pool['derby' + outcome])
+        ? pool['derby' + outcome]
+        : pool['league' + outcome + (opponent.category === 'strong' ? 'Strong' : 'Weak')];
+    pushForumThread(cat, forumCtx(opponent.name, score));
+}
+// 欧冠赛果帖：淘汰赛用 uclWin/uclLose；决赛(isFinal)用 uclFinalWin/uclFinalLose(待补，未提供则不发帖)。hasNext=是否还有下一轮
+function addUclForumThread(oppName, win, score, hasNext, isFinal) {
+    const pool = TERMINAL_CONTENT.forumPool;
+    if (!pool) return;
+    const suffix = win ? 'Win' : 'Lose';
+    let key = (isFinal ? 'uclFinal' : 'ucl') + suffix;
+    if (isFinal && oppName === '国际米兰' && pool['uclFinalDerby' + suffix]) key = 'uclFinalDerby' + suffix; // 决赛打国米走德比专用池
+    pushForumThread(pool[key], forumCtx(oppName, score, { hasNext: !!hasNext }));
 }
 
 function renderForum() {
