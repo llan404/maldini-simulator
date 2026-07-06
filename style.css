@@ -1,4 +1,9 @@
 /* 全局样式 */
+html {
+    background-color: #F2ECE0; /* 米白色——双指缩小时页面外围也铺满此色，不再露出白底 */
+    min-height: 100%;
+}
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -10,8 +15,7 @@ body {
     align-items: center;
     min-height: 100vh;
     box-sizing: border-box;
-    width: 100vw;
-    overflow-x: hidden;
+    width: 100%;
 }
 
 #game-container {
