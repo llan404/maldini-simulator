@@ -304,7 +304,7 @@ Object.assign(randomEvents, {
         description: "队内的核心成员竟然被发现有赌博的习惯！据你所知，他几乎会下注自己参与的每一场比赛，在媒体、管理层和教练都不知道这件事之前，你决定：",
         options: [
             { text: "将此事报告给管理层，希望能够尽早将此球员转会。", effects: { trust: 5, player: -5 }, betKingSkip: true },
-            { text: "和此球员私下聊聊，让他亲自告诉你这件事是否属实。", effects: {}, mug07Trust: 1 },
+            { text: "和此球员私下聊聊，让他亲自告诉你这件事是否属实。", effects: {}, mug07Trust: 1, deliverMail: 'tonaliTalk' }, // → 托纳利私信（消息68）
             { text: "球队正是需要他的时候，装作没看见。", effects: { fans: 5 } }
         ]
     },
@@ -324,14 +324,14 @@ Object.assign(randomEvents, {
         description: "那名球员主动向你坦白：他其实深陷赌瘾，愿意配合调查并且接受治疗以换取减刑。他问你：俱乐部还会要他吗？你选择：",
         options: [
             { text: "支持他认罪治疗，承诺留队等他回来。", effects: { fans: 7, player: 7, media: -3 }, mug07Trust: 1 },
-            { text: "希望他配合处罚，但球队不能留下赌徒。", effects: { trust: 5, player: -5 } },
+            { text: "希望他配合处罚，但球队不能留下赌徒。", effects: { trust: 5, player: -5 }, remove07: true },
             { text: "直接以赌博为理由，和这名球员解约。", effects: { budget: 200, player: -7, fans: -5 }, remove07: true }
         ]
     },
     ourResponsibility: {
         title: "我们的责任",
         mainline: true,
-        description: "你选择以球队官方的身份接受媒体的采访，面对球迷的困惑和媒体的诘问。你承认在面对年轻球员时，球队，或者说我们，我本人做得还不够。记者的眼中满是质疑，你们在此之前完全不知情？米兰考虑出售这名球员吗？你否认了，在六个月的禁赛后，球队仍然会和他站在一起。",
+        description: "你选择以球队官方的身份接受媒体的采访，面对球迷的困惑和媒体的诘问。你承认在面对年轻球员时，球队、或者说我们、我本人做得还不够。记者的眼中满是质疑，你们在此之前完全不知情？米兰考虑出售这名球员吗？你否认了，在六个月的禁赛后，球队仍然会和他站在一起。",
         options: [
             { text: "确认", effects: {} }
         ]

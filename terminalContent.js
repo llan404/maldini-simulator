@@ -378,6 +378,20 @@ const TERMINAL_CONTENT = {
               { text: '也许吧。', answer: '那一天不会太远的。' },
               { text: '你怎么知道？', answer: '你心属于我。' }
           ] },
+        // 消息30 · 里昂总监（卡卢卢在队满一个赛季后随机送达，trigger:'kaluluLyon'）
+        { from: '里昂总监', unread: true, trigger: 'kaluluLyon',
+          bubbles: ['你不是说这孩子有可能踢不出来让我便宜卖你吗？'],
+          replies: [
+              { text: '当时确实差点技术。', answer: '来你们这一个赛季就踢这么好了？' },
+              { text: '下次还叫我去看训练。', answer: '下次先交五百万门票。' }
+          ] },
+        // 消息31 · 内斯塔（第一赛季第10轮送达，trigger:'nestaHello'）
+        { from: '内斯塔', unread: true, trigger: 'nestaHello',
+          bubbles: ['Paolo！', '我猜大家给你发了很多消息。', '我特地晚点发，在米兰重新看到你真不错。'],
+          replies: [
+              { text: '要额外学习的事情太多了。', answer: '大概因为米兰是备受瞩目的球队。' },
+              { text: '当教练感觉如何？', answer: '太累了，有机会和米兰碰上我们俩细说。' }
+          ] },
         // 消息50 · 科斯塔库塔（第二赛季开场后送达，trigger:'costacurtaDirector'）
         { from: '科斯塔库塔', unread: true, trigger: 'costacurtaDirector',
           bubbles: ['Paolo，听说你升任技术总监了。', '我还记得你原来说永远不会当教练。', '当技术总监应该也不比教练轻松？'],
@@ -387,7 +401,7 @@ const TERMINAL_CONTENT = {
           ] },
         // 消息51 · 皮奥利（「新教练」选项1「支持教练」后送达，trigger:'pioliCoach1'）
         { from: '皮奥利', unread: true, trigger: 'pioliCoach1',
-          bubbles: ['总监，听说你和管理层力争不换帅。', '我和米兰的球员正在磨合。', '相信很快我们就能拿出让管理层满意的成绩。'],
+          bubbles: ['总监，听说你和管理层力争留下我。', '我和米兰的球员正在磨合。', '相信很快我们就能拿出让管理层满意的成绩。'],
           replies: [
               { text: '你可以多和球员沟通。', answer: '放心吧，我会的。' },
               { text: '管理层也在观察你的表现。', answer: '他们一般只看结果。' }
@@ -417,7 +431,7 @@ const TERMINAL_CONTENT = {
         { from: '加图索', unread: true, trigger: 'mug1Gattuso',
           bubbles: ['我给那孩子打了个电话。他有非常强烈的意愿加入米兰。'],
           replies: [
-              { text: '他肯定高兴坏了。', answer: '露齿笑 确实。' },
+              { text: '他肯定高兴坏了。', answer: '确实。😄' },
               { text: '我会优先考虑的。', answer: '小球迷能踢上意甲的太珍贵了。' }
           ] },
         // 消息56 · 皇家马德里（第三赛季「欧洲超级联赛Ⅱ」触发后送达，trigger:'esl2Madrid'）
@@ -429,7 +443,7 @@ const TERMINAL_CONTENT = {
           ] },
         // 消息57 · 博班（第二赛季邮件15「内鬼」送达两轮后送达，trigger:'bobanRangnick'；并入博班会话）
         { from: '博班', unread: true, trigger: 'bobanRangnick',
-          bubbles: ['俱乐部里的人气疯了。', '难道就因为我说球队不够完善？', '还是那句"孩子们需要帮扶"？', '我说的不是实话吗？', '他们指望球员跟卡带一样即插即用？'],
+          bubbles: ['俱乐部里的人又气疯了。', '难道就因为我说球队不够完善？', '还是那句"孩子们需要帮扶"？', '我说的不是实话吗？', '他们指望球员跟卡带一样即插即用？'],
           replies: [
               { text: '我和你一起去他办公室一趟。', answer: '保罗，你还是别掺和进来，我刚和他们吵完。' },
               { text: '你说的都是实话。', answer: '青年球员要是可以自己成长，也不用教练了。' }
@@ -469,6 +483,55 @@ const TERMINAL_CONTENT = {
           replies: [
               { text: '我希望他能保证出场时间。', answer: '这个可以写进合同。' },
               { text: '我希望他个人的技术更强。', answer: '出场表现可以写进合同。' }
+          ] },
+        // 消息65 · 舍甫琴科（第四赛季·首次德比前两轮送达，trigger:'shevaDerby'）
+        { from: '舍甫琴科', unread: true, trigger: 'shevaDerby',
+          bubbles: ['下周我刚好能来米兰。', '我是该去看德比还是训练？😄'],
+          replies: [
+              { text: '当然是德比，在场边督促他们好好表现。', answer: '我会的。' },
+              { text: '来训练场吧，可以看看前锋的表现。', answer: '我有点怀念在训练场上的日子。' }
+          ] },
+        // 消息66 · 舍甫琴科（消息65后首次德比·赢球送达，trigger:'shevaDerbyWin'；并入舍甫琴科会话）
+        { from: '舍甫琴科', unread: true, trigger: 'shevaDerbyWin',
+          bubbles: ['真是精彩的比赛！', '他们在比赛节奏和心态上处理得很好。'],
+          replies: [
+              { text: '这些年轻球员已经习惯踢德比了。', answer: '刚开始踢德比时，很难不受球场氛围的影响。' },
+              { text: '他们今晚发挥格外出色。', answer: '下一场德比我也会来看的。' }
+          ] },
+        // 消息67 · 舍甫琴科（消息65后首次德比·输球送达，trigger:'shevaDerbyLose'；并入舍甫琴科会话）
+        { from: '舍甫琴科', unread: true, trigger: 'shevaDerbyLose',
+          bubbles: ['我认为球员们在技术上不差什么，只是心态受影响。'],
+          replies: [
+              { text: '青年球员在这种重要比赛上还缺乏经验。', answer: '他们需要你反复强调对他们的信任。' },
+              { text: '教练特地安排了有经验的球员首发。', answer: '战术安排通常不能被百分之百执行，我们那时候不是也这样？' }
+          ] },
+        // 消息68 · 托纳利（第四赛季·赌王传奇Ⅰ选项2「私下聊聊」后送达，trigger:'tonaliTalk'）
+        { from: '托纳利', unread: true, trigger: 'tonaliTalk',
+          bubbles: ['总监，教练说你想和我聊聊......'],
+          replies: [
+              { text: '我想问你关于赌博的事是真的吗？', answer: '我没有做任何伤害米兰的事。' },
+              { text: '我想问你最近需要什么帮助吗？', answer: '暂时没有......总监，如果有的话我会告诉您的。' }
+          ] },
+        // 消息69 · 加图索（第四赛季·「一去不返的纸飞机」触发两轮后送达，trigger:'gattusoGambler'；并入加图索会话）
+        { from: '加图索', unread: true, trigger: 'gattusoGambler',
+          bubbles: ['我想了一晚上，还是应该给你发条消息。', '关于赌球的事，我真不敢相信那个孩子会有这种恶习。'],
+          replies: [
+              { text: '他已经离队了。', answer: '唉......' },
+              { text: '我也无法相信，但已经发生了。', answer: '他曾经被寄予厚望。' }
+          ] },
+        // 消息70 · 加图索（第四赛季·「我们的责任」触发两轮后送达，trigger:'gattusoResp'；并入加图索会话）
+        { from: '加图索', unread: true, trigger: 'gattusoResp',
+          bubbles: ['听说托纳利要接受六个月的禁赛。', '关于他赌球的事情我已经知道了。'],
+          replies: [
+              { text: '如果你不介意的话，下周可以来米兰和他当面聊聊。', answer: '他必须为自己的行为付出代价。😠' },
+              { text: '我们最终还是决定留下他。', answer: '再给他一次机会？' }
+          ] },
+        // 消息71 · 马萨拉（第五赛季开始送达，trigger:'massaraPlan'）
+        { from: '马萨拉', unread: true, trigger: 'massaraPlan',
+          bubbles: ['我们之前做的那个35页的计划书有回复吗？'],
+          replies: [
+              { text: '发给CEO他们看了，还没有。', answer: '他们得给我们一个答复。' },
+              { text: '我没有收到回复，你呢？', answer: '我怀疑他们直接扔垃圾桶了。' }
           ] }
     ],
     // 论坛实际帖子在 gameStats.forumPosts（动态生成、随存档持久化）；此处留空。

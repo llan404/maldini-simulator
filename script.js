@@ -723,6 +723,12 @@ function playRound(opponentName) {
     gameStats.lastOpponentDisplay = opponent.name;
     gameStats.lastMatchLost = (result === 'loss'); // 供"南看台的训话"等判断输球
     addMatchForumThread(opponent, result, score); // 球迷论坛赛果帖（联赛胜/负，平局暂不发）
+    // 私信66/67（舍甫琴科·德比赛后点评）：消息65送达后的首次德比——赢→66，输或平→67（仅对首次德比生效）
+    if (opponentName === '国际米兰' && gameStats.deliveredEmails && gameStats.deliveredEmails.shevaDerby
+        && !gameStats.deliveredEmails.shevaDerbyWin && !gameStats.deliveredEmails.shevaDerbyLose) {
+        if (result === 'win') deliverEmail('shevaDerbyWin');
+        else deliverEmail('shevaDerbyLose'); // 输或平局 → 消息67
+    }
 
     const prevRanking = gameStats.ranking;
     const pointsDelta = result === 'win' ? 3 : result === 'draw' ? 1 : 0;
@@ -815,7 +821,7 @@ selectDifficultyBtns.forEach(btn => {
 });
 
 // 显示赛季开幕简报（difficulty 传 null 表示赛季中期过渡，不重新初始化游戏）
-// 赛季开场卡片：第二赛季风评→无名小卒；第五赛季新闻合订本；有欧战资格再补小组赛抽签
+// 赛季开场卡片：第二赛季无名小卒；第五赛季新闻合订本；有欧战资格再补小组赛抽签
 function playSeasonOpeningCards() {
     const queue = [];
     if (gameStats.season === 2) { queue.push('unknownOneI'); }
@@ -2289,6 +2295,8 @@ function selectRandomEvents() {
         const ffp1Round = (mainlineRoundConstraints[1] && mainlineRoundConstraints[1].ffp1) || 6;
         if (gameStats.round === ffp1Round - 2) deliverEmail('cfcbDecision');
     }
+    // 私信31（内斯塔·久别问候）：第一赛季第 10 轮送达
+    if (gameStats.season === 1 && gameStats.round >= 10 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.nestaHello)) deliverEmail('nestaHello');
 
     // 邮件15（朗尼克泄密）+16（马萨拉警告）：邮件14（架构思考）送达两回合后一同送达，16 在 15 之后（标号大者更靠上）
     if (gameStats.season === 2 && gameStats.architectureRound &&
@@ -2333,6 +2341,8 @@ function selectRandomEvents() {
     if (gameStats.season === 5 && gameStats.round >= 1 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.gazidisFarewell)) deliverEmail('gazidisFarewell');
     // 邮件31（格里·卡尔迪纳莱·红鸟前进的方向）：第五赛季第 1 轮（赛季刚开始）送达
     if (gameStats.season === 5 && gameStats.round >= 1 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.cardinaleDirection)) deliverEmail('cardinaleDirection');
+    // 私信71（马萨拉·35页计划书有回复吗）：第五赛季第 1 轮（赛季开始）送达
+    if (gameStats.season === 5 && gameStats.round >= 1 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.massaraPlan)) deliverEmail('massaraPlan');
     // 邮件32（马萨拉·有关德凯特拉雷）：第五赛季第 12 轮、且未签下 09 德凯特拉雷(belgian_star)时送达
     if (gameStats.season === 5 && gameStats.round >= 12 && !gameStats.signedPlayers.includes('belgian_star')
         && !(gameStats.deliveredEmails && gameStats.deliveredEmails.deketSuggest)) deliverEmail('deketSuggest');
@@ -2347,6 +2357,11 @@ function selectRandomEvents() {
     // 私信23（吉鲁·客串门将）：签下03（吉鲁）后概率送达（每轮15%，仅一次）
     if (gameStats.signedPlayers.includes('striker_fr') && !(gameStats.deliveredEmails && gameStats.deliveredEmails.giroudGk)
         && Math.random() < 0.15) deliverEmail('giroudGk');
+    // 私信30（里昂总监·卡卢卢踢出来了）：签下卡卢卢(cb_fr_young)满一个赛季后随机送达（每轮15%，仅一次）
+    // 入队赛季取签约私信 signKalulu 的送达赛季快照（deliveredEmails.signKalulu.s），当前赛季更大即「在队满一个赛季」
+    if (gameStats.signedPlayers.includes('cb_fr_young') && gameStats.deliveredEmails && gameStats.deliveredEmails.signKalulu
+        && gameStats.season > gameStats.deliveredEmails.signKalulu.s
+        && !gameStats.deliveredEmails.kaluluLyon && Math.random() < 0.15) deliverEmail('kaluluLyon');
     // 私信24（AC米兰·买那个法国前锋）：解锁「魔力电话」后随机送达（每轮20%，仅一次）
     if (gameStats.magicPhoneUnlocked && !(gameStats.deliveredEmails && gameStats.deliveredEmails.magicPhoneDm)
         && Math.random() < 0.2) deliverEmail('magicPhoneDm');
@@ -2359,6 +2374,16 @@ function selectRandomEvents() {
     // 私信27（伊布·给中卫加练）：第四赛季夏窗（R2 开窗）后第3轮起送达，需06在队
     if (gameStats.season === 4 && gameStats.round >= 3 && gameStats.signedPlayers.includes('maestro')
         && !(gameStats.deliveredEmails && gameStats.deliveredEmails.ibraCbDm)) deliverEmail('ibraCbDm');
+    // 私信65（舍甫琴科·来看德比还是训练）：第四赛季·首次德比在下一个「开始比赛」内（接下来两轮）时送达，即「德比前两轮」
+    if (gameStats.season === 4 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.shevaDerby)
+        && (matchSchedule[scheduleIndex] === '国际米兰' || matchSchedule[scheduleIndex + 1] === '国际米兰')) deliverEmail('shevaDerby');
+    // 私信69（加图索·纸飞机后）/70（加图索·我们的责任后）：赌王检查点结算后 2 轮送达（结算轮取对应静默标记的送达轮）
+    if (gameStats.deliveredEmails && gameStats.deliveredEmails.betKingGamblerMark
+        && gameStats.round >= gameStats.deliveredEmails.betKingGamblerMark.r + 2
+        && !gameStats.deliveredEmails.gattusoGambler) deliverEmail('gattusoGambler');
+    if (gameStats.deliveredEmails && gameStats.deliveredEmails.betKingRespMark
+        && gameStats.round >= gameStats.deliveredEmails.betKingRespMark.r + 2
+        && !gameStats.deliveredEmails.gattusoResp) deliverEmail('gattusoResp');
     // 私信29（AC米兰·再见面的那天）：第五赛季第38轮送达
     if (gameStats.season === 5 && gameStats.round >= 38 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.milanFarewell)) deliverEmail('milanFarewell');
     // 私信50（科斯塔库塔·升任技术总监）：第二赛季第1轮送达
@@ -2496,9 +2521,12 @@ function selectRandomEvents() {
             return ['betKing3'];
         }
         // 检查点（第30轮后，Ⅲ结束）：07信任点≥3 且 07仍在队 → 我们的责任，否则 → 摔碎的马克杯
-        if (gameStats.round >= 30 && gameStats.betKing3Done && !gameStats.betKingResolved) {
+        // 检查点（第30轮）：只要07已离队（任何路径，含赌王Ⅱ卖掉/Ⅲ解约或处罚）→ 固定「一去不返的纸飞机」；
+        // 07仍在队且信任点≥3 → 「我们的责任」，否则也走纸飞机（届时由 gamblerEnd 移出07）
+        if (gameStats.round >= 30 && !gameStats.betKingResolved && (gameStats.betKing3Done || gameStats.player07Removed)) {
             gameStats.betKingResolved = true;
             const standBy = !gameStats.player07Removed && gameStats.player07Trust >= 3;
+            deliverEmail(standBy ? 'betKingRespMark' : 'betKingGamblerMark'); // 记录结算轮次（静默标记），供2轮后发加图索私信70/69
             return [standBy ? 'ourResponsibility' : 'gamblerEnd'];
         }
         // 买断我！保罗！（第32轮必定触发，调整21夏窗身价）—— 仅在尚未买断21(托莫里)时触发
@@ -2507,9 +2535,9 @@ function selectRandomEvents() {
             gameStats.force21Window = true; // 触发买断后 → 下个转会窗保证 21 出现
             return ['buyoutTomori'];
         }
-        // 下一个左后卫Ⅲ：第20-30轮联赛赢球后触发（需01在队，一次）。consecutiveNonWins===0 即上一场获胜
-        if (gameStats.round >= 20 && gameStats.round <= 30 && gameStats.consecutiveNonWins === 0 &&
-            gameStats.signedPlayers.includes('lb_winger') && !gameStats.nextLeftBack3Done) {
+        // 下一个左后卫Ⅲ：第20轮起联赛赢球后触发（需01在队，一次）；若一直没赢球，到第30轮固定触发。consecutiveNonWins===0 即上一场获胜
+        if (gameStats.round >= 20 && gameStats.signedPlayers.includes('lb_winger') && !gameStats.nextLeftBack3Done &&
+            (gameStats.consecutiveNonWins === 0 || gameStats.round >= 30)) {
             gameStats.nextLeftBack3Done = true;
             return ['nextLeftBack3'];
         }
@@ -2631,8 +2659,8 @@ function selectRandomEvents() {
         gameStats.leaoNewsPending = false; gameStats.leaoNewsDone = true;
         selectedEvents.push('newsLeao');
     }
-    // 伊布的续约谈判：第二赛季「卓有成效」触发后（R26），本赛季内随机某轮触发（每轮 35% 概率）
-    if (gameStats.ibraNewsPending && !gameStats.ibraNewsDone && gameStats.season === 2 && Math.random() < 0.35) {
+    // 伊布的续约谈判：第二赛季「卓有成效」触发后（R26），本赛季内随机某轮触发（每轮 35% 概率）；到赛季末（R36 起）仍未触发则保底触发一次
+    if (gameStats.ibraNewsPending && !gameStats.ibraNewsDone && gameStats.season === 2 && (Math.random() < 0.35 || gameStats.round >= 36)) {
         gameStats.ibraNewsPending = false; gameStats.ibraNewsDone = true;
         selectedEvents.push('newsIbraRenewal');
     }

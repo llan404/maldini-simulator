@@ -1,0 +1,10 @@
+# 编辑器 / 本地会话 / 缓存
+.vscode/
+.claude/
+__pycache__/
+~$*
+
+# 设计文档、模拟脚本、代码导航文档（不纳入仓库）
+*.docx
+sim/
+CODEMAP.md
