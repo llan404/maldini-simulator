@@ -448,6 +448,69 @@ const TERMINAL_CONTENT = {
               { text: '暂时不会。', answer: '好的。' },
               { text: '可能会换。', answer: '我这边听到的风声连下一位的名单都有了。' }
           ] },
+        // 消息40 · 皮尔洛（签下 07 托纳利后送达，与消息15同触发 trigger:'signTonali'）
+        { from: '皮尔洛', unread: true, trigger: 'signTonali',
+          bubbles: ['Paolo，看到你们签了托纳利。', '媒体又在喊他‘新皮尔洛’，这个称呼的负担大于期待。', '做第一个托纳利比做新皮尔洛容易的多。', '他有自己的踢法。'],
+          replies: [
+              { text: '你觉得他和你像吗？', answer: '他比我更适应现代足球。' },
+              { text: '我会告诉他的。', answer: '我看了他的比赛，和米兰阵容的适配性很高。' }
+          ] },
+        // 消息41 · 伊布拉希莫维奇（首个意甲冠军·当赛季第38轮送达，需06在队，trigger:'firstScudettoIbra'；并入伊布会话）
+        { from: '伊布拉希莫维奇', unread: true, trigger: 'firstScudettoIbra',
+          bubbles: ['真是漫长的赛季。', '米兰做到了。', '签约来米兰的时候兹拉坦就知道会有今天。', '现在意大利属于米兰。'],
+          replies: [
+              { text: '这是我最正确的决定。', answer: '兹拉坦有没有帮你拿下今年的最佳总监？' },
+              { text: '好好享受今晚。', answer: '接下来该想想欧冠奖杯了。' }
+          ] },
+        // 消息42 · 托纳利（首个意甲冠军·当赛季第38轮送达，需07在队，trigger:'firstScudettoTonali'；并入托纳利会话）
+        { from: '托纳利', unread: true, trigger: 'firstScudettoTonali',
+          bubbles: ['总监。', '😭😭😭', '我们是冠军。', '我曾经的梦想就是米兰能够重新夺冠。', '今天这个梦想成真了。', '而且是我自己在场上拿到的。', '我控制不住自己。', '😭😭😭', '谢谢您把我签回米兰。'],
+          replies: [
+              { text: '你这个赛季表现很好。', answer: '😭' },
+              { text: '是米兰很幸运能拥有你。', answer: '我觉得没有人比我更幸福了。' }
+          ] },
+        // 消息43 · 莱奥（首个意甲冠军·当赛季第38轮送达，需02在队，trigger:'firstScudettoLeao'；并入莱奥会话）
+        { from: '莱奥', unread: true, trigger: 'firstScudettoLeao',
+          bubbles: ['Paolo，晚上的派对你来不来。', '😄', '我将给大家播放我的首张个人专辑。'],
+          replies: [
+              { text: '我会去的。', answer: '我可是很欣赏您的音乐品味！😄' },
+              { text: '这是冠军庆祝吗？', answer: '是我铭记这个意甲冠军的方式。' }
+          ] },
+        // 消息44 · 麦尼昂（首个意甲冠军·当赛季第38轮送达，需05在队，trigger:'firstScudettoMaignan'；并入麦尼昂会话）
+        { from: '麦尼昂', unread: true, trigger: 'firstScudettoMaignan',
+          bubbles: ['Paolo，我们赢了联赛。', '在意甲获得这么多场零封比其他地方都难。', '我知道签下我是一场豪赌，这结果太美妙也太令人意外了。'],
+          replies: [
+              { text: '米兰的底气是身后站着一个让所有人安心的门将。', answer: '这是后防线说的吗？🙂' },
+              { text: '米兰会带你去更大的赛场。', answer: '我迫不及待。' }
+          ] },
+        // 消息45 · 吉鲁（首个意甲冠军·当赛季第38轮送达，需03在队，trigger:'firstScudettoGiroud'；并入吉鲁会话）
+        { from: '吉鲁', unread: true, trigger: 'firstScudettoGiroud',
+          bubbles: ['Paolo！！！', '在这个职业阶段赢下冠军。', '米兰带给我了一个职业生涯的新阶段。'],
+          replies: [
+              { text: '年轻球员从你身上学到的东西比战术珍贵。', answer: '和年轻人在一起很有意思。' },
+              { text: '这个赛季夺冠你是必不可缺的主力。', answer: '我会继续为米兰战斗。' }
+          ] },
+        // 消息46 · 丹尼尔（首个意甲冠军·当赛季第38轮送达，需08在队，trigger:'firstScudettoDaniel'；并入丹尼尔会话）
+        { from: '丹尼尔', unread: true, trigger: 'firstScudettoDaniel',
+          bubbles: ['Papa.', '你在想什么？'],
+          replies: [
+              { text: '球员们这一年的付出是有意义的。', answer: '我们拼到了最后一场比赛。' },
+              { text: '冠军证明了建队思路是正确的。', answer: '我一直认为那是对的。' },
+              { text: '你呢？', answer: '意甲冠军的奖杯居然光滑得能照出我的脸。' }
+          ] },
+        // 消息47 · 卡拉布里亚（首个意甲冠军·当赛季第38轮送达，常驻，trigger:'firstScudettoCalabria'；并入卡拉布里亚会话）
+        { from: '卡拉布里亚', unread: true, trigger: 'firstScudettoCalabria',
+          bubbles: ['总监！', '您知道这意味着什么！', '如果没有拿到冠军，我觉得在米兰的征战是毫无意义的。', '我仍然会为米兰拼尽全力，但只有冠军才能证明我对她的爱。'],
+          replies: [
+              { text: '你做的很好。', answer: '谢谢您，总监。' },
+              { text: '米兰的这个冠军是你带回来的。', answer: '谢谢你，总监。' }
+          ] },
+        // 消息48 · 国际米兰（欧冠淘汰赛淘汰国米后送达，trigger:'uclBeatInter'）—— 回复「谢谢。」发出后尾部显示红色感叹号（redMark，无对方回应）
+        { from: '国际米兰', unread: true, trigger: 'uclBeatInter',
+          bubbles: ['真是恭喜你们了。'],
+          replies: [
+              { text: '谢谢。', redMark: true }
+          ] },
         // 消息50 · 科斯塔库塔（第二赛季开场后送达，trigger:'costacurtaDirector'）
         { from: '科斯塔库塔', unread: true, trigger: 'costacurtaDirector',
           bubbles: ['Paolo，听说你升任技术总监了。', '我还记得你原来说永远不会当教练。', '当技术总监应该也不比教练轻松？'],
@@ -619,21 +682,98 @@ const TERMINAL_CONTENT = {
           ] },
         // 消息76 · 莱奥（签下 02 winger_pt 且第五赛季第30轮送达，trigger:'leaoRenewDm'）
         { from: '莱奥', unread: true, trigger: 'leaoRenewDm',
-          bubbles: ['Paolo😄', '续约的事，我的经纪人还在和俱乐部磨。', '我爱米兰，在这里踢球很开心，所以我大概会留下来。', '但具体签几年还没想好。', '我能打听一下特奥签了多久吗？😄'],
+          bubbles: ['Paolo😄', '续约的事，我的经纪人还在和俱乐部商议。', '我爱米兰，在这里踢球很开心，所以我大概会留下来。', '但具体签几年还没想好。', '我能打听一下特奥签了多久吗？😄'],
           replies: [
               { text: '我会尽全力争取到让你满意的条件。', answer: '我自己想留下拿到更多冠军。😎' },
               { text: '特奥的续约还没开始谈。', answer: '他没有不留下来的理由！因为你还在这！😠' }
+          ] },
+        // 消息77 · 皇家马德里（欧冠决赛击败利物浦夺冠后送达，trigger:'uclFinalBeatLiverpool'；并入皇马会话）
+        { from: '皇家马德里', unread: true, trigger: 'uclFinalBeatLiverpool',
+          bubbles: ['恭喜AC Milan获得本次欧冠冠军。', '我们最难忘的对手。', '正因为胜利的荣耀和失败的苦涩都品尝过，我们的祝贺才格外真诚。', '真正伟大的对手才配得上欧冠赛场的一切。', '恭喜你们。'] },
+        // 消息78 · 安切洛蒂（第4/5赛季·欧冠淘汰赛战胜皇马后送达，trigger:'uclBeatMadrid'；并入安切洛蒂会话）
+        { from: '安切洛蒂', unread: true, trigger: 'uclBeatMadrid',
+          bubbles: ['Paolo，尽管今天的欧冠比赛让我感到苦涩。', '但我也看到了米兰展现的顽强意志力。', '这种意志力是欧冠赛场所需要的，祝贺你们。'],
+          replies: [
+              { text: '皇马始终是我们尊敬的对手。', answer: '下一次见。' },
+              { text: '明年欧冠见。', answer: '当然。' }
+          ] },
+        // 消息79 · 安切洛蒂（第一赛季第一轮送达，trigger:'ancelottiHello'；并入安切洛蒂会话）
+        { from: '安切洛蒂', unread: true, trigger: 'ancelottiHello',
+          bubbles: ['Paolo，我的队长。', '听说你回米兰坐办公室了？', '我在那不勒斯都得为你捏把汗，米兰的财政可不容乐观。', '但也别被账本吓到，足球最终是关于人的，搞定人就什么都搞定了。', '需要一个过来人聊聊？'],
+          replies: [
+              { text: '正需要，什么时候有空？', answer: '哈哈，我来安排吧，虽然我也挺想回米兰吃一次食堂的。' },
+              { text: '一切只能从头慢慢来了。', answer: '我在那不勒斯为你加油。😉' }
+          ] },
+        // 消息80 · 安切洛蒂（第4/5赛季·欧冠淘汰赛输给皇马后送达，trigger:'uclLoseMadrid'；并入安切洛蒂会话）
+        { from: '安切洛蒂', unread: true, trigger: 'uclLoseMadrid',
+          bubbles: ['Paolo，希望下个赛季还能见到米兰。'],
+          replies: [
+              { text: '会的。' },
+              { text: '我们也希望能和皇马再次对战。' }
+          ] },
+        // 消息81 · 戈登·辛格（首个欧冠冠军·1-4赛季·当赛季第38轮送达，trigger:'firstUclSinger'）
+        { from: '戈登·辛格', unread: true, trigger: 'firstUclSinger',
+          bubbles: ['我迫不及待要先发一条消息给你，保罗。', '今晚我坐在看台上，意识到这个奇迹不是管理层坐在办公室里能衡量的。', '我无比荣幸参与到米兰争夺冠军的路途中，祝贺你们！'] },
+        // 消息82 · 托纳利（首个欧冠冠军·当赛季第38轮送达，需07在队，trigger:'firstUclTonali'；并入托纳利会话）
+        { from: '托纳利', unread: true, trigger: 'firstUclTonali',
+          bubbles: ['结束了。', '哨响的时候我感觉不到自己的身体。', '总监，这是真的吗？'],
+          replies: [
+              { text: '去摸摸奖杯吧。', answer: '它真的存在。' },
+              { text: '当然是真的。', answer: '我怕这是我的一个梦。' }
+          ] },
+        // 消息83 · 伊布拉希莫维奇（首个欧冠冠军·当赛季第38轮送达，需06在队，trigger:'firstUclIbra'；并入伊布会话）
+        { from: '伊布拉希莫维奇', unread: true, trigger: 'firstUclIbra',
+          bubbles: ['他们把恐惧转化为了决心。', '兹拉坦没什么可说的了。'],
+          replies: [
+              { text: '你驱散了恐惧。', answer: '欧冠决赛只需要强大的信心。' },
+              { text: '大家都做得很好。', answer: '现在我可以说欧洲属于米兰。' }
+          ] },
+        // 消息84 · 克亚尔（首个欧冠冠军·当赛季第38轮送达，需19在队，trigger:'firstUclKjaer'；并入克亚尔会话）
+        { from: '克亚尔', unread: true, trigger: 'firstUclKjaer',
+          bubbles: ['总监。', '孩子们表现的很好。'],
+          replies: [
+              { text: '你很少给我发消息。', answer: '😮‍💨 其实是有几个孩子要我一定把你带去庆功派对。' },
+              { text: '我看到你在场上的表现了。', answer: '我只是在让自己配得上队友的努力。' }
+          ] },
+        // 消息85 · 特奥（首个欧冠冠军·当赛季第38轮送达，需01在队，trigger:'firstUclTheo'；并入特奥会话）
+        { from: '特奥', unread: true, trigger: 'firstUclTheo',
+          bubbles: ['😎', '总监，你觉得我们在排行榜上有机会追上皇马吗？'],
+          replies: [
+              { text: '有机会。', answer: '嗯哼。' },
+              { text: '没机会。', answer: '我再在米兰踢十年应该还是有机会的吧！' }
+          ] },
+        // 消息85 · 莱奥（首个欧冠冠军·当赛季第38轮送达，需02在队，trigger:'firstUclLeao'；并入莱奥会话）
+        { from: '莱奥', unread: true, trigger: 'firstUclLeao',
+          bubbles: ['Paolo，刚刚你去哪了？', '我们正打算把你抛起来。💃💃💃'],
+          replies: [
+              { text: '我退役的时候都没被抛。', answer: '刚好补上，快来球场吧总监！' },
+              { text: '还是算了吧。', answer: '没事的，我们会接住你的。' }
+          ] },
+        // 消息86 · 马萨拉（首个欧冠冠军·当赛季第38轮送达，trigger:'firstUclMassara'；并入马萨拉会话）
+        { from: '马萨拉', unread: true, trigger: 'firstUclMassara',
+          bubbles: ['刚刚有好几个俱乐部的负责人给我打电话，祝贺米兰获得欧冠。', '这是我这个赛季听他们语气最和善的一次。'],
+          replies: [
+              { text: '哈哈。', answer: '下周我再回来上班。' },
+              { text: '看来下个赛季的转会顺利很多。', answer: '那当然，我们在签约上会占尽优势的。' }
           ] }
     ],
+    // 消息49 · 从终端球员列表出售球员后，按被出售球员姓名生成发件人（动态模板，非固定私信）
+    dmTemplates: {
+        soldPlayer: {
+            bubbles: ['马尔蒂尼先生，我已经收到合同，将在下个赛季离开米兰。']
+        }
+    },
     // 论坛实际帖子在 gameStats.forumPosts（动态生成、随存档持久化）；此处留空。
     forum: [],
     // ===== 球迷论坛·赛果帖内容池 =====
     // 每场联赛后由 forumPool.broadcaster 账号发一条「赛果播报」，其下随机抽 2 条该类别回复。
-    // 类别 = 胜/平/负 × 强弱：strong 档=强队，mid/low 档=弱队；对手=国际米兰时走 derbyWin/Lose/Draw 专用池；欧冠淘汰赛走 uclWin/uclLose，决赛单独走 uclFinalWin/uclFinalLose(文案待补)。
+    // 类别 = 胜/平/负 × 强弱：strong 档=强队，mid/low 档=弱队；对手=国际米兰时走 derbyWin/Lose/Draw 专用池；欧战淘汰赛走 ucl*/uel*，决赛单独走 Final 池。
     // 占位符：{score}=「米兰X：Y对手名」(如 米兰4：0罗马)、{goals}=米兰进球数、{opp}=对手名。
     // 回复项可为字符串，或对象 { text, minGoals?, needNext? }：minGoals=米兰进球数≥该值才进池（如平强队「踢平」仅非0:0）；needNext=仅「晋级下一轮」(欧冠非决赛胜)时进池。
     forumPool: {
-        broadcaster: '米兰赛果速报',
+        broadcaster: '米兰赛果速报',            // 联赛赛果播报账号
+        broadcasterUcl: '米兰欧冠赛果播报',      // 欧冠赛果播报账号
+        broadcasterUel: '米兰欧联赛果播报',      // 欧联赛果播报账号
         leagueWinStrong: {
             broadcast: '{score}，好一场大胜！',
             replies: [
@@ -950,6 +1090,57 @@ const TERMINAL_CONTENT = {
                 '教练你以为你不该挨骂吗，守也没人攻也没人，人家一带球进禁区发现防守脆的跟纸一样。',
                 '正常人好像都在对面。',
                 '总监买点会踢欧冠的人好吗好的。'
+            ]
+        },
+        uelWin: {
+            broadcast: '{score}，挺进欧联下一轮！',
+            replies: [
+                '挺进下一轮！',
+                '我说这些平时没听过的球队怎么这么难踢。',
+                '保持蠕动保持悲观。',
+                '欧联比赛还挺好看的。',
+                '米兰的复兴就靠你们了！',
+                '从欧联开始拿下欧冠的路程。',
+                '左路连线好爽。',
+                '今天状态很好啊给就有。',
+                '谁站替补席上在那乐呢?',
+                '美丽足球对的对的。'
+            ]
+        },
+        uelLose: {
+            broadcast: '{score}，欧联征程止步。',
+            replies: [
+                '早放弃早回去踢联赛了。',
+                '别拿欧联不当杯子，你们真不想要啊？',
+                '拜拜了，你们踢成这样也没想赢啊。',
+                '虽败犹荣。',
+                '毫无美感的一场比赛。'
+            ]
+        },
+        uelFinalWin: {
+            broadcast: '{score}，AC米兰夺得欧联杯冠军！',
+            replies: [
+                '别拿欧联不当杯子。',
+                '下赛季有欧冠踢了，不错。',
+                '弥补了米兰这段时间没拿到欧联杯的空白。',
+                '虽说是欧联踢的也挺艰难的。',
+                '好样的！一举拿下欧联杯！'
+            ]
+        },
+        // 欧联决赛负（亚军）：播报句为初稿，作者可改
+        uelFinalLose: {
+            broadcast: '{score}，欧联决赛失利，屈居亚军。',
+            replies: [
+                '连欧联杯都差一步吗......',
+                '走到决赛已经不容易了，别太苛责这些孩子。',
+                '就差一个冠军，太可惜了。',
+                '好歹拿了亚军，下赛季还能踢欧冠。',
+                '这要是欧冠决赛我可能已经哭晕了，还好只是欧联。',
+                '别拿欧联不当杯子，输了照样难受。',
+                '决赛这种大场面，年轻球员还是差了点经验。',
+                '明年从欧冠打回来！',
+                '把这份不甘心留到下个赛季吧。',
+                '总监，这个亚军可不能就这么算了。'
             ]
         },
         // 欧冠决赛对手=国际米兰 专用池（在 addUclForumThread 里 isFinal && oppName==='国际米兰' 时覆盖 uclFinalWin/Lose）；播报句用户未指定，暂拟，可改

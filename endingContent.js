@@ -102,8 +102,8 @@ const endings = {
         id: 18,
         title: "明天",
         hidden: true,
-        image: "Special_Ending_1.jpg",
-        imageW: 8611, imageH: 4460, // 预留宽高比，避免加载时回流闪动
+        image: "Special_Ending.jpeg",
+        imageW: 7692, imageH: 4302, // 预留宽高比，避免加载时回流闪动
         text: () => { const _ts = getTomorrowStats(); const _sc = _ts ? _ts.s : gameStats.scudettoCount; const _uc = _ts ? _ts.u : gameStats.uclTitleCount; return `尽管你对资方已经足够谨慎，在赛季结束时，你仍然被开除了。这次是什么原因？你知道没有一个总监能做的比你更好了，在任期中，米兰获得了${_sc}次联赛冠军，${_uc}次欧冠冠军，管理层最开始给你定下的目标已经被超额完成。
 红鸟资本所引入的经营球队的观念让你无法理解，你们谁也无法说服对方。爆发了数次摩擦后，管理层认为解决人比解决事更容易。
 你离开后的一切都是可预知的：管理层会分批卖掉那些已经踢出来的小将，回收资金。然后利用那套数据系统买入新一批球员，让球队的排名能够稳定在前四，在接下来的几年中，不断执行这个循环——如果真能这么顺利的话。

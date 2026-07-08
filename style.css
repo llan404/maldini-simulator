@@ -970,72 +970,6 @@ button:hover {
     cursor: not-allowed;
 }
 
-/* ===== 测试面板（调试用，完成后整体删除）===== */
-#test-panel-btn {
-    position: fixed;
-    bottom: 14px;
-    right: 14px;
-    padding: 5px 12px;
-    font-size: 0.72rem;
-    background: rgba(20, 20, 20, 0.55);
-    color: #aaa;
-    border: 1px dashed #555;
-    border-radius: 3px;
-    cursor: pointer;
-    z-index: 9999;
-    opacity: 0.5;
-    letter-spacing: 0.06em;
-    transition: opacity 0.2s;
-}
-
-#test-panel-btn:hover {
-    opacity: 1;
-    background: rgba(20, 20, 20, 0.8);
-    color: #ddd;
-}
-
-#test-panel {
-    position: fixed;
-    bottom: 46px;
-    right: 14px;
-    z-index: 10000;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    width: 190px;
-    padding: 10px;
-    background: rgba(20, 20, 20, 0.94);
-    border: 1px dashed #666;
-    border-radius: 6px;
-}
-
-#test-panel.hidden { display: none; }
-
-#test-panel .test-panel-title {
-    font-size: 0.7rem;
-    color: #ccc;
-    letter-spacing: 0.1em;
-    text-align: center;
-    margin-bottom: 2px;
-}
-
-#test-panel button {
-    padding: 7px 8px;
-    font-size: 0.72rem;
-    background: rgba(60, 60, 60, 0.85);
-    color: #e0e0e0;
-    border: 1px solid #555;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.15s;
-    letter-spacing: 0.04em;
-}
-
-#test-panel button:hover { background: rgba(95, 95, 95, 0.95); }
-
-#test-panel #test-panel-close { background: transparent; color: #999; border-color: #444; }
-#test-panel #test-panel-close:hover { background: rgba(60, 60, 60, 0.6); color: #ccc; }
-
 /* 主线剧情事件卡片（同赛季简报风格） */
 #random-event-modal.mainline {
     background-color: rgba(0, 0, 0, 0.6);
@@ -2363,6 +2297,10 @@ body.terminal-modal-open { overflow: hidden; }
     color: #fff;
     border-radius: 16px 16px 4px 16px; /* 右下小角，像发出的对话框 */
 }
+/* 玩家消息尾部红色感叹号（发送失败/未被接收提示，如消息48）*/
+.dm-out-fail { align-self: flex-end; display: flex; align-items: center; gap: 7px; max-width: 90%; }
+.dm-out-fail .dm-bubble { align-self: center; max-width: none; }
+.dm-fail-mark { flex-shrink: 0; width: 17px; height: 17px; border-radius: 50%; background: #d4302f; color: #fff; font-size: 12px; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center; }
 .dm-bubble.dm-typing { display: inline-flex; align-items: center; gap: 4px; padding: 12px 14px; }
 .dm-typing span {
     width: 6px; height: 6px; border-radius: 50%;

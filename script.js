@@ -2310,6 +2310,8 @@ function selectRandomEvents() {
     }
     // 私信31（内斯塔·久别问候）：第一赛季第 10 轮送达
     if (gameStats.season === 1 && gameStats.round >= 10 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.nestaHello)) deliverEmail('nestaHello');
+    // 私信79（安切洛蒂·第一赛季问候）：第一赛季尽早送达（第一轮）
+    if (gameStats.season === 1 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.ancelottiHello)) deliverEmail('ancelottiHello');
 
     // 邮件15（朗尼克泄密）+16（马萨拉警告）：邮件14（架构思考）送达两回合后一同送达，16 在 15 之后（标号大者更靠上）
     if (gameStats.season === 2 && gameStats.architectureRound &&
@@ -2610,9 +2612,11 @@ function selectRandomEvents() {
             gameStats.southStandTalkDone = true;
             return ['southStandTalk'];
         }
-        // God Bye（第36轮，需 06 伊布在队）：伊布退役仪式
+        // God Bye（第36轮，需 06 伊布在队）：伊布退役仪式 → 退役后移出球员列表
         if (gameStats.round >= 36 && gameStats.signedPlayers.includes('maestro') && !gameStats.godByeDone) {
             gameStats.godByeDone = true;
+            const iIbra = gameStats.signedPlayers.indexOf('maestro');
+            if (iIbra !== -1) gameStats.signedPlayers.splice(iIbra, 1); // 伊布退役 → 移出球员列表
             return ['godBye'];
         }
     }
@@ -3521,7 +3525,29 @@ function doSeasonEnd() {
         gameStats.playerGrowth[id] = Math.min(10, gameStats.playerGrowth[id] + 1);
     }
     if (gameStats.ranking === 1) gameStats.scudettoCount++; // 本赛季联赛夺冠，累计意甲冠军数
+    // 首个意甲冠军：当赛季第38轮送达庆祝私信（消息41–47；各按对应球员是否在队，卡拉布里亚常驻）
+    if (gameStats.ranking === 1 && gameStats.scudettoCount === 1) {
+        const _has = id => gameStats.signedPlayers.includes(id);
+        if (_has('maestro')) deliverEmail('firstScudettoIbra');           // 41 伊布
+        if (_has('cm_youth_it')) deliverEmail('firstScudettoTonali');     // 42 托纳利
+        if (_has('winger_pt')) deliverEmail('firstScudettoLeao');         // 43 莱奥
+        if (_has('gk_talent')) deliverEmail('firstScudettoMaignan');      // 44 麦尼昂
+        if (_has('striker_fr')) deliverEmail('firstScudettoGiroud');      // 45 吉鲁
+        if (_has('daniel_maldini')) deliverEmail('firstScudettoDaniel');  // 46 丹尼尔
+        deliverEmail('firstScudettoCalabria');                           // 47 卡拉布里亚（常驻）
+    }
     if (gameStats.euroType === 'ucl' && gameStats.uclStage === 'champion') gameStats.uclTitleCount++; // 累计欧冠冠军数
+    // 首个欧冠冠军（1–4赛季）：当赛季第38轮送达庆祝私信（消息81–86；各按对应球员是否在队）
+    if (gameStats.euroType === 'ucl' && gameStats.uclStage === 'champion' && gameStats.uclTitleCount === 1 && gameStats.season <= 4) {
+        const _hu = id => gameStats.signedPlayers.includes(id);
+        deliverEmail('firstUclSinger');                          // 81 戈登·辛格
+        if (_hu('cm_youth_it')) deliverEmail('firstUclTonali');  // 82 托纳利
+        if (_hu('maestro')) deliverEmail('firstUclIbra');        // 83 伊布
+        if (_hu('cb_den')) deliverEmail('firstUclKjaer');        // 84 克亚尔（需19）
+        if (_hu('lb_winger')) deliverEmail('firstUclTheo');      // 85 特奥
+        if (_hu('winger_pt')) deliverEmail('firstUclLeao');      // 85 莱奥
+        deliverEmail('firstUclMassara');                         // 86 马萨拉
+    }
     if (gameStats.season === 4 && gameStats.euroType === 'ucl' && gameStats.uclStage === 'champion') gameStats.s4WonUcl = true; // 第四赛季欧冠夺冠快照，供邮件28/29二选一
     gameStats.lastSeasonWonUcl = (gameStats.euroType === 'ucl' && gameStats.uclStage === 'champion'); // 记「上赛季是否夺欧冠」，供下赛季签约谈判话术
     if (gameStats.difficulty !== 'easy' && gameStats.season >= 5) {
@@ -3617,59 +3643,6 @@ function runPostMatchFlow() {
     }
     showNextPendingWarning();
 }
-
-// ===== 测试面板（调试用，完成后整体删除：含 index.html #test-panel 与 style.css 对应样式）=====
-document.getElementById('test-panel-btn').addEventListener('click', () => {
-    document.getElementById('test-panel').classList.toggle('hidden');
-});
-document.getElementById('test-panel-close').addEventListener('click', () => {
-    document.getElementById('test-panel').classList.add('hidden');
-});
-// 1. 四项数值 +10、预算 +1000
-document.getElementById('test-add-stats').addEventListener('click', () => {
-    ['trust', 'media', 'fans', 'player'].forEach(s => updateStat(s, 10));
-    updateBudget(1000);
-});
-// 2. 当前回合 +2（视作已到达该回合点：此前应触发的强制事件/邮件一次性「视作已触发」，不再弹出）
-document.getElementById('test-add-round').addEventListener('click', () => {
-    gameStats.round = Math.min(38, gameStats.round + 2);
-    testConsumePendingEvents();
-    updateScoreboard();
-});
-// 把当前回合点之前应触发的强制/定时事件与邮件全部「视作已触发」（标记完成、送达邮件，不弹窗、不抽随机事件）
-function testConsumePendingEvents() {
-    const savedPity = gameStats.randomPity;
-    ffSkipRandom = true;
-    try {
-        for (let guard = 0; guard < 300; guard++) {
-            const evs = selectRandomEvents(); // 邮件在函数顶部幂等送达；强制事件返回即已置 *Done
-            if (!evs || evs.length === 0) break;
-            // mainline 池事件正常在选项结算时才标记 used，这里手动标记，避免快进循环重复返回同一事件
-            for (const id of evs) {
-                if ((mainlineEventPools[gameStats.season] || []).includes(id) &&
-                    !gameStats.usedMainlineEvents.includes(id)) {
-                    gameStats.usedMainlineEvents.push(id);
-                }
-            }
-        }
-    } finally {
-        ffSkipRandom = false;
-        gameStats.randomPity = savedPity; // 还原保底计数，不因快进虚高
-    }
-}
-// 3. 跳转下一章（保留当前数值直接进下一赛季）
-document.getElementById('test-next-season').addEventListener('click', () => {
-    if (gameStats.season >= 5) return;
-    document.getElementById('test-panel').classList.add('hidden');
-    document.getElementById('ending-modal').classList.add('hidden');
-    gameStats.gameEnded = false;
-    startNewSeason();
-});
-// 4. 直接跳转到结局
-document.getElementById('test-goto-ending').addEventListener('click', () => {
-    document.getElementById('test-panel').classList.add('hidden');
-    showEnding(resolveCurrentEndingKey());
-});
 
 // 重新开始游戏
 document.getElementById('restart-game').addEventListener('click', function() {
@@ -3931,6 +3904,9 @@ function playUclKnockout(decision) {
     applyUclRewards(uclRewards[info.key][advanced ? 'win' : 'out']);
     const score = uclScore(advanced);
     addUclForumThread(opp.name, advanced, score, advanced); // 论坛欧冠赛果帖（胜→晋级下一轮，故 hasNext=胜）
+    if (advanced && opp.name === '国际米兰' && gameStats.euroType === 'ucl') deliverEmail('uclBeatInter'); // 消息48 · 欧冠淘汰赛淘汰国米
+    if (opp.name === '皇家马德里' && gameStats.euroType === 'ucl' && (gameStats.season === 4 || gameStats.season === 5))
+        deliverEmail(advanced ? 'uclBeatMadrid' : 'uclLoseMadrid'); // 消息78/80 · 第4/5赛季欧冠淘汰赛 胜/负 皇马
     if (advanced) {
         gameStats.uclStage = info.next;
         if (info.next === 'final') { gameStats.uclReachedFinal = true; gameStats.uclFinalCount = (gameStats.uclFinalCount || 0) + 1; }
@@ -3955,6 +3931,10 @@ function playUclFinal(option) {
     applyUclRewards(uclRewards.final[won ? 'win' : 'out']);
     const score = uclScore(won);
     addUclForumThread(opp.name, won, score, false, true); // 决赛：单独池 uclFinalWin/Lose（待补文案，未提供前不发帖）
+    if (won && opp.name === '国际米兰' && gameStats.euroType === 'ucl') deliverEmail('uclBeatInter'); // 消息48 · 欧冠决赛淘汰国米
+    if (won && opp.name === '利物浦' && gameStats.euroType === 'ucl') deliverEmail('uclFinalBeatLiverpool'); // 消息77 · 欧冠决赛击败利物浦
+    if (opp.name === '皇家马德里' && gameStats.euroType === 'ucl' && (gameStats.season === 4 || gameStats.season === 5))
+        deliverEmail(won ? 'uclBeatMadrid' : 'uclLoseMadrid'); // 消息78/80 · 决赛 胜/负 皇马（第4/5赛季）
     if (won) {
         gameStats.uclStage = 'champion';
         const bonus = uclRewards.final.win.budget;
@@ -4369,6 +4349,20 @@ function buildTerminalTabbar(activeKey) {
     });
 }
 
+function deliverSoldPlayerDM(p) {
+    if (!p) return;
+    if (!gameStats.dynamicDMs) gameStats.dynamicDMs = [];
+    const tpl = TERMINAL_CONTENT.dmTemplates && TERMINAL_CONTENT.dmTemplates.soldPlayer;
+    const key = `soldPlayer_${p.id}_${gameStats.season}_${gameStats.round}`;
+    gameStats.dynamicDMs.push({
+        from: p.name,
+        unread: true,
+        trigger: key,
+        bubbles: (tpl && tpl.bubbles ? tpl.bubbles : []).slice()
+    });
+    deliverEmail(key);
+}
+
 // 「出售」球员（AAA球探求购·回复「我会考虑的」后可用）：按报价套现、撤销签约加成、移出阵容且不再回转会窗
 function sellScoutPlayer(id) {
     if (!gameStats.signedPlayers.includes(id)) return;
@@ -4383,6 +4377,7 @@ function sellScoutPlayer(id) {
     if (p && p.effects) Object.entries(p.effects).forEach(([k, v]) => { rev[k] = -v; updateStat(k, -v); }); // 撤销签约加成
     updateBudget(price);
     if (p) choiceHistory.push({ round: gameStats.round, eventName: '球员交易', optionText: `出售${p.name}（套现 €${price}万）`, effects: Object.assign({ budget: price }, rev), kind: 'special' });
+    deliverSoldPlayerDM(p);
     renderTerminalSection('players'); // 刷新球员档案
 }
 
@@ -4572,6 +4567,8 @@ function renderDMInbox() {
 // 聊天气泡：对方(左·dm-in) / 玩家(右·dm-out) / 「正在输入」指示器
 const dmBubbleIn = t => `<div class="dm-bubble dm-in">${t.replace(/\n/g, '<br>')}</div>`;
 const dmBubbleOut = t => `<div class="dm-bubble dm-out">${t.replace(/\n/g, '<br>')}</div>`;
+// 玩家气泡 + 尾部红色感叹号（发送后显示，示意「未被对方接收」，如消息48：回复国米后红!）
+const dmBubbleOutFail = t => `<div class="dm-out-fail"><span class="dm-fail-mark" aria-label="发送失败">!</span>${dmBubbleOut(t)}</div>`;
 const dmTypingHTML = '<div class="dm-bubble dm-in dm-typing"><span></span><span></span><span></span></div>';
 // answer 归一化为数组（字符串→单条；数组→多条；空→无回复）
 const dmAnswerList = answer => Array.isArray(answer) ? answer : (answer ? [answer] : []);
@@ -4629,7 +4626,7 @@ function renderDMThread(screen, group) {
             if (m.repliedIndex !== undefined) {
                 // 已回复：玩家气泡 + 对方回应（重开直接展示完整对话）
                 const r = m.replies[m.repliedIndex];
-                block.insertAdjacentHTML('beforeend', dmBubbleOut(r.text));
+                block.insertAdjacentHTML('beforeend', r.redMark ? dmBubbleOutFail(r.text) : dmBubbleOut(r.text));
                 dmAnswerList(r.answer).forEach(a => block.insertAdjacentHTML('beforeend', dmBubbleIn(a)));
             } else {
                 // 未回复：本条消息内联出选项（各条消息独立回复）
@@ -4685,7 +4682,7 @@ function dmAnswerReply(m, idx, block, rb) {
         if (!gameStats.scoutSellable) gameStats.scoutSellable = [];
         if (!gameStats.scoutSellable.includes(m.playerId) && gameStats.signedPlayers.includes(m.playerId)) gameStats.scoutSellable.push(m.playerId);
     }
-    block.insertAdjacentHTML('beforeend', dmBubbleOut(r.text));
+    block.insertAdjacentHTML('beforeend', r.redMark ? dmBubbleOutFail(r.text) : dmBubbleOut(r.text));
     const answers = dmAnswerList(answer);
     const screen = document.getElementById('terminal-screen');
     if (screen) screen.scrollTop = screen.scrollHeight;
@@ -4749,7 +4746,7 @@ function pushForumThread(cat, ctx, opts) {
     picked.forEach(r => weekForumReplies.push(rawText(r))); // 记入本周已用，供同周另一场去重
     if (!gameStats.forumPosts) gameStats.forumPosts = [];
     gameStats.forumPosts.unshift({ // 新帖在最上
-        from: TERMINAL_CONTENT.forumPool.broadcaster,
+        from: (opts && opts.from) || TERMINAL_CONTENT.forumPool.broadcaster,
         broadcast: fill(cat.broadcast),
         replies: picked.map(r => fill(rawText(r))),
         round: gameStats.round,
@@ -4768,14 +4765,16 @@ function addMatchForumThread(opponent, result, score) {
         : pool['league' + outcome + (opponent.category === 'strong' ? 'Strong' : 'Weak')];
     pushForumThread(cat, forumCtx(opponent.name, score));
 }
-// 欧冠赛果帖：淘汰赛用 uclWin/uclLose；决赛(isFinal)用 uclFinalWin/uclFinalLose(待补，未提供则不发帖)。hasNext=是否还有下一轮
+// 欧战赛果帖：欧冠走 ucl*，欧联走 uel*。hasNext=是否还有下一轮
 function addUclForumThread(oppName, win, score, hasNext, isFinal) {
     const pool = TERMINAL_CONTENT.forumPool;
     if (!pool) return;
     const suffix = win ? 'Win' : 'Lose';
-    let key = (isFinal ? 'uclFinal' : 'ucl') + suffix;
-    if (isFinal && oppName === '国际米兰' && pool['uclFinalDerby' + suffix]) key = 'uclFinalDerby' + suffix; // 决赛打国米走德比专用池
-    pushForumThread(pool[key], forumCtx(oppName, score, { hasNext: !!hasNext }), { ucl: true });
+    const euroPrefix = gameStats.euroType === 'uel' ? 'uel' : 'ucl';
+    let key = (isFinal ? euroPrefix + 'Final' : euroPrefix) + suffix;
+    if (gameStats.euroType !== 'uel' && isFinal && oppName === '国际米兰' && pool['uclFinalDerby' + suffix]) key = 'uclFinalDerby' + suffix; // 欧冠决赛打国米走德比专用池
+    const account = gameStats.euroType === 'uel' ? pool.broadcasterUel : pool.broadcasterUcl; // 欧冠/欧联各自的播报账号
+    pushForumThread(pool[key], forumCtx(oppName, score, { hasNext: !!hasNext }), { ucl: true, from: account });
 }
 
 function renderForum() {
