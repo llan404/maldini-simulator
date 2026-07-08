@@ -1,4 +1,4 @@
-name: Deploy (build + obfuscate) to Pages
+name: pages build and deployment
 
 # 每次推送 main：CI 拉取干净源码 → npm run build（拼接 6 个 JS → 混淆 → dist/）→ 部署 dist/ 到 GitHub Pages。
 # main 分支永远只放干净源码；线上跑的是 dist/ 里的混淆产物。
