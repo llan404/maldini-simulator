@@ -101,6 +101,7 @@ let gameStats = {
     scout64ActiveId: null,       // 消息64：当前交涉中的球员id（非空=进行中，未结束前不引荐下一位；跨赛季保留）
     scout64Offered: [],          // 消息64：已引荐过的 NPC id（不重复引荐）
     scout64SeasonCount: 0,       // 消息64：本赛季已引荐人数（上限 SCOUT64_MAX_PER_SEASON，赛季初重置）
+    scoutOfferSeasonCount: 0,    // 私信60·AAA球探：本赛季已求购人数（上限 SCOUT_OFFER_MAX_PER_SEASON，赛季初重置）
     donnaLeftFreeRound: 0,
     calhaLeftRound: 0,
     s4WonUcl: false,
@@ -111,8 +112,11 @@ let gameStats = {
     forumPosts: [],              // 球迷论坛动态帖子（每场联赛后生成：{from,broadcast,replies[],round,unread}；新帖在前）
     dynamicDMs: [],              // 运行时生成的私信（如消息60·球探求购，带 trigger 记送达时间；随 gameStats 存档）
     purchasePrice: {},           // 已签球员实际成交价 id→万欧元（含谈判加价；供消息60求购报价 ×1.1）
+    scoutSellable: [],           // AAA球探求购回复「我会考虑的」的球员id → 终端球员档案显示「出售」按钮
+    soldPlayers: [],             // 已「出售」套现移出的球员id（不再回到转会窗）
     buyoutTomoriDone: false,
     overtimeFineUsed: false,
+    homeVisitUsed: false,        // 亲自登门「我想把你带到米兰」是否已用（中等=每赛季重置/困难=全程一次；简单不读此字段）
     leaoNewsPending: false,
     leaoNewsDone: false,
     betKing1Done: false,
@@ -999,7 +1003,7 @@ function renderEndingCard(ending, preview) {
     const titleEl = document.getElementById('ending-title');
     titleEl.style.display = hasTitle ? '' : 'none';
     titleEl.textContent = ending.title || '';
-    // 标题居中补偿：仅结尾标点（如"意 外？"）→ 右移；开头引号/括号（如「‘她来了’」开头留白显得偏右）→ 左移
+    // 标题居中补偿：结尾为标点 → 右移；开头为引号/括号（开头留白显得偏右）→ 左移
     const _et = ending.title || '';
     const _ends = /[？！。，、）」』】’”?!.,)]\s*$/.test(_et);
     const _starts = /^\s*[‘“「『【（(]/.test(_et);
@@ -1023,7 +1027,7 @@ function renderEndingCard(ending, preview) {
         imgEl.classList.add('hidden');
         imgEl.removeAttribute('src');
     }
-    // 预览时：有后续尾声卡片则按钮为"继续"（链式展示，如"意外？"→"五年"），否则"返回"图鉴
+    // 预览时：有后续尾声卡片则按钮为“继续”（链式展示主卡→尾声卡），否则“返回”图鉴
     document.getElementById('restart-game').textContent =
         preview ? (ending.next ? (ending.nextText || '继续') : '返回')
                 : (ending.next ? (ending.nextText || '继续') : '重新开始');
@@ -1046,7 +1050,7 @@ function showEnding(endingKey) {
 // ===== 结局图鉴（跨存档持久化）=====
 const ENDINGS_KEY = 'acm_endings_v1';
 
-// "明天"结局触发时的意甲/欧冠冠军数快照，供结局图鉴预览时填充
+// 该结局触发时的意甲/欧冠冠军数快照，供结局图鉴预览时填充
 const TOMORROW_STATS_KEY = 'acm_ending_tomorrow_v1';
 function saveTomorrowStats() {
     try { localStorage.setItem(TOMORROW_STATS_KEY, JSON.stringify({ s: gameStats.scudettoCount, u: gameStats.uclTitleCount })); } catch {}
@@ -1147,7 +1151,7 @@ function updateProgressBar(barId, value) {
 function initializeGame(difficulty) {
     // 初始化数值
     const initVal = difficulty === 'hard' ? 40 : 50;
-    gameStats = { trust: initVal, media: initVal, fans: initVal, player: initVal, budget: 1000, points: 0, ranking: 1, round: 0, lastScore: '', lastOpponentDisplay: '', consecutiveNonWins: 0, consecutiveLosses: 0, usedRandomEvents: [], southStandEventUsed: false, betKingEventUsed: false, rebateEventCount: 0, randomPity: 0, transferEventUsed: false, carCrashEventUsed: false, sinkOrSwimEventUsed: false, bigDataEventUsed: false, derbyLossEventPending: false, derbyWinEventPending: false, warningEventShown: false, gameEnded: false, season: 1, deliveredEmails: {}, architectureRound: 0, notifyPrefs: { email: true, dm: true, forum: true, players: true }, futureRandomEvents: [], usedMainlineEvents: [], newCoachDone: false, xmasDone: false, oldFriendDone: false, winterWindowDone: false, winterSlotBonus: 0, winterNoBudget: false, winterReturnCost: 0, winterReturnIntent: 0, signedPlayers: [], news01Pending: false, news01Done: false, ibraNewsPending: false, ibraNewsDone: false, effectiveDone: false, lockerBrawlPending: false, lockerBrawlDone: false, supportTaskActive: false, zlatanSupport: 0, wonScudetto1: false, hasUCL: false, uclBanNextSeason: false, uclFixtures: null, uclStage: null, uclQualified: false, uclGroupPos: 0, uclOutRound: 0, euroType: 'ucl', lastSeasonRanking: 0, uclTagShown: false, mug1Done: false, mug2Done: false, mugPactDone: false, mugPactPending: false, eslDone: false, esl2Pending: false, esl2Done: false, eslResolution: '', eslResolutionDone: false, sameNameDone: false, player07WinterCost: 0, player07Trust: 0, player07Removed: false, player01Trust: 0, emoOutburstDone: false, nextLeftBack3Done: false, transferRumorDone: false, donnaNegoDone: false, summerWarnShown: false, winterWarnShown: false, player21Discount: 0, force21Window: false, forceWindowPlayers: [], scout64Pending: null, scout64ActiveId: null, scout64Offered: [], scout64SeasonCount: 0, donnaLeftFreeRound: 0, calhaLeftRound: 0, s4WonUcl: false, lastSeasonWonUcl: false, transferIntel: [], starterPromise: [], playerGrowth: {}, forumPosts: [], dynamicDMs: [], purchasePrice: {}, buyoutTomoriDone: false, overtimeFineUsed: false, leaoNewsPending: false, leaoNewsDone: false, betKing1Done: false, betKing2Done: false, betKing3Done: false, betKingSkip: false, betKingResolved: false, farCallDone: false, magicPhoneUnlocked: false, magicPhoneUses: 0, scudettoCount: 0, uclTitleCount: 0, season4TitlesBefore: 0, uclReachedFinal: false, uclFinalCount: 0, suspicion: 0, hesitantContract1Done: false, hesitantContract2Done: false, hesitantContract2Pending: false, omniscient1Done: false, omniscient2Done: false, pressOfficerDone: false, nextLeftBack4Done: false, leftBack4Resolved: false, southStandTalkDone: false, southStandPending: false, footballDisputeDone: false, deadEndDone: false, godByeDone: false, lastMatchLost: false, shownWarnings: { trustCrisis: false, trustCritical: false, mediaCrisis: false, mediaCritical: false, playerCrisis: false, playerCritical: false, fansCrisis: false, fansCritical: false }, difficulty };
+    gameStats = { trust: initVal, media: initVal, fans: initVal, player: initVal, budget: 1000, points: 0, ranking: 1, round: 0, lastScore: '', lastOpponentDisplay: '', consecutiveNonWins: 0, consecutiveLosses: 0, usedRandomEvents: [], southStandEventUsed: false, betKingEventUsed: false, rebateEventCount: 0, randomPity: 0, transferEventUsed: false, carCrashEventUsed: false, sinkOrSwimEventUsed: false, bigDataEventUsed: false, derbyLossEventPending: false, derbyWinEventPending: false, warningEventShown: false, gameEnded: false, season: 1, deliveredEmails: {}, architectureRound: 0, notifyPrefs: { email: true, dm: true, forum: true, players: true }, futureRandomEvents: [], usedMainlineEvents: [], newCoachDone: false, xmasDone: false, oldFriendDone: false, winterWindowDone: false, winterSlotBonus: 0, winterNoBudget: false, winterReturnCost: 0, winterReturnIntent: 0, signedPlayers: [], news01Pending: false, news01Done: false, ibraNewsPending: false, ibraNewsDone: false, effectiveDone: false, lockerBrawlPending: false, lockerBrawlDone: false, supportTaskActive: false, zlatanSupport: 0, wonScudetto1: false, hasUCL: false, uclBanNextSeason: false, uclFixtures: null, uclStage: null, uclQualified: false, uclGroupPos: 0, uclOutRound: 0, euroType: 'ucl', lastSeasonRanking: 0, uclTagShown: false, mug1Done: false, mug2Done: false, mugPactDone: false, mugPactPending: false, eslDone: false, esl2Pending: false, esl2Done: false, eslResolution: '', eslResolutionDone: false, sameNameDone: false, player07WinterCost: 0, player07Trust: 0, player07Removed: false, player01Trust: 0, emoOutburstDone: false, nextLeftBack3Done: false, transferRumorDone: false, donnaNegoDone: false, summerWarnShown: false, winterWarnShown: false, player21Discount: 0, force21Window: false, forceWindowPlayers: [], scout64Pending: null, scout64ActiveId: null, scout64Offered: [], scout64SeasonCount: 0, scoutOfferSeasonCount: 0, donnaLeftFreeRound: 0, calhaLeftRound: 0, s4WonUcl: false, lastSeasonWonUcl: false, transferIntel: [], starterPromise: [], playerGrowth: {}, forumPosts: [], dynamicDMs: [], purchasePrice: {}, scoutSellable: [], soldPlayers: [], buyoutTomoriDone: false, overtimeFineUsed: false, homeVisitUsed: false, leaoNewsPending: false, leaoNewsDone: false, betKing1Done: false, betKing2Done: false, betKing3Done: false, betKingSkip: false, betKingResolved: false, farCallDone: false, magicPhoneUnlocked: false, magicPhoneUses: 0, scudettoCount: 0, uclTitleCount: 0, season4TitlesBefore: 0, uclReachedFinal: false, uclFinalCount: 0, suspicion: 0, hesitantContract1Done: false, hesitantContract2Done: false, hesitantContract2Pending: false, omniscient1Done: false, omniscient2Done: false, pressOfficerDone: false, nextLeftBack4Done: false, leftBack4Resolved: false, southStandTalkDone: false, southStandPending: false, footballDisputeDone: false, deadEndDone: false, godByeDone: false, lastMatchLost: false, shownWarnings: { trustCrisis: false, trustCritical: false, mediaCrisis: false, mediaCritical: false, playerCrisis: false, playerCritical: false, fansCrisis: false, fansCritical: false }, difficulty };
     pendingTransferSlots = 0;
     lastOpponentName = '';
     serieATeams = teams.map(t => ({ ...t }));
@@ -1378,7 +1382,7 @@ const transferBuyPlayers = [
     // ===== 转会池（核心引援，tier 1）=====
     {
         id: 'lb_winger', name: '飞翼左后卫', tier: 1, tag: '潜力股', tagColor: 'potential',
-        desc: '攻守兼备的现代边卫，甚至十分擅长助攻，跑起来像一台失控的跑车。有人说他上场只会吃红牌，也许他性格暴躁，也许他只是渴望一个机会来证明自己。',
+        desc: '攻守兼备的现代边卫，甚至十分擅长助攻。有人说他上场只会吃红牌，也许他性格暴躁，也许他只是渴望一个机会来证明自己。',
         effects: { player: 4, media: -2 }, cost: 2000, signIntent: 60
     },
     {
@@ -1547,28 +1551,34 @@ function initPlayerGrowth(id) {
 function playerGrowthOf(id) {
     return gameStats.playerGrowth[id] != null ? gameStats.playerGrowth[id] : (OLD_PLAYER_IDS.includes(id) ? 5 : 1);
 }
-// 私信60（AAA专业球探·豪门求购）：已签青年球员（初始成长值1，非老将）成长值≥3后，逐一收到求购短信；
-// 纯剧情对话（不真的卖人）。动态生成、带唯一 trigger 记送达时间，推入 gameStats.dynamicDMs（随存档持久化）。
-const SCOUT_OFFER_GROWTH = 3;
+// 求购/出售报价向上取整到百位（个位、十位归零）；不足百（仅个/十位）则取 1000
+function roundUpOfferPrice(x) { return x < 100 ? 1000 : Math.ceil(x / 100) * 100; }
+// 私信60（AAA专业球探·豪门求购）：已签「核心引援」(tier1、非老将)成长值≥5后，逐一收到求购短信；每赛季最多求购 2 人。
+// 回复「我会考虑的」→ 终端球员档案出现「出售」按钮（按报价套现并永久移出转会窗）；回复「非卖品」→ 不再求购（本就每人仅一次）。
+// 动态生成、带唯一 trigger 记送达时间，推入 gameStats.dynamicDMs（随存档持久化）。
+const SCOUT_OFFER_GROWTH = 5;              // 成长值 ≥5 才被求购
+const SCOUT_OFFER_MAX_PER_SEASON = 2;      // 每赛季最多求购 2 人（赛季初 scoutOfferSeasonCount 归零）
 function maybeScoutOffer() {
     if (!gameStats.dynamicDMs) gameStats.dynamicDMs = [];
+    if ((gameStats.scoutOfferSeasonCount || 0) >= SCOUT_OFFER_MAX_PER_SEASON) return; // 本赛季名额已满
     for (const id of gameStats.signedPlayers) {
-        if (OLD_PLAYER_IDS.includes(id)) continue;            // 老将初始就≥5，非「成长值1」球员
-        if (playerGrowthOf(id) < SCOUT_OFFER_GROWTH) continue;
+        const p = transferBuyPlayers.find(b => b.id === id);
+        if (!p || p.tier !== 1) continue;                     // 只求购「核心引援」(tier1；08丹尼尔 tier0，不在此列)
+        if (OLD_PLAYER_IDS.includes(id)) continue;            // 老将不求购（03吉鲁/06伊布等）
+        if (playerGrowthOf(id) < SCOUT_OFFER_GROWTH) continue; // 成长值 ≥5
         const key = 'scoutOffer_' + id;
         if (gameStats.deliveredEmails && gameStats.deliveredEmails[key]) continue; // 该球员已发过
-        const p = transferBuyPlayers.find(b => b.id === id);  // 需转会市场名（08丹尼尔不在市场，跳过）
-        if (!p) continue;
         const paid = (gameStats.purchasePrice && gameStats.purchasePrice[id] != null) ? gameStats.purchasePrice[id] : p.cost;
-        const price = Math.round(paid * 1.1);                 // 实际成交价 +10%
+        const price = roundUpOfferPrice(paid * 1.1);          // 实际成交价 +10%，向上取整到百位
         gameStats.dynamicDMs.push({
             from: 'AAA专业球探', unread: true, trigger: key, playerId: id,
             bubbles: [`马尔蒂尼先生。抱歉打扰您，有一只绝对可以称得上是豪门的球队求购米兰队伍中的${p.name}，他们第一轮出价${price}万欧元，您有这个意向吗？`],
             replies: [
                 { text: '这名球员是米兰的非卖品。', answer: '好的，看起来您对第一轮报价不满意。' },
-                { text: '我会考虑的。', answer: '别的球队如果有报价，我也会和您跟进。' }
+                { text: '我会考虑的。', answer: '别的球队如果有报价，我也会和您跟进。', sellable: true }
             ]
         });
+        gameStats.scoutOfferSeasonCount = (gameStats.scoutOfferSeasonCount || 0) + 1; // 本赛季求购 +1
         deliverEmail(key);   // 记送达时间（供收件箱排序）+ 刷新红点
         return;              // 每轮最多一条，逐轮下发避免刷屏
     }
@@ -1611,7 +1621,8 @@ function maybeScout64() {
         && Math.random() < SCOUT64_CHANCE) {
         const pool = transferBuyPlayers.filter(p => p.tier === 2
             && !gameStats.signedPlayers.includes(p.id)
-            && !gameStats.scout64Offered.includes(p.id));
+            && !gameStats.scout64Offered.includes(p.id)
+            && !coreDebut[p.id]); // 不引荐带「首次出现」死规则的球员(19/23)，避免被 forceWindowPlayers 提前带入市场
         if (pool.length) {
             const p = pool[Math.floor(Math.random() * pool.length)];
             const aKey = 'scout64a_' + p.id;
@@ -1649,7 +1660,7 @@ function windowTimeIndex(isWinter) { return (gameStats.season - 2) * 2 + (isWint
 function availableCorePlayers(time) {
     const cards = [];
     for (const id of Object.keys(coreDebut)) {
-        if (coreDebut[id] > time || gameStats.signedPlayers.includes(id)) continue;
+        if (coreDebut[id] > time || gameStats.signedPlayers.includes(id) || (gameStats.soldPlayers || []).includes(id)) continue;
         if (id === 'cm_youth_it') {
             // 07：仅当"童年的马克杯Ⅰ"承诺过（标价>0）且未被移出球队
             if (!(gameStats.player07WinterCost > 0) || gameStats.player07Removed) continue;
@@ -1682,7 +1693,7 @@ function fillWithNpc(result) {
     // 消息64 球探引荐：被承诺的球员下个转会窗保证出现（仅这一窗，随后清空；情报另存 transferIntel 持久不清）
     if (gameStats.forceWindowPlayers && gameStats.forceWindowPlayers.length) {
         for (const fid of gameStats.forceWindowPlayers) {
-            if (gameStats.signedPlayers.includes(fid) || have.has(fid)) continue;
+            if (gameStats.signedPlayers.includes(fid) || have.has(fid) || (gameStats.soldPlayers || []).includes(fid) || coreDebut[fid]) continue; // coreDebut 球员只经 availableCorePlayers 在其首次出现窗登场，绝不被强制提前
             const fp = transferBuyPlayers.find(p => p.id === fid);
             if (fp) { out.push(applyDisc(fp)); have.add(fid); }
         }
@@ -1690,7 +1701,7 @@ function fillWithNpc(result) {
     }
     // 列入 coreDebut 的 NPC（19、23）只经 availableCorePlayers 在其首次出现窗起登场，故此处排除，避免提前出现/重复
     const npc = transferBuyPlayers.filter(p => p.tier === 2 && !gameStats.signedPlayers.includes(p.id)
-        && !coreDebut[p.id] && !have.has(p.id));
+        && !coreDebut[p.id] && !have.has(p.id) && !(gameStats.soldPlayers || []).includes(p.id));
     const picked = npc.slice().sort(() => Math.random() - 0.5).slice(0, Math.max(0, 8 - out.length)).map(applyDisc);
     return out.concat(picked);
 }
@@ -1707,8 +1718,10 @@ const NEG_DELTA = { raise: 15, raiseBig: 40, talkChamp: 20, talkStarter: 12, int
 
 function openTransferMarket(slots, opts = {}) {
     const windowTitle = opts.windowTitle || '夏季转会窗';
-    // nego=各球员谈判状态（点「意向签约」在同窗口内跳转谈判）；visitsLeft=「亲自登门」每窗一次的剩余次数
-    tmState = { slots, initialSlots: slots, basePlayer: gameStats.player, purchased: new Set(), sold: new Set(), pool: opts.pool || drawTransferPool(), page: 0, windowTitle, nego: {}, visitsLeft: 1 };
+    // nego=各球员谈判状态（点「意向签约」在同窗口内跳转谈判）；visitsLeft=「亲自登门」本窗剩余次数
+    // 亲自登门次数：简单=每窗一次；中等=每赛季一次（冬夏窗共享，赛季初重置 homeVisitUsed）；困难=全程仅一次（从不重置）
+    const homeVisits = gameStats.difficulty === 'easy' ? 1 : (gameStats.homeVisitUsed ? 0 : 1);
+    tmState = { slots, initialSlots: slots, basePlayer: gameStats.player, purchased: new Set(), sold: new Set(), pool: opts.pool || drawTransferPool(), page: 0, windowTitle, nego: {}, visitsLeft: homeVisits };
     document.getElementById('tm-season-label').textContent = opts.label || `转会市场 · 第${gameStats.season}赛季`;
     document.getElementById('tm-window-title').textContent = windowTitle;
     renderTransferMarket();
@@ -1851,13 +1864,14 @@ function renderSignNego() {
     if (!signBtn.disabled) signBtn.addEventListener('click', () => tmFinalizeSign(p));
 }
 
-// 选项结算：亲自登门=必定成功（每窗一次）；提高/大幅报价=加价并提意向；话术/情报=提意向（各一次）
+// 选项结算：亲自登门=必定成功（简单每窗一次/中等每赛季一次/困难全程一次）；提高/大幅报价=加价并提意向；话术/情报=提意向（各一次）
 function signNegoOption(opt) {
     const p = signNego, n = tmState.nego[p.id];
     let delta = 0;
     if (opt === 'visit') {
         if (tmState.visitsLeft <= 0) return;
         tmState.visitsLeft--;
+        if (gameStats.difficulty !== 'easy') gameStats.homeVisitUsed = true; // 中等/困难：记为已用（中等赛季初重置，困难全程保留）
         delta = 100 - n.intent;       // 意向直接拉满到 100；仍需玩家点「立刻签约」
         n.intent = 100;
         n.lastDelta = delta;
@@ -2094,8 +2108,7 @@ function renderNegotiation() {
         b.className = 'neg-option';
         b.innerHTML = `<div class="neg-opt-text">${action}</div>`
             + (quote ? `<div class="neg-opt-quote">${quote}</div>` : '')
-            + `<div class="neg-opt-badges">${badges.map(x => `<span class="neg-opt-badge ${x.cls}">${x.text}</span>`).join('')}</div>`
-            + `<div class="neg-opt-desc">${opt.desc}</div>`;
+            + `<div class="neg-opt-badges">${badges.map(x => `<span class="neg-opt-badge ${x.cls}">${x.text}</span>`).join('')}</div>`;
         b.addEventListener('click', () => negChoose(opt));
         oc.appendChild(b);
     });
@@ -2115,7 +2128,7 @@ function showNegFeedback() {
     const v = Math.max(0, Math.min(100, negState.value));
     const zone = negZone(v);
     // 恰尔汗奥卢谈判未谈拢/破裂（tug/break）→ 离队，记回合供邮件26（转投国米）
-    if (negState.key === 'calhanoglu' && (zone === 'tug' || zone === 'break')) gameStats.calhaLeftRound = gameStats.round;
+    if (negState.key === 'calhanoglu' && (zone === 'tug' || zone === 'break')) { gameStats.calhaLeftRound = gameStats.round; deliverEmail('calhaInter'); } // 邮件26 转投国米：谈判破裂/未谈拢立刻送达
     const fb = sc.feedback[zone];
     negShowChrome(false); // 结算页去掉空发言框与意向条
     document.getElementById('neg-pending').textContent = '';
@@ -2311,16 +2324,9 @@ function selectRandomEvents() {
     if (gameStats.season === 2 && gameStats.round >= 32) deliverEmail('chairmanBoban');
     // 邮件18（马萨拉·博班已被辞退）：第二赛季第 34 轮送达
     if (gameStats.season === 2 && gameStats.round >= 34 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.bobanFired)) deliverEmail('bobanFired');
-    // 邮件19（马萨拉·夏窗可用预算）：第三赛季第 1 轮送达，正文 {budget} 取此刻预算快照（夏窗开窗前，未消费）
-    if (gameStats.season === 3 && gameStats.round >= 1 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.summerBudget)) deliverEmail('summerBudget');
     // 邮件20（CEO·有关欧超）：第三赛季第 8 轮送达（先于「欧洲超级联赛Ⅰ」R10）
     if (gameStats.season === 3 && gameStats.round >= 8 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.eslInvite)) deliverEmail('eslInvite');
-    // 邮件21/22（主席·首个里程碑祝贺，互斥）：首次「赛季结算进欧冠区(名次≤4)」后的下个赛季第 1 轮，
-    //   排名第1 → 邮件22(firstScudetto 祝贺首冠)；第2~4 → 邮件21(firstTop4 祝贺进欧冠)。二者共用门：只发其一、且仅一次。
-    if (gameStats.season >= 2 && gameStats.round >= 1 && gameStats.lastSeasonRanking >= 1 && gameStats.lastSeasonRanking <= 4
-        && !(gameStats.deliveredEmails && (gameStats.deliveredEmails.firstScudetto || gameStats.deliveredEmails.firstTop4))) {
-        deliverEmail(gameStats.lastSeasonRanking === 1 ? 'firstScudetto' : 'firstTop4');
-    }
+    // 邮件21/22（主席祝贺）、私信22（特奥染发）已移至 startNewSeason，于赛季一开始(round 0)送达
     // 邮件23（拉伊奥拉·多纳鲁马续约合同）：第四赛季第 2 轮送达
     if (gameStats.season === 4 && gameStats.round >= 2 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.donnaContract)) deliverEmail('donnaContract');
     // 邮件24（马萨拉·第一轮谈判失败）：第四赛季第 4 轮送达
@@ -2328,32 +2334,39 @@ function selectRandomEvents() {
     // 邮件25（马萨拉·麦尼昂）：多纳鲁马离队（谈判 tug/break，或未进入谈判=直接破裂）后 4 轮送达
     if (gameStats.season === 4 && gameStats.donnaLeftFreeRound > 0 && gameStats.round >= gameStats.donnaLeftFreeRound + 4
         && !(gameStats.deliveredEmails && gameStats.deliveredEmails.maignanSign)) deliverEmail('maignanSign');
-    // 邮件26（马萨拉·恰尔汗奥卢转投国米）：恰奥离队（谈判 tug/break，或未进入谈判=直接破裂）后 6 轮送达
-    if (gameStats.season === 4 && gameStats.calhaLeftRound > 0 && gameStats.round >= gameStats.calhaLeftRound + 6
-        && !(gameStats.deliveredEmails && gameStats.deliveredEmails.calhaInter)) deliverEmail('calhaInter');
+    // 邮件26（马萨拉·恰尔汗奥卢转投国米）已改为「谈判破裂/未谈判直接离队时立刻送达」（见 showNegFeedback 与未谈判分支）
     // 邮件27（马萨拉·多家俱乐部报价莱奥）：第四赛季第 24 轮送达
     if (gameStats.season === 4 && gameStats.round >= 24 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.leaoOffer)) deliverEmail('leaoOffer');
-    // 邮件28/29（戈登·辛格·出售米兰，互斥）：第五赛季第 1 轮（赛季刚开始）送达；第四赛季未夺欧冠 → 邮件28(sellMilan)、夺冠 → 邮件29(sellMilanUcl)
-    if (gameStats.season === 5 && gameStats.round >= 1 && !(gameStats.deliveredEmails && (gameStats.deliveredEmails.sellMilan || gameStats.deliveredEmails.sellMilanUcl))) {
-        deliverEmail(gameStats.s4WonUcl ? 'sellMilanUcl' : 'sellMilan');
-    }
-    // 邮件30（伊万·加齐迪斯·告别）：第五赛季第 1 轮（赛季刚开始）送达
-    if (gameStats.season === 5 && gameStats.round >= 1 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.gazidisFarewell)) deliverEmail('gazidisFarewell');
-    // 邮件31（格里·卡尔迪纳莱·红鸟前进的方向）：第五赛季第 1 轮（赛季刚开始）送达
-    if (gameStats.season === 5 && gameStats.round >= 1 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.cardinaleDirection)) deliverEmail('cardinaleDirection');
-    // 私信71（马萨拉·35页计划书有回复吗）：第五赛季第 1 轮（赛季开始）送达
-    if (gameStats.season === 5 && gameStats.round >= 1 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.massaraPlan)) deliverEmail('massaraPlan');
+    // 邮件28/29(戈登·辛格·出售米兰)、邮件30(加齐迪斯告别)、邮件31(卡尔迪纳莱) 已移至 startNewSeason，于第五赛季一开始(round 0)送达
     // 邮件32（马萨拉·有关德凯特拉雷）：第五赛季第 12 轮、且未签下 09 德凯特拉雷(belgian_star)时送达
     if (gameStats.season === 5 && gameStats.round >= 12 && !gameStats.signedPlayers.includes('belgian_star')
         && !(gameStats.deliveredEmails && gameStats.deliveredEmails.deketSuggest)) deliverEmail('deketSuggest');
+    // 私信72（托纳利·英超球队打听报价）：第五赛季第 12 轮、且托纳利(07/cm_youth_it)仍在队时送达
+    if (gameStats.season === 5 && gameStats.round >= 12 && gameStats.signedPlayers.includes('cm_youth_it') && !gameStats.player07Removed
+        && !(gameStats.deliveredEmails && gameStats.deliveredEmails.tonaliOffer)) deliverEmail('tonaliOffer');
     // 邮件33（格里·卡尔迪纳莱·预算之争）：第五赛季第 26 轮送达
     if (gameStats.season === 5 && gameStats.round >= 26 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.budgetDispute)) deliverEmail('budgetDispute');
+    // 私信71（马萨拉·35页计划书）：与邮件33同轮（第五赛季第 26 轮）送达
+    if (gameStats.season === 5 && gameStats.round >= 26 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.massaraPlan)) deliverEmail('massaraPlan');
     // 邮件34（格里·卡尔迪纳莱·欧冠的表现）：第五赛季欧冠出局（决赛前出局，含小组未出线/淘汰赛止步；屈居亚军 uclOutRound=36 不触发）后送达
     if (gameStats.season === 5 && gameStats.euroType === 'ucl' && gameStats.uclOutRound > 0 && gameStats.uclOutRound < 36
         && !(gameStats.deliveredEmails && gameStats.deliveredEmails.uclEliminated)) deliverEmail('uclEliminated');
-    // 私信22（特奥·染发庆祝）：签下01且上赛季夺意甲冠军 → 赛季第1轮送达（idempotent，仅一次）
-    if (gameStats.round >= 1 && gameStats.lastSeasonRanking === 1 && gameStats.signedPlayers.includes('lb_winger')
-        && !(gameStats.deliveredEmails && gameStats.deliveredEmails.theoScudetto)) deliverEmail('theoScudetto');
+    // 私信73（德凯特拉雷·进球荒自我怀疑）：签下09德凯特拉雷(belgian_star)后满 10 轮送达（跨赛季按 38 轮/季折算；仅一次）
+    if (gameStats.deliveredEmails && gameStats.deliveredEmails.signDeket && !gameStats.deliveredEmails.deketSlump
+        && gameStats.signedPlayers.includes('belgian_star')
+        && (gameStats.season - gameStats.deliveredEmails.signDeket.s) * 38 + (gameStats.round - gameStats.deliveredEmails.signDeket.r) >= 10) {
+        deliverEmail('deketSlump');
+    }
+    // 私信74（卡拉布里亚·接过队长袖标）：第五赛季第 22 轮送达（仅一次）
+    if (gameStats.season === 5 && gameStats.round >= 22 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.calabriaCaptain)) deliverEmail('calabriaCaptain');
+    // 私信34（因扎吉·卡拉布里亚当队长了？）：与私信74一同（第五赛季第 22 轮）送达（仅一次）
+    if (gameStats.season === 5 && gameStats.round >= 22 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.inzaghiCaptain)) deliverEmail('inzaghiCaptain');
+    // 私信75（伊布·退役告别晚餐）：第五赛季 God Bye(第36轮) 前送达——第 34 轮起、06 伊布在队、退役事件(godByeDone)尚未触发（仅一次）
+    if (gameStats.season === 5 && gameStats.round >= 34 && gameStats.signedPlayers.includes('maestro') && !gameStats.godByeDone
+        && !(gameStats.deliveredEmails && gameStats.deliveredEmails.ibraFarewellDm)) deliverEmail('ibraFarewellDm');
+    // 私信76（莱奥·续约试探·打听特奥合同）：签下02莱奥(winger_pt) 且第五赛季第 30 轮送达（仅一次）
+    if (gameStats.season === 5 && gameStats.round >= 30 && gameStats.signedPlayers.includes('winger_pt')
+        && !(gameStats.deliveredEmails && gameStats.deliveredEmails.leaoRenewDm)) deliverEmail('leaoRenewDm');
     // 私信23（吉鲁·客串门将）：签下03（吉鲁）后概率送达（每轮15%，仅一次）
     if (gameStats.signedPlayers.includes('striker_fr') && !(gameStats.deliveredEmails && gameStats.deliveredEmails.giroudGk)
         && Math.random() < 0.15) deliverEmail('giroudGk');
@@ -2386,13 +2399,14 @@ function selectRandomEvents() {
         && !gameStats.deliveredEmails.gattusoResp) deliverEmail('gattusoResp');
     // 私信29（AC米兰·再见面的那天）：第五赛季第38轮送达
     if (gameStats.season === 5 && gameStats.round >= 38 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.milanFarewell)) deliverEmail('milanFarewell');
-    // 私信50（科斯塔库塔·升任技术总监）：第二赛季第1轮送达
-    if (gameStats.season === 2 && gameStats.round >= 1 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.costacurtaDirector)) deliverEmail('costacurtaDirector');
+    // 私信50（科斯塔库塔·升任技术总监）已移至 startNewSeason，于第二赛季一开始(round 0)送达
     // 私信53（马萨拉·反对签老将）：第二赛季第16轮送达，且需「新教练」已选选项2（承诺冬窗按教练想法选人 → 已送达 pioliCoach2/消息52）
     if (gameStats.season === 2 && gameStats.round >= 16 && gameStats.deliveredEmails && gameStats.deliveredEmails.pioliCoach2
         && !gameStats.deliveredEmails.massaraVeterans) deliverEmail('massaraVeterans');
     // 私信54（安布罗西尼·点评0:5惨败）：第二赛季「圣诞夜惊魂」触发后送达
     if (gameStats.season === 2 && gameStats.xmasDone && !(gameStats.deliveredEmails && gameStats.deliveredEmails.xmasAmbrosini)) deliverEmail('xmasAmbrosini');
+    // 私信39（罗马诺·换教练风声）：第二赛季「圣诞夜惊魂」触发后送达
+    if (gameStats.season === 2 && gameStats.xmasDone && !(gameStats.deliveredEmails && gameStats.deliveredEmails.xmasRomano)) deliverEmail('xmasRomano');
     // 私信57（博班·内鬼风波）：第二赛季邮件15（rangnickLeak）送达两轮后送达
     if (gameStats.season === 2 && gameStats.deliveredEmails && gameStats.deliveredEmails.rangnickLeak
         && gameStats.round >= gameStats.deliveredEmails.rangnickLeak.r + 2 && !gameStats.deliveredEmails.bobanRangnick) deliverEmail('bobanRangnick');
@@ -2401,8 +2415,6 @@ function selectRandomEvents() {
         && !gameStats.deliveredEmails.bobanGoodbye) deliverEmail('bobanGoodbye');
     // 私信55（加图索·那孩子愿意来）：第三赛季「童年的马克杯Ⅰ」(mug1Done)触发后送达
     if (gameStats.season === 3 && gameStats.mug1Done && !(gameStats.deliveredEmails && gameStats.deliveredEmails.mug1Gattuso)) deliverEmail('mug1Gattuso');
-    // 私信56（皇家马德里·欧超派对）：第三赛季「欧洲超级联赛Ⅱ」(esl2Done)触发后送达
-    if (gameStats.season === 3 && gameStats.esl2Done && !(gameStats.deliveredEmails && gameStats.deliveredEmails.esl2Madrid)) deliverEmail('esl2Madrid');
     // 私信59（特奥·想做的事太多）：「下一个左后卫Ⅰ」(emoOutburst)触发后送达
     if (gameStats.emoOutburstDone && !(gameStats.deliveredEmails && gameStats.deliveredEmails.theoManyThings)) deliverEmail('theoManyThings');
     // 私信61（丹尼尔·一线队教练来电）：第三赛季「同一个姓氏」前两轮（第30轮起、事件前）送达
@@ -2464,9 +2476,10 @@ function selectRandomEvents() {
             gameStats.mug1Done = true;
             return ['mug1'];
         }
-        // 欧洲超级联赛Ⅰ（第10轮）
+        // 欧洲超级联赛Ⅰ（第10轮）；皇家马德里私信56（欧超派对）与Ⅰ同轮送达
         if (gameStats.round >= 10 && !gameStats.eslDone) {
             gameStats.eslDone = true;
+            deliverEmail('esl2Madrid'); // 皇马私信与欧超Ⅰ同轮送达（不再等欧超Ⅱ）
             return ['esl1'];
         }
         // 欧洲超级联赛Ⅱ（第14轮，仅Ⅰ选"保持观望"时）
@@ -2570,7 +2583,7 @@ function selectRandomEvents() {
         // 聘请新闻官（第24轮后）
         if (gameStats.round >= 24 && !gameStats.pressOfficerDone) {
             gameStats.pressOfficerDone = true;
-            return [20];
+            return ['pressOfficer'];
         }
         // 下一个左后卫Ⅳ（第26轮后，需01在队）
         if (gameStats.round >= 26 && gameStats.signedPlayers.includes('lb_winger') && !gameStats.nextLeftBack4Done) {
@@ -2673,8 +2686,8 @@ function selectRandomEvents() {
         const numId = parseInt(id);
         // 本赛季已触发过的随机事件不再进入随机池（避免重复，赛季初重置）
         if (gameStats.usedRandomEvents.includes(numId)) return false;
-        // 仅由特定条件触发的事件，不进入随机池：2=南看台(连输四场)，17=德比失利(输给国米)，20=聘请新闻官(第五赛季第24轮剧本)
-        if (numId === 2 || numId === 17 || numId === 20) return false;
+        // 仅由特定条件触发的事件，不进入随机池：2=南看台(连输四场)，17=德比失利(输给国米)
+        if (numId === 2 || numId === 17) return false;
         // 12=汇报之争、15=大数据时代、18=干扰训练：仅第五赛季进入随机池
         if ((numId === 12 || numId === 15 || numId === 18) && gameStats.season !== 5) return false;
         if (numId === 5 && gameStats.rebateEventCount >= 2) return false;
@@ -3145,7 +3158,7 @@ function showNextRandomEvent() {
                 // 转会传闻：未被选中谈判的（多纳鲁马/恰尔汗奥卢）= 不进入谈判 = 直接破裂自由离队 → 触发对应邮件25/26
                 if (option.negotiation.includes('calhanoglu') || option.negotiation.includes('donnarumma')) {
                     if (!option.negotiation.includes('donnarumma')) gameStats.donnaLeftFreeRound = gameStats.round;
-                    if (!option.negotiation.includes('calhanoglu')) gameStats.calhaLeftRound = gameStats.round;
+                    if (!option.negotiation.includes('calhanoglu')) { gameStats.calhaLeftRound = gameStats.round; deliverEmail('calhaInter'); } // 未谈判=直接破裂：邮件26 立刻送达
                 }
                 randomEventModal.classList.add('hidden');
                 randomEventModal.classList.remove('mainline');
@@ -3266,6 +3279,7 @@ function startNewSeason() {
     gameStats.hasUCL = qualifies;
     gameStats.uclReachedFinal = false; // 每赛季欧冠是否进入决赛，重置
     gameStats.scout64SeasonCount = 0;  // 消息64：本赛季球探引荐名额重置（上限 SCOUT64_MAX_PER_SEASON）
+    gameStats.scoutOfferSeasonCount = 0; // 私信60：本赛季 AAA 球探求购名额重置（上限 SCOUT_OFFER_MAX_PER_SEASON）
     // 第四赛季任务按此前已获得的意甲冠军数确定（迟来的冠军 / 第n个冠军 / 进欧冠决赛）
     if (gameStats.season === 4) gameStats.season4TitlesBefore = gameStats.scudettoCount;
     // 第三赛季起，01-09 的"欧冠"标签在转会窗显示（无论是否打欧冠）
@@ -3292,6 +3306,7 @@ function startNewSeason() {
     gameStats.sinkOrSwimEventUsed = false;
     gameStats.bigDataEventUsed = false;
     gameStats.overtimeFineUsed = false; // 超时罚款每赛季重置
+    if (gameStats.difficulty === 'medium') gameStats.homeVisitUsed = false; // 中等模式：亲自登门次数每赛季重置（困难不重置=全程仅一次）
     gameStats.derbyLossEventPending = false;
     gameStats.derbyWinEventPending = false;
     gameStats.warningEventShown = false;
@@ -3329,6 +3344,23 @@ function startNewSeason() {
     pendingTransferSlots = 0;
     // 第三赛季及以后开局开启夏季转会窗（第二轮结束后开始；可买 08、09）
     if (gameStats.season >= 3) pendingTransferSlots = 3;
+    // 邮件19（马萨拉·夏窗可用预算）：第三赛季一开始即送达（先于夏窗、先于任何比赛），正文 {budget} 取此刻季初预算快照
+    if (gameStats.season === 3 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.summerBudget)) deliverEmail('summerBudget');
+    // 「赛季一开始」即送达的邮件/私信统一在此（round 0，先于任何比赛与转会窗）
+    if (gameStats.season === 2 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.costacurtaDirector)) deliverEmail('costacurtaDirector'); // 私信50·科斯塔库塔
+    if (gameStats.season === 5) {
+        if (!(gameStats.deliveredEmails && (gameStats.deliveredEmails.sellMilan || gameStats.deliveredEmails.sellMilanUcl))) deliverEmail(gameStats.s4WonUcl ? 'sellMilanUcl' : 'sellMilan'); // 邮件28/29·戈登·辛格（互斥）
+        if (!(gameStats.deliveredEmails && gameStats.deliveredEmails.gazidisFarewell)) deliverEmail('gazidisFarewell');       // 邮件30·加齐迪斯告别
+        if (!(gameStats.deliveredEmails && gameStats.deliveredEmails.cardinaleDirection)) deliverEmail('cardinaleDirection'); // 邮件31·卡尔迪纳莱
+    }
+    // 私信71（马萨拉·35页计划书）改到与邮件33同轮（第五赛季第 26 轮）送达，不再于赛季一开始送达
+    // 邮件21/22（主席·首个里程碑祝贺，互斥）：首次赛季结算进欧冠区(名次≤4)后的下个赛季一开始；排名1→22(firstScudetto)，2~4→21(firstTop4)
+    if (gameStats.season >= 2 && gameStats.lastSeasonRanking >= 1 && gameStats.lastSeasonRanking <= 4
+        && !(gameStats.deliveredEmails && (gameStats.deliveredEmails.firstScudetto || gameStats.deliveredEmails.firstTop4)))
+        deliverEmail(gameStats.lastSeasonRanking === 1 ? 'firstScudetto' : 'firstTop4');
+    // 私信22（特奥·染发庆祝）：签下01且上赛季夺意甲冠军 → 赛季一开始送达
+    if (gameStats.lastSeasonRanking === 1 && gameStats.signedPlayers.includes('lb_winger')
+        && !(gameStats.deliveredEmails && gameStats.deliveredEmails.theoScudetto)) deliverEmail('theoScudetto');
     lastOpponentName = '';
     matchHistory = [];
     choiceHistory = [];
@@ -3493,9 +3525,9 @@ function doSeasonEnd() {
     if (gameStats.season === 4 && gameStats.euroType === 'ucl' && gameStats.uclStage === 'champion') gameStats.s4WonUcl = true; // 第四赛季欧冠夺冠快照，供邮件28/29二选一
     gameStats.lastSeasonWonUcl = (gameStats.euroType === 'ucl' && gameStats.uclStage === 'champion'); // 记「上赛季是否夺欧冠」，供下赛季签约谈判话术
     if (gameStats.difficulty !== 'easy' && gameStats.season >= 5) {
-        // 隐藏结局"明天"：任期内至少 4 次意甲冠军 + 至少 1 次欧冠冠军，优先于任务判定
+        // 隐藏结局：任期内至少 4 次意甲冠军 + 至少 1 次欧冠冠军，优先于任务判定
         if (gameStats.scudettoCount >= 4 && gameStats.uclTitleCount >= 1) { showEnding('tomorrow'); return; }
-        // 完成第五赛季任务（不满值<5 且 排名≤4）→ 意外?→五年；未完成 → 遗憾离场 → 普通结局
+        // 完成第五赛季任务（不满值<5 且 排名≤4）→ 特殊结局（主卡→尾声）；未完成 → 遗憾离场 → 普通结局
         const intro = seasonIntros[5];
         if (intro && intro.taskCheck && intro.taskCheck()) { showEnding('surprise'); }
         else { showRegretCard(getSeasonEndingKey()); }
@@ -3641,7 +3673,7 @@ document.getElementById('test-goto-ending').addEventListener('click', () => {
 
 // 重新开始游戏
 document.getElementById('restart-game').addEventListener('click', function() {
-    // 图鉴预览：有后续尾声卡片则链式展示（如"意外？"点"继续"→"五年"），否则返回结局图鉴
+    // 图鉴预览：有后续尾声卡片则链式展示（主卡点“继续”→尾声卡），否则返回结局图鉴
     if (galleryPreview) {
         const cur = galleryPreviewEnding;
         if (cur && cur.next && endings[cur.next]) {
@@ -3893,7 +3925,7 @@ function playUclKnockout(decision) {
     const info = uclStageMap[gameStats.uclStage];
     const opp = gameStats.uclFixtures[info.key];
     const decMod = decision === 'push' ? 0.1 : -0.1;
-    if (decision === 'push') updateStat('player', gameStats.uclStage === 'qf' ? -10 : -5); // 八强全力争冠 -10，其余 -5
+    if (decision === 'push') updateStat('player', -10); // 淘汰赛全力争胜统一 -10
     const wr = uclWinRate(opp.tier, 'ko', decMod);
     const advanced = Math.random() < (wr.win + 0.5 * wr.draw); // 平局点球各半
     applyUclRewards(uclRewards[info.key][advanced ? 'win' : 'out']);
@@ -4056,7 +4088,7 @@ function maybeShowUclCard() {
     const info = uclStageMap[gameStats.uclStage];
     if (info && gameStats.round >= info.round) {
         const opp = gameStats.uclFixtures[info.key];
-        const pushCost = gameStats.uclStage === 'qf' ? 10 : 5; // 八强全力争冠代价更高
+        const pushCost = 10; // 淘汰赛全力争胜统一 -10
         renderUclCard(`${euroLabel()}决策`, `${euroLabel()}${info.label}在即，你们将迎战 <b>${opp.name}</b>，你决定：`, [
             { text: `全力争胜。（球员状态-${pushCost}）`, onClick: () => playUclKnockout('push') },
             { text: '保力联赛。', onClick: () => playUclKnockout('rest') }
@@ -4337,6 +4369,23 @@ function buildTerminalTabbar(activeKey) {
     });
 }
 
+// 「出售」球员（AAA球探求购·回复「我会考虑的」后可用）：按报价套现、撤销签约加成、移出阵容且不再回转会窗
+function sellScoutPlayer(id) {
+    if (!gameStats.signedPlayers.includes(id)) return;
+    const p = transferBuyPlayers.find(b => b.id === id);
+    const paid = (gameStats.purchasePrice && gameStats.purchasePrice[id] != null) ? gameStats.purchasePrice[id] : (p ? p.cost : 0);
+    const price = roundUpOfferPrice(paid * 1.1);
+    gameStats.signedPlayers = gameStats.signedPlayers.filter(x => x !== id);
+    if (!gameStats.soldPlayers) gameStats.soldPlayers = [];
+    if (!gameStats.soldPlayers.includes(id)) gameStats.soldPlayers.push(id);
+    gameStats.scoutSellable = (gameStats.scoutSellable || []).filter(x => x !== id);
+    const rev = {};
+    if (p && p.effects) Object.entries(p.effects).forEach(([k, v]) => { rev[k] = -v; updateStat(k, -v); }); // 撤销签约加成
+    updateBudget(price);
+    if (p) choiceHistory.push({ round: gameStats.round, eventName: '球员交易', optionText: `出售${p.name}（套现 €${price}万）`, effects: Object.assign({ budget: price }, rev), kind: 'special' });
+    renderTerminalSection('players'); // 刷新球员档案
+}
+
 function renderTerminalPlayers() {
     const signed = (gameStats.signedPlayers || []).map(id => transferBuyPlayers.find(p => p.id === id)).filter(Boolean);
     if (signed.length === 0) return '<div class="tm-empty">暂无已签约球员<br>转会窗签下球员后在此查看其状态与成长</div>';
@@ -4346,8 +4395,11 @@ function renderTerminalPlayers() {
         if ((gameStats.starterPromise || []).includes(p.id)) tags.push('<span class="tm-tag tm-tag-starter">首发</span>'); // 谈判许诺首发且已签下
         const tagsHtml = tags.length ? `<span class="tm-tags">${tags.join('')}</span>` : '';
         const g = playerGrowthOf(p.id);
+        const paid = (gameStats.purchasePrice && gameStats.purchasePrice[p.id] != null) ? gameStats.purchasePrice[p.id] : p.cost;
+        const sellBtn = (gameStats.scoutSellable || []).includes(p.id)
+            ? `<button class="tm-sell-btn" data-sell="${p.id}">出售 €${roundUpOfferPrice(paid * 1.1)}万</button>` : '';
         return `<div class="tm-player-row">
-            <div class="tm-player-line"><span class="tm-player-name">${p.name}${tagsHtml}</span></div>
+            <div class="tm-player-line"><span class="tm-player-name">${p.name}${tagsHtml}</span>${sellBtn}</div>
             <div class="tm-growth">
                 <span class="tm-growth-label">成长值 ${g}/10</span>
                 <div class="tm-growth-bar">${growthBarHtml(g)}</div>
@@ -4463,7 +4515,15 @@ function openEmail(i) {
 // 社媒私信：列表带头像、可点开；二级界面以对话框（聊天气泡）展示
 // 默认头像：统一的小人头剪影（不按名字取字）
 const DM_AVATAR_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 19.5c0-4 3.4-6.2 7.5-6.2s7.5 2.2 7.5 6.2z"/></svg>';
-function dmAvatar() {
+// 俱乐部→队徽文件映射（发件人命中即以真实队徽替换默认小人头；文件在 SVG/ 目录）
+const CLUB_CRESTS = {
+    'AC米兰': 'SVG/SA/ACM.svg',
+    '国际米兰': 'SVG/SA/inter-milan-2021.svg',
+    '皇家马德里': 'SVG/E/Real-Madrid-CF-v2002.svg',
+};
+function dmAvatar(from) {
+    const src = CLUB_CRESTS[from];
+    if (src) return `<span class="dm-avatar dm-avatar-club"><img class="dm-crest" src="${src}" alt="${from}"></span>`;
     return `<span class="dm-avatar">${DM_AVATAR_SVG}</span>`;
 }
 
@@ -4620,6 +4680,11 @@ function dmAnswerReply(m, idx, block, rb) {
         if (r.interest && m.playerId) gameStats.scout64Pending = { playerId: m.playerId, round: gameStats.round }; // 触发下一阶段
         if (r.scoutDone) gameStats.scout64ActiveId = null; // 本次交涉结束 → 球探可引荐下一位
     }
+    // AAA专业球探求购：回复「我会考虑的」(sellable) → 该球员在终端球员档案出现「出售」按钮（按报价套现并永久移出）
+    if (m.from === 'AAA专业球探' && r.sellable && m.playerId) {
+        if (!gameStats.scoutSellable) gameStats.scoutSellable = [];
+        if (!gameStats.scoutSellable.includes(m.playerId) && gameStats.signedPlayers.includes(m.playerId)) gameStats.scoutSellable.push(m.playerId);
+    }
     block.insertAdjacentHTML('beforeend', dmBubbleOut(r.text));
     const answers = dmAnswerList(answer);
     const screen = document.getElementById('terminal-screen');
@@ -4672,7 +4737,7 @@ function forumCtx(oppName, score, extra) {
     return Object.assign({ score: `米兰${og}：${tg}${oppName}`, goals: og, opp: oppName, line: `${og}:${tg}` }, extra || {});
 }
 // 压入一条赛果帖（播报 + 随机2条回复）；回复支持 minGoals / needNext 条件，并对本周去重
-function pushForumThread(cat, ctx) {
+function pushForumThread(cat, ctx, opts) {
     if (!cat) return;
     const fill = s => s.replace(/\{score\}/g, ctx.score).replace(/\{goals\}/g, ctx.goals).replace(/\{opp\}/g, ctx.opp);
     const rawText = r => typeof r === 'string' ? r : r.text;
@@ -4688,6 +4753,7 @@ function pushForumThread(cat, ctx) {
         broadcast: fill(cat.broadcast),
         replies: picked.map(r => fill(rawText(r))),
         round: gameStats.round,
+        ucl: !!(opts && opts.ucl), // 欧冠赛果帖 → 论坛卡片淡蓝色
         unread: true
     });
     updateTeamNewsDot(); // 新赛果帖 → 刷新主按钮红点
@@ -4709,7 +4775,7 @@ function addUclForumThread(oppName, win, score, hasNext, isFinal) {
     const suffix = win ? 'Win' : 'Lose';
     let key = (isFinal ? 'uclFinal' : 'ucl') + suffix;
     if (isFinal && oppName === '国际米兰' && pool['uclFinalDerby' + suffix]) key = 'uclFinalDerby' + suffix; // 决赛打国米走德比专用池
-    pushForumThread(pool[key], forumCtx(oppName, score, { hasNext: !!hasNext }));
+    pushForumThread(pool[key], forumCtx(oppName, score, { hasNext: !!hasNext }), { ucl: true });
 }
 
 function renderForum() {
@@ -4721,7 +4787,7 @@ function renderForum() {
             const up = m.likes + (m.vote === 'up' ? 1 : 0);
             const down = m.dislikes + (m.vote === 'down' ? 1 : 0);
             const repliesHtml = (m.replies || []).map(r => `<div class="forum-reply">${r}</div>`).join('');
-            return `<div class="tm-msg forum-card">
+            return `<div class="tm-msg forum-card${m.ucl ? ' forum-card-ucl' : ''}">
                 <div class="forum-card-head">
                     <span class="tm-msg-from">${m.from}</span>
                     <span class="forum-votes">
@@ -4765,6 +4831,8 @@ function renderTerminalSection(key) {
         `${tmSecHead(key)}
         <div class="tm-home-rule"></div>${body}`;
     screen.scrollTop = 0;
+    if (sec.isPlayers) screen.querySelectorAll('.tm-sell-btn').forEach(btn =>
+        btn.addEventListener('click', () => sellScoutPlayer(btn.dataset.sell)));
     wireNotifyToggle(screen);
     buildTerminalTabbar(key);
 }

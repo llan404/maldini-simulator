@@ -392,6 +392,62 @@ const TERMINAL_CONTENT = {
               { text: '要额外学习的事情太多了。', answer: '大概因为米兰是备受瞩目的球队。' },
               { text: '当教练感觉如何？', answer: '太累了，有机会和米兰碰上我们俩细说。' }
           ] },
+        // 消息32 · 南看台代表（「南看台的问候」选项1「不换教练」后送达，trigger:'southStandRep'）
+        { from: '南看台代表', unread: true, trigger: 'southStandRep',
+          bubbles: ['保罗，至少你也该尊重一下我们的意见。', '我们从出生就是米兰球迷，对这支球队的爱不比你少。'],
+          replies: [
+              { text: '你们没有干涉教练去留的权力。', answer: '说两句也不让说？' },
+              { text: '不回复。', answer: '回去和你那教练慢慢研究怎么赢球吧！' }
+          ] },
+        // 消息33 · 青训天才（「青训天才」选项1「提拔进一线队」后送达，trigger:'youthTalentDm'）
+        { from: '青训天才', unread: true, trigger: 'youthTalentDm',
+          bubbles: ['总监😭，我感觉一线队还是太残酷了。', '我想回青训队继续磨练一下。'],
+          replies: [
+              { text: '好的。', answer: '我感觉再不回去我可能会提前报废。' },
+              { text: '一线队不好吗？', answer: '我还是更喜欢那种轻松的氛围。' }
+          ] },
+        // 消息34 · 因扎吉（与消息74一同送达·第五赛季第22轮，trigger:'inzaghiCaptain'）
+        { from: '因扎吉', unread: true, trigger: 'inzaghiCaptain',
+          bubbles: ['卡拉布里亚当队长了？'],
+          replies: [
+              { text: '嗯，你之前还是他的青训队教练。', answer: '他那时就极具天赋了。' },
+              { text: '下次来看他踢球？', answer: '一定来。' }
+          ] },
+        // 消息35 · 队长（「超时罚款」事件后送达，trigger:'overtimeFineDm'）
+        { from: '队长', unread: true, trigger: 'overtimeFineDm',
+          bubbles: ['不好意思，总监。', '我们更衣室的表慢了一会才迟到的。'],
+          replies: [
+              { text: '待会找人把表校准一下。', answer: '好的。' },
+              { text: '你们没人用手机吗？', answer: '没想起来看手机，抱歉，总监，下次不会了。' }
+          ] },
+        // 消息36 · 米兰体育报记者（「裁判的哨子」选项4「向媒体求助」后送达，trigger:'refWhistleDm'）
+        { from: '米兰体育报记者', unread: true, trigger: 'refWhistleDm',
+          bubbles: ['Paolo，我帮你问了一下那个裁判。', '他下个赛季就不会吹米兰的比赛了。', '至于为什么，我们还是线下说吧。'],
+          replies: [
+              { text: '谢谢你。', answer: 'Forza Milan！🙂' },
+              { text: '线下见。', answer: '嗯哼，恐怕不是你喜欢的那种故事。' }
+          ] },
+        // 消息37 · 周日体育场记者（「回扣风波」选项2「解释这么点回扣不够自己拿的」后送达，trigger:'kickbackDm'）
+        { from: '周日体育场记者', unread: true, trigger: 'kickbackDm',
+          bubbles: ['你真的这么说了，Paolo？', '‘这点回扣不够我拿的。’', '哈哈。'],
+          replies: [
+              { text: '这种谣言传得太快了。', answer: '大家就喜欢听八卦。' },
+              { text: '我确实觉得不够拿。', answer: '这比赚死工资快多了，我也想拿回扣。' }
+          ] },
+        // 消息38 · 米兰体育报记者（「豪车事故」事件后送达，trigger:'carCrashDm'；并入米兰体育报记者会话）
+        { from: '米兰体育报记者', unread: true, trigger: 'carCrashDm',
+          bubbles: ['Paolo，你们那个开快车的球员一年多少钱。', '法拉利当玩具小车撞。'],
+          replies: [
+              { text: '平时没看出来是个开快车的。', answer: '这哪看得出来，你们又不是车队。' },
+              { text: '下个赛季他不会在米兰了。', answer: '给我点辛苦钱，我去帮你问问有没有下家。' }
+          ] },
+        // 消息39 · 罗马诺（第二赛季「圣诞夜惊魂」触发后送达，trigger:'xmasRomano'）
+        { from: '罗马诺', unread: true, trigger: 'xmasRomano',
+          bubbles: ['Paolo，我先跟你打个招呼再发稿，你们要换教练吗？'],
+          replies: [
+              { text: '暂时不会。', answer: '好的。' },
+              { text: '可能会换。', answer: '我这边听到的风声连下一位的名单都有了。' }
+          ] },
         // 消息50 · 科斯塔库塔（第二赛季开场后送达，trigger:'costacurtaDirector'）
         { from: '科斯塔库塔', unread: true, trigger: 'costacurtaDirector',
           bubbles: ['Paolo，听说你升任技术总监了。', '我还记得你原来说永远不会当教练。', '当技术总监应该也不比教练轻松？'],
@@ -468,7 +524,7 @@ const TERMINAL_CONTENT = {
           bubbles: ['papa，一线队教练给我打了电话，你觉得我适合在你的任期内加入一线队吗。'],
           replies: [
               { text: '哪怕你不是我的孩子，你的技术也足够升上一线队。', answer: '我不知道这种假设是否成立。' },
-              { text: '我当年也有过这种困惑，。', answer: '我不在意其他人提起这事，只是我自己忍不住会想。' }
+              { text: '我当年也有过这种困惑，你自己是怎么想的呢？', answer: '我不在意其他人提起这事，只是我自己忍不住会想，我获得这个名额到底因为什么。' }
           ] },
         // 消息62 · 多纳鲁马（第四赛季·多纳鲁马离队后送达，trigger:'donnaFarewell'）
         { from: '多纳鲁马', unread: true, trigger: 'donnaFarewell',
@@ -526,12 +582,47 @@ const TERMINAL_CONTENT = {
               { text: '如果你不介意的话，下周可以来米兰和他当面聊聊。', answer: '他必须为自己的行为付出代价。😠' },
               { text: '我们最终还是决定留下他。', answer: '再给他一次机会？' }
           ] },
-        // 消息71 · 马萨拉（第五赛季开始送达，trigger:'massaraPlan'）
+        // 消息71 · 马萨拉（与邮件33同轮·第五赛季第26轮送达，trigger:'massaraPlan'）
         { from: '马萨拉', unread: true, trigger: 'massaraPlan',
           bubbles: ['我们之前做的那个35页的计划书有回复吗？'],
           replies: [
               { text: '发给CEO他们看了，还没有。', answer: '他们得给我们一个答复。' },
               { text: '我没有收到回复，你呢？', answer: '我怀疑他们直接扔垃圾桶了。' }
+          ] },
+        // 消息72 · 托纳利（第五赛季第12轮送达，仅当托纳利[07/cm_youth_it]仍在队时，trigger:'tonaliOffer'）
+        { from: '托纳利', unread: true, trigger: 'tonaliOffer',
+          bubbles: ['总监，我想和您说个事，可能不算事。', '我听经纪人说，有只英超球队在打听我，开的条件很夸张。', '我当然跟他说我不走，我是米兰球迷，在这踢球是圆梦。', '但他让我‘至少听一听’，我有点烦......', '不知道怎么跟您开口。'],
+          replies: [
+              { text: '桑德罗，谢谢你先来跟我说，只要我还在球队，你就是米兰的非卖品。', answer: '我哪也不去，总监，如果我是非卖品，我就想在米兰踢一辈子球。' },
+              { text: '听一听没关系，你有权知道自己值多少。', answer: '能值得这样的身价当然是幸运的，我觉得更幸运的事是能够为米兰踢球。' }
+          ] },
+        // 消息73 · 德凯特拉雷（签下 09 belgian_star 后满 10 轮送达，trigger:'deketSlump'）
+        { from: '德凯特拉雷', unread: true, trigger: 'deketSlump',
+          bubbles: ['马尔蒂尼先生，我踢得很糟，您是顶着压力签下我的，可我到现在一个进球都没有，媒体说我是天价饮水机，引入我是俱乐部的败笔，我是不是真的不适合这里？'],
+          replies: [
+              { text: '签下你是我的决定，这份压力应该由我来承担。', answer: '队友们越给我传球，我越担心没办法好好发挥。' },
+              { text: '进球荒不能定义一个22岁的球员，我见过太多慢热的球员最后成了巨星。', answer: '教练说他会尝试给我一些别的任务的。' }
+          ] },
+        // 消息74 · 卡拉布里亚（第五赛季第22轮送达，trigger:'calabriaCaptain'）
+        { from: '卡拉布里亚', unread: true, trigger: 'calabriaCaptain',
+          bubbles: ['马尔蒂尼先生，罗马尼奥利走了。', '俱乐部说，队长袖标交给我。', '媒体说因为我是青训球员才轮到我，我配得上它吗？'],
+          replies: [
+              { text: '当然。', answer: '戴上袖标让我感受到了更重的责任。' },
+              { text: '这要靠你自己去证明。', answer: '在米兰我获得了尊重和爱。' }
+          ] },
+        // 消息75 · 伊布拉希莫维奇（第五赛季·God Bye 退役事件前送达，需 06 伊布在队，trigger:'ibraFarewellDm'；并入伊布会话）
+        { from: '伊布拉希莫维奇', unread: true, trigger: 'ibraFarewellDm',
+          bubbles: ['Paolo.', '退役就定在下一场比赛，在圣西罗。', '今晚一起吃晚餐吧，不聊球队的事了。', '我回来的那一年，所有人都以为我是来养老的，结果我们赢得了一切。', '这是配得上我的职业生涯的结局。'],
+          replies: [
+              { text: '没想到你会愿意在米兰退役。', answer: '你把我当作一个战士而不是吉祥物，所以我决定在圣西罗结束战士的一生。' },
+              { text: '更衣室以后会安静许多。', answer: '哈，大概每次夺冠的时候他们还会想起兹拉坦吧。' }
+          ] },
+        // 消息76 · 莱奥（签下 02 winger_pt 且第五赛季第30轮送达，trigger:'leaoRenewDm'）
+        { from: '莱奥', unread: true, trigger: 'leaoRenewDm',
+          bubbles: ['Paolo😄', '续约的事，我的经纪人还在和俱乐部磨。', '我爱米兰，在这里踢球很开心，所以我大概会留下来。', '但具体签几年还没想好。', '我能打听一下特奥签了多久吗？😄'],
+          replies: [
+              { text: '我会尽全力争取到让你满意的条件。', answer: '我自己想留下拿到更多冠军。😎' },
+              { text: '特奥的续约还没开始谈。', answer: '他没有不留下来的理由！因为你还在这！😠' }
           ] }
     ],
     // 论坛实际帖子在 gameStats.forumPosts（动态生成、随存档持久化）；此处留空。

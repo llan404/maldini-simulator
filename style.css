@@ -8,8 +8,8 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #F2ECE0; /* 米白色 */
-    color: #8B0000; /* 不刺眼的红色 */
+    background-color: #F2ECE0;
+    color: #8B0000;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -115,7 +115,7 @@ h1::after {
 .modal-content.ending-content::-webkit-scrollbar-thumb { background: #4a443d; border-radius: 4px; }
 .modal-content.ending-content::-webkit-scrollbar-thumb:hover { background: #5a544d; }
 
-/* 结局插图（隐藏结局"明天"等） */
+/* 结局插图 */
 .ending-image {
     display: block;
     width: 100%;
@@ -145,9 +145,9 @@ h1::after {
     font-family: Georgia, 'Times New Roman', serif;
     font-weight: 700;
 }
-/* 标题以标点结尾时（如"意 外？"），居中会因标点右侧留白显得偏左，整体右移补偿使其视觉居中 */
+/* 标题以标点结尾时，居中会因标点右侧留白显得偏左，整体右移补偿使其视觉居中 */
 #ending-title.trailing-punct { transform: translateX(0.5em); }
-/* 标题以引号/括号开头时（如「‘她来了’」），开头留白使其显得偏右，整体左移补偿 */
+/* 标题以引号/括号开头时，开头留白使其显得偏右，整体左移补偿 */
 #ending-title.leading-punct { transform: translateX(-0.2em); }
 
 .ending-rule {
@@ -205,7 +205,7 @@ button {
 }
 
 button:hover {
-    background-color: #A52A2A; /* 更深的红色 */
+    background-color: #A52A2A;
 }
 
 /* 周报新闻卡片 */
@@ -430,7 +430,7 @@ button:hover {
 
 .difficulty-option {
     background-color: #F2ECE0;
-    border: 1.5px solid #8B0000;
+    border: 1.5px solid #1c1916;
     border-radius: 10px;
     padding: 14px 16px;
     margin: 10px 0;
@@ -438,14 +438,14 @@ button:hover {
     justify-content: space-between;
     align-items: center;
     gap: 12px;
-    box-shadow: 0 2px 6px rgba(139, 0, 0, 0.08);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
 }
 
 .difficulty-option:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(139, 0, 0, 0.15);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .difficulty-option h3 {
@@ -479,7 +479,7 @@ button:hover {
     display: block;
     width: 100%;
     background-color: rgba(139, 0, 0, 0.07);   /* 淡红底，让方框可辨认 */
-    color: #8B0000;                            /* 红字 */
+    color: #8B0000;
     border: 1.5px solid rgba(139, 0, 0, 0.55); /* 明显红描边，与正文区分 */
     padding: 10px;
     margin: 5px 0;
@@ -1829,16 +1829,27 @@ button:hover {
 .support-task-done .support-task-header { color: #2f6e2e; }
 
 /* 测试反馈弹窗 */
+/* 创作者声明 = 赛日程序册（红黑竖条 + 队徽 + 烫金细线）*/
 .modal-content.test-notice-content {
     text-align: left;
+    background: #f5efe4;
+    border: 1px solid #cfc4ab;
+    border-radius: 10px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
 }
+/* 页眉：红黑竖条横幅 + 烫金下沿 + 悬垂队徽 */
+.tn-header { position: relative; height: 58px; background: repeating-linear-gradient(90deg, #b31018 0 13px, #141414 13px 26px); border-bottom: 3px solid #c8a24a; }
+.tn-crest { position: absolute; left: 50%; bottom: -20px; transform: translateX(-50%); width: 44px; height: 54px; object-fit: contain; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.45)); z-index: 2; }
+
 /* 两页堆叠在同一网格单元：弹窗高度恒等于较高的第一页，切到第二页也不缩放、无滚动条 */
-.test-notice-pages { display: grid; }
+.test-notice-pages { display: grid; padding: 32px 22px 0; }
 .test-notice-page { grid-area: 1 / 1; min-width: 0; }
 .test-notice-page.tn-hidden { visibility: hidden; } /* 隐藏页仍占位 → 维持第一页高度 */
-.test-notice-footer { padding-top: 10px; margin-top: 6px; border-top: 1px solid rgba(28, 25, 22, 0.08); }
+.test-notice-footer { padding: 12px 22px 16px; margin-top: 8px; border-top: 1px solid rgba(28, 25, 22, 0.1); }
 /* 三角形翻页：◀ 1/2 ▶ */
-.test-notice-pager { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 8px; }
+.test-notice-pager { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 10px; }
 .tn-arrow { background: transparent; border: none; color: #8B0000; font-size: 1.05rem; line-height: 1; padding: 4px 10px; cursor: pointer; border-radius: 6px; transition: background .15s; }
 .tn-arrow:disabled { color: #cabfae; cursor: default; }
 .tn-arrow:not(:disabled):hover { background: rgba(139, 0, 0, 0.08); }
@@ -1846,40 +1857,73 @@ button:hover {
 
 .test-notice-content h2 {
     text-align: center;
-    font-size: 1rem;
-    color: #1c1916;
-    margin-bottom: 12px;
+    font-family: Georgia, "Songti SC", serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: 0.04em;
+    color: #14110c;
+    margin: 4px 0 0;
 }
+.test-notice-content h2::after { content: ""; display: block; width: 100%; height: 2px; margin: 11px auto 15px; background: linear-gradient(90deg, transparent, #c8a24a 14%, #c8a24a 86%, transparent); }
 
 .test-notice-intro {
     font-size: 0.84rem;
-    line-height: 1.75;
-    color: #2d1f13;
-    margin-bottom: 8px;
+    line-height: 1.72;
+    color: #35301f;
+    margin-bottom: 9px;
 }
+.test-notice-intro strong { color: #8B0000; }
+/* AI 使用声明：浅底强调块（无左边框）*/
+.test-notice-intro.tn-ai { font-size: 0.78rem; color: #6b6350; background: #efe7d5; padding: 8px 12px; margin: 12px 0; border-radius: 3px; }
 
+/* 建议列表：烫金前导编号 + 虚线分隔 */
 .test-notice-list {
-    font-size: 0.82rem;
-    line-height: 1.9;
+    list-style: none;
+    counter-reset: tnl;
+    padding: 0;
+    margin: 4px 0 6px;
+}
+.test-notice-list li {
+    counter-increment: tnl;
+    position: relative;
+    padding: 6px 0 6px 30px;
+    font-size: 0.84rem;
+    line-height: 1.5;
     color: #5a4334;
-    padding-left: 1.4em;
-    margin: 4px 0 10px;
+    border-bottom: 1px dotted #d8cdb6;
+}
+.test-notice-list li:last-child { border-bottom: none; }
+.test-notice-list li::before {
+    content: counter(tnl, decimal-leading-zero);
+    position: absolute; left: 0; top: 6px;
+    font-family: Georgia, serif; font-weight: 700; font-size: 0.82rem; color: #c8a24a;
 }
 
 .test-notice-contact {
     font-size: 0.82rem;
-    color: #7a6753;
-    margin-bottom: 16px;
+    color: #6b6350;
+    margin-bottom: 4px;
 }
 /* 每条致谢一段，条目之间留明显空隙；条内换行保持紧凑 */
-.test-notice-contact p { margin: 0 0 0.95em; line-height: 1.55; }
+.test-notice-contact p { margin: 0 0 0.9em; line-height: 1.58; }
 .test-notice-contact p:last-child { margin-bottom: 0; }
+.test-notice-contact strong { color: #8B0000; font-weight: 700; }
 
 #close-test-notice,
 #test-notice-next {
     display: block;
     margin: 4px auto 0;
+    background: #8B0000;
+    color: #f5efe4;
+    padding: 9px 34px;
+    border-radius: 4px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    box-shadow: 0 2px 0 #5e0000;
 }
+#close-test-notice:hover,
+#test-notice-next:hover { background: #a11419; }
 
 /* 赛季开幕简报弹窗 */
 #season-intro-modal {
@@ -2249,6 +2293,10 @@ body.terminal-modal-open { overflow: hidden; }
     background: #ededed; border-radius: 8px; padding: 7px 11px;
     text-align: left; /* 占整行：flex 列默认 stretch，回复框撑满（缩进后）整行 */
 }
+/* 欧冠赛果播报帖：淡蓝色卡片（区别于普通联赛赛果的灰底），呼应欧冠蓝 #2f6ea1 */
+.forum-card-ucl { background: #eaf2fb; border-color: #c3d9ef; }
+.forum-card-ucl .tm-msg-from { color: #2f6ea1; }
+.forum-card-ucl .forum-reply { background: #dceaf7; color: #3a5064; }
 
 .tm-empty { text-align: center; color: #9a8f7d; font-size: 0.82rem; padding: 36px 10px; line-height: 1.8; }
 
@@ -2315,6 +2363,8 @@ body.terminal-modal-open { overflow: hidden; }
     color: #fff;
 }
 .dm-avatar svg { width: 64%; height: 64%; }
+.dm-avatar-club { background: #fff; }            /* 队徽头像：白底衬托队徽 */
+.dm-crest { width: 84%; height: 84%; object-fit: contain; display: block; }
 .dm-chat-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .dm-chat-name { font-size: 0.9rem; font-weight: 700; color: #1c1916; }
 .dm-chat { display: flex; flex-direction: column; align-items: flex-start; gap: 9px; }
@@ -2390,6 +2440,15 @@ body.terminal-modal-open { overflow: hidden; }
 .tm-player-row { display: flex; flex-direction: column; gap: 9px; background: #f6f6f6; border: 1px solid #ececec; border-radius: 12px; padding: 12px 15px; }
 .tm-player-line { display: flex; align-items: center; justify-content: space-between; }
 .tm-player-name { font-size: 0.88rem; font-weight: 600; color: #1c1916; display: flex; align-items: center; gap: 6px; }
+/* AAA球探求购·回复「我会考虑的」后出现的黑色「出售」按钮 */
+.tm-sell-btn {
+    flex-shrink: 0; background: #1c1916; color: #f2ece0;
+    border: none; border-radius: 7px; padding: 5px 12px;
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.03em; cursor: pointer;
+    -webkit-tap-highlight-color: transparent; transition: background 0.15s;
+}
+.tm-sell-btn:hover { background: #000; }
+.tm-sell-btn:active { transform: translateY(1px); }
 .tm-player-ucl { font-size: 0.6rem; color: #fff; background: #8B0000; border-radius: 4px; padding: 1px 5px; }
 .tm-player-stat { font-size: 0.78rem; color: #2f6e2e; font-weight: 600; }
 /* 成长值方格进度条 */
@@ -2416,10 +2475,10 @@ body.terminal-modal-open { overflow: hidden; }
 .tt-badge {
     position: absolute;
     top: -7px; right: -11px;       /* 更靠右上角，避免遮挡图标 */
-    min-width: 13px; height: 13px; /* 变小 */
+    min-width: 13px; height: 13px;
     padding: 0 3px;
     border-radius: 7px;
-    background: #d4302f;           /* 红色 */
+    background: #d4302f;
     color: #fff;
     font-size: 0.52rem;
     font-weight: 700;

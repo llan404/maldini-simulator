@@ -1,0 +1,16 @@
+{
+  "name": "maldini-simulator",
+  "private": true,
+  "version": "1.9.1",
+  "description": "ACM球队总监模拟器 —— 本地跑干净源码，构建时混淆",
+  "scripts": {
+    "dev": "vite",
+    "build": "node build.mjs",
+    "preview": "vite preview --outDir dist --port 4173"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.5",
+    "javascript-obfuscator": "^4.1.1",
+    "vite": "^5.4.10"
+  }
+}

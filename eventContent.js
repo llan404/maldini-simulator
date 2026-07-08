@@ -17,7 +17,7 @@ const randomEvents = {
         title: "南看台的问候",
         description: "对于近日球队的表现，南看台很不满意，作为一只球队的死忠球迷，付出了门票和时间，居然遭受这样的对待！他们无法忍受球队继续输球了，如果让AC米兰继续这样输下去，难道要连输五场吗？南看台要求更换教练！你选择：",
         options: [
-            { text: "在媒体面前表达对胜利的决心，并声明现在不是换教练的好时机。", effects: { media: 5, fans: -3 } },
+            { text: "在媒体面前表达对胜利的决心，并声明现在不是换教练的好时机。", effects: { media: 5, fans: -3 }, deliverMail: 'southStandRep' }, // → 南看台代表私信（消息32）
             { text: "跟南看台爆了！你以为球队是你家开的？（结局）", effects: { fans: -100 } },
             { text: "遵循南看台的意见，和管理层商量换教练的事。", effects: { fans: 5, trust: -5 } }
         ]
@@ -36,7 +36,7 @@ const randomEvents = {
         description: "突发新闻！你被内幕人士指责在转会市场上搅弄风云，为自己疯狂敛财。他们指出你故意买来一些过分溢价的球员，然后从他们的经纪人那里收取回扣。对此，你的解释是：",
         options: [
             { text: "转会市场五百万的预算，你们要三个前锋五个后卫，我拿点钱怎么了", effects: { trust: -6, media: -4 } },
-            { text: "解释这么点回扣不够自己拿的。", effects: { trust: 5, budget: -400 } },
+            { text: "解释这么点回扣不够自己拿的。", effects: { trust: 5, budget: -400 }, deliverMail: 'kickbackDm' }, // → 周日体育场记者私信（消息37）
             { text: "私下追查所谓的内幕人士究竟是谁。", effects: { media: -5, player: -3 } }
         ]
     },
@@ -44,7 +44,7 @@ const randomEvents = {
         title: "青训天才",
         description: "青年队最近冒出来一个极具潜力的球员，在青年队中大杀四方，甚至已经有球迷开始拿他和传奇名宿比较。但问题是，他最近越来越不拿教练当回事了，训练迟到、拒绝加练，甚至还在采访里说\"一线队的防守也就那样\"，你选择：",
         options: [
-            { text: "直接提拔进一线队，让他知道职业足球到底是什么强度。", effects: { player: 7, trust: -5 } },
+            { text: "直接提拔进一线队，让他知道职业足球到底是什么强度。", effects: { player: 7, trust: -5 }, deliverMail: 'youthTalentDm' }, // → 青训天才私信（消息33）
             { text: "让青年队教练狠狠敲打他。", effects: { player: 3, fans: -3 } },
             { text: "既然这么狂，那就租借出去吃点苦头。", effects: { budget: 400, player: -4, fans: -3 } }
         ]
@@ -74,7 +74,7 @@ const randomEvents = {
             { text: "保持克制，相信裁判会给出合理的解释。", effects: { media: 5, fans: -5 } },
             { text: "在媒体采访时对裁判开炮。", effects: { fans: 5, budget: -200 } },
             { text: "拒绝讨论裁判，希望球迷更加关注球员的表现。", effects: { fans: -5, player: 5 } },
-            { text: "向你熟悉的媒体求助，究竟哪里惹着这位裁判了？", effects: { fans: 5, player: 5 }, condition: () => gameStats.media > 80 }
+            { text: "向你熟悉的媒体求助，究竟哪里惹着这位裁判了？", effects: { fans: 5, player: 5 }, condition: () => gameStats.media > 80, deliverMail: 'refWhistleDm' } // → 米兰体育报记者私信（消息36）
         ]
     },
     10: {
@@ -90,9 +90,9 @@ const randomEvents = {
         title: "豪车事故",
         description: "球队的一位年轻球员凌晨开着法拉利撞上了路边护栏，幸好人没事，但照片已经传开了。外界猜什么的都有，赞助商问你球员发生车祸的时候怎么还穿着球衣呢？他以为这是在做代言吗？这多破坏我们品牌的形象。你选择：",
         options: [
-            { text: "让球员公开道歉，并承担全部责任。", effects: { media: 6, player: -5 } },
-            { text: "内部低调处理，尽量别再扩大影响。", effects: { media: 3, trust: -5, budget: -400 } },
-            { text: "直接罚款停训。", effects: { fans: 6, player: -5 } }
+            { text: "让球员公开道歉，并承担全部责任。", effects: { media: 6, player: -5 }, deliverMail: 'carCrashDm' }, // → 米兰体育报记者私信（消息38）
+            { text: "内部低调处理，尽量别再扩大影响。", effects: { media: 3, trust: -5, budget: -400 }, deliverMail: 'carCrashDm' },
+            { text: "直接罚款停训。", effects: { fans: 6, player: -5 }, deliverMail: 'carCrashDm' }
         ]
     },
     12: {
@@ -162,17 +162,7 @@ const randomEvents = {
         title: "超时罚款",
         description: "米兰在客场对阵其他球队的比赛，因为无正当理由将开场时间推迟了两分钟。意大利足协按照规定，将对米兰处以罚款50w欧的惩罚。",
         options: [
-            { text: "确认", effects: { budget: -50 } }
-        ]
-    },
-    20: {
-        title: "聘请新闻官",
-        mainline: true,
-        description: "随着球队在赛后接受的采访越来越多，独家媒体、当地体育报、其他联赛外派意甲的记者都想单独跟你们聊上几句。你分身乏术，只好请求管理层聘请一位专业的新闻发言人，让球队更好地处理和媒体的关系，管理层却认为没这个必要。“如果你愿意自己出钱的话，我不介意米兰内洛多一个人。”CEO这样回复你，你选择：",
-        options: [
-            { text: "我的钱就是球队的钱，拿工资聘请一位新闻发言人。", effects: { media: 3 }, suspicion: 1 },
-            { text: "谁上班给公司贴钱，不再提出聘请新闻发言人的事。", effects: { trust: -3 } },
-            { text: "没有新闻发言人，那只能把球员推出去当发言人了。", effects: { media: -2, player: -2 } }
+            { text: "确认", effects: { budget: -50 }, deliverMail: 'overtimeFineDm' } // → 队长私信（消息35）
         ]
     },
     17: {

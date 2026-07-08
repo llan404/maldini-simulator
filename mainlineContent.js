@@ -495,6 +495,16 @@ Object.assign(randomEvents, {
             { text: "起身走人，一窍不通你还谈什么足球。", effects: { trust: -5 }, suspicion: 2 }
         ]
     },
+    pressOfficer: {
+        title: "聘请新闻官",
+        mainline: true,
+        description: "随着球队在赛后接受的采访越来越多，独家媒体、当地体育报、其他联赛外派意甲的记者都想单独跟你们聊上几句。你分身乏术，只好请求管理层聘请一位专业的新闻发言人，让球队更好地处理和媒体的关系，管理层却认为没这个必要。“如果你愿意自己出钱的话，我不介意米兰内洛多一个人。”CEO这样回复你，你选择：",
+        options: [
+            { text: "我的钱就是球队的钱，拿工资聘请一位新闻发言人。", effects: { media: 3 }, suspicion: 1 },
+            { text: "谁上班给公司贴钱，不再提出聘请新闻发言人的事。", effects: { trust: -3 } },
+            { text: "没有新闻发言人，那只能把球员推出去当发言人了。", effects: { media: -2, player: -2 } }
+        ]
+    },
     nextLeftBack4: {
         title: "下一个左后卫Ⅳ",
         mainline: true,
