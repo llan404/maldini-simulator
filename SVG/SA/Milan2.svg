@@ -1,0 +1,33 @@
+<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" width="200" height="240">
+  <defs>
+    <clipPath id="shieldClip">
+      <path d="M26 26 H174 V146 Q174 206 100 230 Q26 206 26 146 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- 盾内填充 -->
+  <g clip-path="url(#shieldClip)">
+    <!-- 黑底（两端留黑） -->
+    <rect x="0" y="0" width="200" height="240" fill="#111111"/>
+    <!-- 红竖纹：从盾左缘内缩，均匀交替，两侧各留一截黑 -->
+    <g fill="#8B0000">
+      <rect x="44"  y="26" width="21" height="220"/>
+      <rect x="86"  y="26" width="21" height="220"/>
+      <rect x="128" y="26" width="21" height="220"/>
+    </g>
+    <!-- 中央米色字带 -->
+    <rect x="26" y="108" width="148" height="40" fill="#F4EFDF"/>
+    <!-- 字带上下金线 -->
+    <rect x="26" y="108" width="148" height="3" fill="#C9A24A"/>
+    <rect x="26" y="145" width="148" height="3" fill="#C9A24A"/>
+  </g>
+
+  <!-- 盾外金色描边 -->
+  <path d="M26 26 H174 V146 Q174 206 100 230 Q26 206 26 146 Z"
+        fill="none" stroke="#C9A24A" stroke-width="4"/>
+
+  <!-- 字带文字 -->
+  <text x="100" y="136" font-family="Georgia, 'Songti SC', serif"
+        font-size="22" font-weight="700" fill="#8B0000"
+        text-anchor="middle" letter-spacing="4">MILANO</text>
+</svg>
