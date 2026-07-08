@@ -687,8 +687,8 @@ const TERMINAL_CONTENT = {
               { text: '我会尽全力争取到让你满意的条件。', answer: '我自己想留下拿到更多冠军。😎' },
               { text: '特奥的续约还没开始谈。', answer: '他没有不留下来的理由！因为你还在这！😠' }
           ] },
-        // 消息77 · 皇家马德里（欧冠决赛击败利物浦夺冠后送达，trigger:'uclFinalBeatLiverpool'；并入皇马会话）
-        { from: '皇家马德里', unread: true, trigger: 'uclFinalBeatLiverpool',
+        // 消息77 · 利物浦足球俱乐部（欧冠决赛击败利物浦夺冠后送达，trigger:'uclFinalBeatLiverpool'；并入皇马会话）
+        { from: '利物浦', unread: true, trigger: 'uclFinalBeatLiverpool',
           bubbles: ['恭喜AC Milan获得本次欧冠冠军。', '我们最难忘的对手。', '正因为胜利的荣耀和失败的苦涩都品尝过，我们的祝贺才格外真诚。', '真正伟大的对手才配得上欧冠赛场的一切。', '恭喜你们。'] },
         // 消息78 · 安切洛蒂（第4/5赛季·欧冠淘汰赛战胜皇马后送达，trigger:'uclBeatMadrid'；并入安切洛蒂会话）
         { from: '安切洛蒂', unread: true, trigger: 'uclBeatMadrid',
@@ -1133,15 +1133,12 @@ const TERMINAL_CONTENT = {
             replies: [
                 '连欧联杯都差一步吗......',
                 '走到决赛已经不容易了，别太苛责这些孩子。',
-                '就差一个冠军，太可惜了。',
-                '好歹拿了亚军，下赛季还能踢欧冠。',
+                '太可惜了。',
                 '这要是欧冠决赛我可能已经哭晕了，还好只是欧联。',
-                '别拿欧联不当杯子，输了照样难受。',
+                '输了照样难受。',
                 '决赛这种大场面，年轻球员还是差了点经验。',
-                '明年从欧冠打回来！',
                 '把这份不甘心留到下个赛季吧。',
-                '总监，这个亚军可不能就这么算了。'
-            ]
+                           ]
         },
         // 欧冠决赛对手=国际米兰 专用池（在 addUclForumThread 里 isFinal && oppName==='国际米兰' 时覆盖 uclFinalWin/Lose）；播报句用户未指定，暂拟，可改
         uclFinalDerbyWin: {
