@@ -574,15 +574,16 @@ Object.assign(randomEvents, {
             { text: "给他一个拥抱。", effects: {} }
         ]
     },
-    // 要求（God Bye 选项2 触发）：便利贴文案按欧冠经历分差分——从未夺欧冠 / 上赛季(第四赛季)夺欧冠蝉联 / 其他情况(任期内夺过但非上赛季)
+    // 要求（God Bye 选项2 触发）：便利贴文案按欧冠经历分差分——本赛季欧冠已出局(优先) / 从未夺欧冠 / 上赛季(第四赛季)夺欧冠蝉联 / 其他情况(任期内夺过但非上赛季)
     requirement: {
         title: "要求",
         mainline: true,
         description: () => {
             let note;
-            if (gameStats.uclTitleCount === 0) note = '米兰将会在这个赛季获得欧冠冠军。';
-            else if (gameStats.s4WonUcl) note = '米兰将会在这个赛季蝉联欧冠冠军。';
-            else note = '米兰将会在这个赛季获得庇护，得到所有冠军';
+            if (gameStats.euroType === 'ucl' && gameStats.uclOutRound > 0) note = '米兰会在下个赛季获得欧冠冠军。'; // 本赛季欧冠已出局（R36 时决赛未踢，出局必为小组/淘汰赛阶段）
+            else if (gameStats.uclTitleCount === 0) note = '米兰将会在下个赛季获得欧冠冠军。';
+            else if (gameStats.s4WonUcl) note = '米兰将会在下个赛季蝉联欧冠冠军。';
+            else note = '米兰将会在下个赛季获得庇护，得到所有冠军';
             return `兹拉坦拿了一支笔，在便利贴上写下一行字，将它贴在了更衣室的柜子上。上面写着‘${note}’`;
         },
         options: [{ text: "了解", effects: {} }]

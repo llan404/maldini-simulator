@@ -1575,6 +1575,24 @@ button:hover {
     border-color: #8B0000;
 }
 
+/* 通用确认弹窗（存档覆盖等）——羊皮纸卡片风格，盖在存档弹窗之上 */
+#confirm-modal { z-index: 50; }
+.confirm-content { text-align: center; padding: 24px 18px 20px; width: min(76%, 270px); max-width: 270px; }
+#confirm-text {
+    font-size: 0.98rem; color: #3a2f22; line-height: 1.7;
+    margin: 4px 4px 22px; font-family: Georgia, 'Times New Roman', serif;
+}
+.confirm-btns { display: flex; gap: 12px; justify-content: center; }
+.confirm-btns button {
+    flex: 1; max-width: 130px; padding: 9px 0; border-radius: 6px;
+    font-size: 0.86rem; letter-spacing: 0.08em; cursor: pointer;
+    font-family: Georgia, serif; transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+#confirm-cancel { background: transparent; color: #8a7a60; border: 1px solid #d8cbb0; }
+#confirm-cancel:hover { border-color: #b8a67e; color: #6a5c45; }
+#confirm-ok { background: #8B0000; color: #f6f1e4; border: 1px solid #8B0000; }
+#confirm-ok:hover { background: #741414; border-color: #741414; }
+
 /* 底部四按钮行 */
 /* 赛季任务与游戏存档合并为一个大方框，两组按钮之间用细线隔开 */
 .btn-rows-box {
@@ -2273,6 +2291,25 @@ body.terminal-modal-open { overflow: hidden; }
 .dm-crest { width: 84%; height: 84%; object-fit: contain; display: block; }
 .dm-chat-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .dm-chat-name { font-size: 0.9rem; font-weight: 700; color: #1c1916; }
+/* 私信对话视图：屏幕本身不滚动（flex 纵向布局），顶部块固定、对话区独立滚动 —— 对话串物理上无法穿过横线以上 */
+.terminal-screen.dm-thread-view {
+    display: flex; flex-direction: column;
+    overflow: hidden; padding: 0;
+}
+/* 顶部（返回/头像/名称）固定块：与屏幕同底色（透明=手机白底），底缘长横线 */
+.dm-thread-top {
+    flex-shrink: 0;
+    padding: 16px 15px 11px;
+    border-bottom: 1px solid #e2ded6;
+}
+.dm-thread-top .mail-detail-head { margin-bottom: 10px; }
+.dm-thread-top .dm-chat-head { margin-bottom: 0; }
+/* 对话区：横线以下独立滚动容器 */
+.terminal-screen.dm-thread-view .dm-chat {
+    flex: 1; min-height: 0;
+    overflow-y: auto; overscroll-behavior: contain;
+    padding: 13px 15px 12px;
+}
 .dm-chat { display: flex; flex-direction: column; align-items: flex-start; gap: 9px; }
 /* 同一人的多条消息：每条一个 block（最后送达在最上），block 间用灰线 + 留白分隔 */
 .dm-msg-block { display: flex; flex-direction: column; align-items: flex-start; gap: 9px; align-self: stretch; }
@@ -2359,6 +2396,33 @@ body.terminal-modal-open { overflow: hidden; }
 }
 .tm-sell-btn:hover { background: #000; }
 .tm-sell-btn:active { transform: translateY(1px); }
+/* 球员行左侧「详情」按钮 → 终端内查看其转会窗卡片 */
+.tm-detail-btn {
+    flex-shrink: 0; margin-right: 9px;
+    background: transparent; color: #6b6b6b;
+    border: 1px solid #d8d4cb; border-radius: 7px; padding: 4px 10px;
+    font-size: 0.68rem; font-weight: 600; letter-spacing: 0.03em; cursor: pointer;
+    -webkit-tap-highlight-color: transparent; transition: border-color 0.15s, color 0.15s;
+}
+.tm-detail-btn:hover { border-color: #8B0000; color: #8B0000; }
+.tm-detail-btn:active { transform: translateY(1px); }
+/* 球员详情视图：放大易读版卡片，整体左对齐（原型名主标题 + 代号副标 + 介绍 + 数值/身价） */
+.tm-detail-wrap { padding: 10px 2px; text-align: left; }
+.tm-detail-card {
+    display: flex; flex-direction: column; gap: 10px;
+    background: #f6f6f6; border: 1px solid #ececec; border-radius: 12px;
+    padding: 15px 16px; text-align: left;
+}
+.tm-detail-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tm-detail-name { font-size: 1.02rem; font-weight: 700; color: #1c1916; line-height: 1.35; }
+.tm-detail-card .tm-tag { font-size: 0.62rem; padding: 3px 8px; }
+.tm-detail-code { font-size: 0.74rem; color: #8f8a80; margin-top: -6px; }
+.tm-detail-desc { font-size: 0.82rem; color: #4a463f; line-height: 1.8; }
+.tm-detail-stats {
+    display: flex; flex-direction: column; gap: 4px;
+    font-size: 0.8rem; color: #3c3832;
+    border-top: 1px solid #e6e2d9; padding-top: 10px;
+}
 .tm-player-ucl { font-size: 0.6rem; color: #fff; background: #8B0000; border-radius: 4px; padding: 1px 5px; }
 .tm-player-stat { font-size: 0.78rem; color: #2f6e2e; font-weight: 600; }
 /* 成长值方格进度条 */
@@ -3079,6 +3143,15 @@ body.terminal-modal-open { overflow: hidden; }
     background: #f1ead8; border-radius: 6px; padding: 7px 10px;
 }
 .neg-pending:empty { display: none; }
+/* 当前剩余预算：与选项「预算 ±Nw」徽章同单位，便于直接对照 */
+.neg-budget {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 0.76rem; color: #6a5c45; margin: 10px 0 2px;
+    background: #f6f1e4; border: 1px solid #e2d8c2; border-radius: 6px; padding: 6px 11px;
+}
+.neg-budget:empty { display: none; }
+.neg-budget-label { letter-spacing: 0.03em; }
+.neg-budget-val { font-weight: 700; color: #8B0000; font-size: 0.9rem; font-family: Georgia, 'Times New Roman', serif; }
 
 .neg-feedback { font-size: 0.88rem; color: #3a2f22; line-height: 1.7; margin: 4px 0 16px; }
 .neg-feedback b { color: #8B0000; font-size: 0.95rem; }

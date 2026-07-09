@@ -1173,6 +1173,7 @@ function initializeGame(difficulty) {
     startMatchBtn.disabled = true;
     eventOptions.classList.add('hidden');
     updateMagicPhoneBtn();
+    resetTerminalMsgState(); // 复位静态邮件/私信的每局可变态（已读/回复选择），避免二周目残留
     updateTeamNewsDot(); // 开局：序幕邮件/私信/论坛未读 → 主按钮红点
 }
 
@@ -1497,6 +1498,18 @@ const transferBuyPlayers = [
         id: 'cb_fr_young', name: '法国中后卫', tier: 2, tag: '潜力股', tagColor: 'potential',
         desc: '他是个只有二十一岁的稚嫩球员，球队如何塑造他，决定了他会成为哪种球员。',
         effects: { player: 3 }, cost: 50, signIntent: 48
+    },
+    // 24 · 美国边锋（原型：克里斯蒂安·普利希奇）
+    {
+        id: 'winger_usa', name: '美国边锋', tier: 2, tag: '即战力', tagColor: 'ready',
+        desc: '25岁，速度与内切俱佳的美国边锋，在前东家常年得不到稳定的首发位置。签下他还意味着叩开北美市场的大门，他在当地很有号召力。',
+        effects: { player: 5, fans: 4, media: 4 }, cost: 4200, signIntent: 45
+    },
+    // 25 · 比利时中场（原型：亚历克西斯·萨勒马克尔斯）
+    {
+        id: 'cm_bel', name: '比利时中场', tier: 2, tag: '潜力股', tagColor: 'potential',
+        desc: '21岁，比利时人，性格好，从不惜力的工兵型球员，可以从对方禁区一路回追到自家底线。他的技术算不上出众，身体素质也略显不足，但对俱乐部相当忠诚。',
+        effects: { player: 3, fans: 3 }, cost: 800, signIntent: 55
     }
 ];
 // 01-09 号核心球员（tier 1）均带"欧冠"标签（第三赛季夏窗后才在转会窗显示）
@@ -1747,7 +1760,7 @@ const TM_TAG_CLASS = { potential: 'tm-tag-potential', ready: 'tm-tag-ready', ris
 function tmRemainingSlots() { return tmState.initialSlots - tmState.purchased.size; }
 
 function tmStatsHtml(p, cost) {
-    const labels = { player: '即战力', fans: '球迷满意度', trust: '董事会信任度', media: '媒体声望' };
+    const labels = { player: '球员状态', fans: '球迷满意度', trust: '董事会信任度', media: '媒体声望' };
     return Object.entries(p.effects).map(([k, v]) => {
         const cls = v > 0 ? 'tm-stat-pos' : 'tm-stat-neg';
         return `<div>${labels[k] || k}：<span class="${cls}">${v > 0 ? '+' : ''}${v}</span></div>`;
@@ -1988,7 +2001,7 @@ function renderTransferMarket() {
         const sideEffects = Object.entries(p.effects)
             .filter(([k]) => k !== 'budget')
             .map(([k, v]) => {
-                const labels = { player: '即战力', fans: '球迷满意度', trust: '董事会信任度' };
+                const labels = { player: '球员状态', fans: '球迷满意度', trust: '董事会信任度' };
                 return `${labels[k] || k}${v > 0 ? '+' : ''}${v}`;
             }).join('，');
 
@@ -2089,6 +2102,10 @@ function renderNegotiation() {
         deltaEl.textContent = `${d >= 0 ? '↗' : '↘'} 上一轮${negDeltaNarration(d)}，意向 ${d >= 0 ? '+' : ''}${d}`;
     }
 
+    // 当前剩余预算：仅第四赛季两位（多纳鲁马/恰尔汗奥卢）的谈判显示（与选项「预算 ±Nw」同单位，便于对照；承诺预算续约成功后才扣，此处不预减）
+    document.getElementById('neg-budget').innerHTML =
+        ['donnarumma', 'calhanoglu'].includes(negState.key)
+            ? `<span class="neg-budget-label">当前剩余预算</span><span class="neg-budget-val">${gameStats.budget}w</span>` : '';
     // 谈判中已承诺的预算（续约成功后才结算，拉锯/破裂不扣）
     const pendEl = document.getElementById('neg-pending');
     pendEl.textContent = negState.pendBudget ? `续约成功后，待结算：预算 ${negState.pendBudget > 0 ? '+' : ''}${negState.pendBudget}w` : '';
@@ -2132,6 +2149,7 @@ function showNegFeedback() {
     const fb = sc.feedback[zone];
     negShowChrome(false); // 结算页去掉空发言框与意向条
     document.getElementById('neg-pending').textContent = '';
+    document.getElementById('neg-budget').textContent = ''; // 结算页不再显示剩余预算
     document.getElementById('neg-round').textContent = '谈判结束';
     const deltaEl = document.getElementById('neg-delta');
     deltaEl.classList.remove('hidden', 'pos');
@@ -2215,6 +2233,9 @@ function renderDonnaNego() {
         deltaEl.textContent = `${d >= 0 ? '↗' : '↘'} 上一轮意向 ${d >= 0 ? '+' : ''}${d}`;
     }
 
+    // 当前剩余预算（与选项徽章同单位；谈判承诺预算成功后才扣，此处不预减）
+    document.getElementById('neg-budget').innerHTML =
+        `<span class="neg-budget-label">当前剩余预算</span><span class="neg-budget-val">${gameStats.budget}w</span>`;
     const pendEl = document.getElementById('neg-pending');
     const parts = [];
     if (donnaState.pendBudget) parts.push(`预算 ${donnaState.pendBudget > 0 ? '+' : ''}${donnaState.pendBudget}w`);
@@ -2283,6 +2304,7 @@ function settleDonnaNego(forced) {
     negShowChrome(false); // 结算页去掉空发言框与意向条
     document.getElementById('neg-delta').classList.add('hidden');
     document.getElementById('neg-pending').textContent = '';
+    document.getElementById('neg-budget').textContent = ''; // 结算页不再显示剩余预算
     document.getElementById('neg-round').textContent = '谈判结束';
     const oc = document.getElementById('neg-options');
     oc.innerHTML = `<div class="neg-feedback"><b>${title}</b><br>${text}</div>`;
@@ -3120,7 +3142,16 @@ function showNextRandomEvent() {
             if (option.mug07Cost !== undefined) { gameStats.player07WinterCost = option.mug07Cost; }
             if (option.mug07Trust) { gameStats.player07Trust += option.mug07Trust; }
             if (option.trust01) { gameStats.player01Trust += option.trust01; }
-            if (option.suspicion) { gameStats.suspicion += option.suspicion; updateSuspicionCard(); }
+            if (option.suspicion) {
+                gameStats.suspicion += option.suspicion;
+                updateSuspicionCard();
+                // 不满值攒满 5 点 → 立即触发「新的一页」（红鸟解约，即 seasonTrust 结局卡；同 option.ending 模式）
+                if (gameStats.suspicion >= 5 && !gameStats.gameEnded) {
+                    randomEventModal.classList.add('hidden');
+                    showEnding('seasonTrust');
+                    return;
+                }
+            }
             if (option.disc21 !== undefined) {
                 gameStats.player21Discount = option.disc21;
                 // 买断决策进入决策记录，称呼球员名字而非代号
@@ -3552,8 +3583,8 @@ function doSeasonEnd() {
     if (gameStats.season === 4 && gameStats.euroType === 'ucl' && gameStats.uclStage === 'champion') gameStats.s4WonUcl = true; // 第四赛季欧冠夺冠快照，供邮件28/29二选一
     gameStats.lastSeasonWonUcl = (gameStats.euroType === 'ucl' && gameStats.uclStage === 'champion'); // 记「上赛季是否夺欧冠」，供下赛季签约谈判话术
     if (gameStats.difficulty !== 'easy' && gameStats.season >= 5) {
-        // 隐藏结局：任期内至少 4 次意甲冠军 + 至少 1 次欧冠冠军，优先于任务判定
-        if (gameStats.scudettoCount >= 4 && gameStats.uclTitleCount >= 1) { showEnding('tomorrow'); return; }
+        // 隐藏结局：任期内至少 4 次意甲冠军 + 至少 2 次欧冠冠军，优先于任务判定
+        if (gameStats.scudettoCount >= 4 && gameStats.uclTitleCount >= 2) { showEnding('tomorrow'); return; }
         // 完成第五赛季任务（不满值<5 且 排名≤4）→ 特殊结局（主卡→尾声）；未完成 → 遗憾离场 → 普通结局
         const intro = seasonIntros[5];
         if (intro && intro.taskCheck && intro.taskCheck()) { showEnding('surprise'); }
@@ -4398,13 +4429,46 @@ function renderTerminalPlayers() {
         const sellBtn = (gameStats.scoutSellable || []).includes(p.id)
             ? `<button class="tm-sell-btn" data-sell="${p.id}">出售 €${roundUpOfferPrice(paid * 1.1)}万</button>` : '';
         return `<div class="tm-player-row">
-            <div class="tm-player-line"><span class="tm-player-name">${p.name}${tagsHtml}</span>${sellBtn}</div>
+            <div class="tm-player-line"><button class="tm-detail-btn" data-detail="${p.id}">详情</button><span class="tm-player-name">${p.name}${tagsHtml}</span>${sellBtn}</div>
             <div class="tm-growth">
                 <span class="tm-growth-label">成长值 ${g}/10</span>
                 <div class="tm-growth-bar">${growthBarHtml(g)}</div>
             </div>
         </div>`;
     }).join('') + '</div>';
+}
+
+// 球员原型名（详情页展示；无对应原型的球员显示原代号名）。丹尼尔·马尔蒂尼卡片本身即真名，无需映射
+const PLAYER_PROTO_NAME = {
+    lb_winger: '特奥·埃尔南德斯', winger_pt: '拉斐尔·莱奥', striker_fr: '奥利维尔·吉鲁',
+    cb_eng: '亚历山德罗·弗洛伦齐', gk_talent: '迈克·麦尼昂', maestro: '兹拉坦·伊布拉希莫维奇',
+    cm_youth_it: '桑德罗·托纳利', belgian_star: '夏尔·德凯特拉雷', mid_bel: '布拉欣·迪亚斯',
+    cb_den: '西蒙·克亚尔', cb_eng_loan: '菲卡约·托莫里', cb_fr_young: '皮埃尔·卡卢卢',
+    dm_cro: '卢卡·莫德里奇', winger_usa: '克里斯蒂安·普利希奇', cm_bel: '亚历克西斯·萨勒马克尔斯'
+};
+
+// 球员详情：终端内展示球员卡（放大易读版：原型名为主标题、代号作副标，介绍/数值/身价左对齐；身价=实际成交价快照）
+function openPlayerDetail(id) {
+    const p = transferBuyPlayers.find(x => x.id === id);
+    if (!p) return;
+    const paid = (gameStats.purchasePrice && gameStats.purchasePrice[p.id] != null) ? gameStats.purchasePrice[p.id] : p.cost;
+    const proto = PLAYER_PROTO_NAME[p.id];
+    const tags = [`<span class="tm-tag ${TM_TAG_CLASS[p.tagColor]}">${p.tag}</span>`];
+    if (p.uclTag) tags.push('<span class="tm-tag tm-tag-ucl">欧冠</span>');
+    const screen = document.getElementById('terminal-screen');
+    screen.innerHTML =
+        `<div class="mail-detail-head"><button class="mail-back" aria-label="返回球员"><span class="mail-back-arrow">‹</span>球员</button></div>
+        <div class="tm-detail-wrap">
+            <div class="tm-detail-card">
+                <div class="tm-detail-top"><span class="tm-detail-name">${proto || p.name}</span><span class="tm-tags">${tags.join('')}</span></div>
+                ${proto ? `<div class="tm-detail-code">${p.name}</div>` : ''}
+                <div class="tm-detail-desc">${p.desc}</div>
+                <div class="tm-detail-stats">${tmStatsHtml(p, paid)}</div>
+            </div>
+        </div>`;
+    screen.scrollTop = 0;
+    screen.querySelector('.mail-back').addEventListener('click', () => renderTerminalSection('players'));
+    buildTerminalTabbar('players');
 }
 
 // 成长值方格进度条：10 格，填充至当前成长值
@@ -4547,6 +4611,7 @@ function dmGroups() {
 function renderDMInbox() {
     const sec = terminalSections.dm;
     const screen = document.getElementById('terminal-screen');
+    screen.classList.remove('dm-thread-view'); // 退出对话视图 → 恢复屏幕整体滚动
     dmThreadGroups = dmGroups();
     const rows = dmThreadGroups.map((g, gi) => {
         const last = g.latest.m;
@@ -4554,7 +4619,7 @@ function renderDMInbox() {
             ${dmAvatar(g.from)}
             <span class="mail-row-main">
                 <span class="mail-row-from">${g.from}${g.anyUnread ? '<span class="dm-dot"></span>' : ''}</span>
-                <span class="mail-row-line2"><span class="mail-row-snippet">${dmSnippet(last.body || (last.bubbles && last.bubbles[0]) || '')}</span></span>
+                <span class="mail-row-line2"><span class="mail-row-snippet">${dmThreadSnippet(last)}</span></span>
             </span>
         </button>`;
     }).join('');
@@ -4576,12 +4641,22 @@ const dmBubbleOutFail = t => `<div class="dm-out-fail"><span class="dm-fail-mark
 const dmTypingHTML = '<div class="dm-bubble dm-in dm-typing"><span></span><span></span><span></span></div>';
 // answer 归一化为数组（字符串→单条；数组→多条；空→无回复）
 const dmAnswerList = answer => Array.isArray(answer) ? answer : (answer ? [answer] : []);
+// 收件箱缩略：未回复 → 对方第一句；已回复 → 对话中最后一句（对方最后的回应，无回应则玩家自己的回复）
+function dmThreadSnippet(m) {
+    if (m.replies && m.repliedIndex !== undefined && m.replies[m.repliedIndex]) {
+        const r = m.replies[m.repliedIndex];
+        const answers = dmAnswerList(r.answer).filter(a => typeof a === 'string');
+        return dmSnippet(answers.length ? answers[answers.length - 1] : (r.text || ''));
+    }
+    const first = m.body || (m.bubbles && m.bubbles.find(b => typeof b === 'string')) || '';
+    return dmSnippet(first);
+}
 // 一条消息的对方气泡（bubbles 优先，否则旧格式 body 拆段）
 const dmIncoming = m => m.bubbles || (m.body || '').split(/\n{2,}/).filter(Boolean);
 
 // 私信内嵌的球员转会窗卡片（球探引荐用，见消息64）
 function dmScoutCardHTML(p) {
-    const labels = { player: '即战力', fans: '球迷', trust: '信任', media: '媒体' };
+    const labels = { player: '球员状态', fans: '球迷', trust: '信任', media: '媒体' };
     const chips = Object.entries(p.effects).map(([k, v]) =>
         `<span class="dm-sc-chip">${labels[k] || k} <span class="${v > 0 ? 'tm-stat-pos' : 'tm-stat-neg'}">${v > 0 ? '+' : ''}${v}</span></span>`).join('');
     return `<div class="dm-scout-card">
@@ -4605,15 +4680,26 @@ function openDM(gi) {
     if (!group) return;
     group.items.forEach(x => x.m.unread = false); // 整串标记已读
     const screen = document.getElementById('terminal-screen');
+    // 结构固定：屏幕本身不滚（dm-thread-view），顶部（返回/头像/名称）为固定块+底缘长横线，
+    // 对话串在横线以下的 #dm-chat 独立滚动容器内滚动，物理上不会穿过横线以上区域
+    screen.classList.add('dm-thread-view');
     screen.innerHTML =
-        `<div class="mail-detail-head"><button class="mail-back" aria-label="返回私信"><span class="mail-back-arrow">‹</span>私信</button></div>
-        <div class="dm-chat-head">${dmAvatar(group.from)}<span class="dm-chat-name">${group.from}</span></div>
+        `<div class="dm-thread-top">
+            <div class="mail-detail-head"><button class="mail-back" aria-label="返回私信"><span class="mail-back-arrow">‹</span>私信</button></div>
+            <div class="dm-chat-head">${dmAvatar(group.from)}<span class="dm-chat-name">${group.from}</span></div>
+        </div>
         <div class="dm-chat" id="dm-chat"></div>`;
     screen.querySelector('.mail-back').addEventListener('click', renderDMInbox);
     renderDMThread(screen, group);
-    screen.scrollTop = screen.scrollHeight; // 打开时锁定到最后一条消息（最下）
+    dmScrollBottom(); // 打开时锁定到最后一条消息（最下）
     buildTerminalTabbar('dm');
     updateTeamNewsDot(); // 读私信 → 未读减少，刷新红点
+}
+
+// 对话区滚到最下（对话串滚动发生在 #dm-chat 内，屏幕本身在对话视图不滚动）
+function dmScrollBottom() {
+    const chat = document.getElementById('dm-chat');
+    if (chat) chat.scrollTop = chat.scrollHeight;
 }
 
 // 渲染对话串：同一个人的多条消息，按送达先后从上到下（最后送达在最下），每条消息一个 block、block 间灰线分隔；每条独立回复
@@ -4688,18 +4774,17 @@ function dmAnswerReply(m, idx, block, rb) {
     }
     block.insertAdjacentHTML('beforeend', r.redMark ? dmBubbleOutFail(r.text) : dmBubbleOut(r.text));
     const answers = dmAnswerList(answer);
-    const screen = document.getElementById('terminal-screen');
-    if (screen) screen.scrollTop = screen.scrollHeight;
+    dmScrollBottom();
     const reveal = j => {
         if (j >= answers.length || !block.isConnected) return;
         block.insertAdjacentHTML('beforeend', dmTypingHTML);
-        if (screen) screen.scrollTop = screen.scrollHeight;
+        dmScrollBottom();
         setTimeout(() => {
             const t = block.querySelector('.dm-typing');
             if (!t || !block.isConnected) return;
             t.remove();
             block.insertAdjacentHTML('beforeend', dmBubbleIn(answers[j]));
-            if (screen) screen.scrollTop = screen.scrollHeight;
+            dmScrollBottom();
             reveal(j + 1);
         }, 1400);
     };
@@ -4816,6 +4901,7 @@ function renderForum() {
 
 // 渲染某个分区（无单独主屏，开局默认 email，靠底部标签切换）
 function renderTerminalSection(key) {
+    document.getElementById('terminal-screen').classList.remove('dm-thread-view'); // 任何分区切换都退出私信对话视图
     if (key === 'email') { renderEmailInbox(); return; } // 邮件 → Gmail 式收件箱
     if (key === 'dm') { renderDMInbox(); return; }        // 私信 → 可点开列表
     if (key === 'forum') { renderForum(); return; }       // 论坛 → 点赞/点踩
@@ -4834,8 +4920,12 @@ function renderTerminalSection(key) {
         `${tmSecHead(key)}
         <div class="tm-home-rule"></div>${body}`;
     screen.scrollTop = 0;
-    if (sec.isPlayers) screen.querySelectorAll('.tm-sell-btn').forEach(btn =>
-        btn.addEventListener('click', () => sellScoutPlayer(btn.dataset.sell)));
+    if (sec.isPlayers) {
+        screen.querySelectorAll('.tm-sell-btn').forEach(btn =>
+            btn.addEventListener('click', () => sellScoutPlayer(btn.dataset.sell)));
+        screen.querySelectorAll('.tm-detail-btn').forEach(btn =>
+            btn.addEventListener('click', () => openPlayerDetail(btn.dataset.detail)));
+    }
     wireNotifyToggle(screen);
     buildTerminalTabbar(key);
 }
@@ -4864,6 +4954,54 @@ function getSlotSave(slot) {
     try { return JSON.parse(localStorage.getItem(SAVE_PREFIX + slot)); } catch { return null; }
 }
 
+// ===== 静态邮件/私信的每局可变态（已读 unread、私信回复选择 repliedIndex）=====
+// 历史问题：unread / repliedIndex 被直接写在内容常量 TERMINAL_CONTENT.email/.dm 的对象上，
+// 会跨局残留（二周目不重置 → 不弹提示、无法重选回复）、不随存档走（刷新丢失、读档不还原）。
+// 修复：新游戏 resetTerminalMsgState 复位；存档 snapshot；读档先复位再套用 snapshot。
+// （动态私信 dynamicDMs、论坛 forumPosts 本就在 gameStats 内，已随存档/重置，无需处理。）
+function msgStateKey(m, i) { return m.trigger || ('#' + i); } // 有 trigger 用其（全局唯一）；否则用静态数组下标（稳定）
+function resetTerminalMsgState() {
+    (TERMINAL_CONTENT.email || []).forEach(m => { m.unread = true; });
+    (TERMINAL_CONTENT.dm || []).forEach(m => { m.unread = true; delete m.repliedIndex; });
+}
+function snapshotTerminalMsgState() {
+    const email = {}, dm = {};
+    (TERMINAL_CONTENT.email || []).forEach((m, i) => { if (m.unread === false) email[msgStateKey(m, i)] = 1; });
+    (TERMINAL_CONTENT.dm || []).forEach((m, i) => {
+        if (m.unread === false || m.repliedIndex !== undefined)
+            dm[msgStateKey(m, i)] = { u: m.unread === false ? 1 : 0, r: m.repliedIndex };
+    });
+    return { email, dm };
+}
+function restoreTerminalMsgState(snap) {
+    resetTerminalMsgState();
+    if (!snap) return;
+    (TERMINAL_CONTENT.email || []).forEach((m, i) => { if (snap.email && snap.email[msgStateKey(m, i)]) m.unread = false; });
+    (TERMINAL_CONTENT.dm || []).forEach((m, i) => {
+        const s = snap.dm && snap.dm[msgStateKey(m, i)];
+        if (!s) return;
+        if (s.u) m.unread = false;
+        if (s.r !== undefined) m.repliedIndex = s.r;
+    });
+}
+
+// ===== 通用确认弹窗（存档覆盖等）=====
+let confirmCallback = null;
+function showConfirm(message, onConfirm) {
+    document.getElementById('confirm-text').textContent = message;
+    confirmCallback = onConfirm;
+    document.getElementById('confirm-modal').classList.remove('hidden');
+}
+document.getElementById('confirm-ok').addEventListener('click', () => {
+    document.getElementById('confirm-modal').classList.add('hidden');
+    const cb = confirmCallback; confirmCallback = null;
+    if (cb) cb();
+});
+document.getElementById('confirm-cancel').addEventListener('click', () => {
+    document.getElementById('confirm-modal').classList.add('hidden');
+    confirmCallback = null;
+});
+
 function buildSaveData() {
     return {
         gameStats: JSON.parse(JSON.stringify(gameStats)),
@@ -4871,6 +5009,7 @@ function buildSaveData() {
         matchHistory, choiceHistory,
         decisionPoints, pendingTransferSlots,
         leagueTeams: leagueTeams.map(t => ({ name: t.name, category: t.category, points: t.points })),
+        terminalMsgState: snapshotTerminalMsgState(), // 静态邮件/私信的已读+私信回复选择（动态私信/论坛已在 gameStats 内）
         timestamp: new Date().toLocaleString('zh-CN', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' })
     };
 }
@@ -4904,6 +5043,7 @@ function applyLoadedSave(save) {
         startMatchBtn.disabled = decisionPoints < 2;
     }
     updateMagicPhoneBtn();
+    restoreTerminalMsgState(save.terminalMsgState); // 先复位静态邮件/私信可变态，再套用存档快照（未回复的私信读档后仍可回复）
     updateTeamNewsDot(); // 读档后按未读/通知设置刷新主按钮红点
     document.getElementById('archive-modal').classList.add('hidden');
 }
@@ -4944,12 +5084,17 @@ function renderArchiveSlots() {
 
         const saveBtn = document.createElement('button');
         saveBtn.textContent = '保存';
-        saveBtn.addEventListener('click', () => {
+        const doSave = () => {
             const data = buildSaveData();
             const existing = getSlotSave(slot);
             if (existing && existing.name) data.name = existing.name; // 覆盖保存时保留原存档名
             localStorage.setItem(SAVE_PREFIX + slot, JSON.stringify(data));
             renderArchiveSlots();
+        };
+        saveBtn.addEventListener('click', () => {
+            // 该槽已有存档 → 先确认再覆盖；空槽直接保存
+            if (getSlotSave(slot)) showConfirm('是否确认覆盖当前存档？', doSave);
+            else doSave();
         });
 
         const loadBtn = document.createElement('button');
