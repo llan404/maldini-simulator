@@ -53,7 +53,7 @@ Object.assign(randomEvents, {
         description: "财务团队给你的答案只有一个，靠正常经营，哪怕一线队加上教练都去卖沟子这账也平不了。你们只会陷入更深的漩涡：没钱买球员，只能不断地卖人，你选择：",
         options: [
             { text: "主动认罚，放弃一年欧战，获得喘息的机会。", effects: { budget: 800, media: -5 }, euroBan: true, deliverMail: 'ffpGattusoBan', chain: { eventId: 'ffp3', probability: 1.0, immediate: true } }, // → 加图索私信（消息5）
-            { text: "打包三位主力球员一起买了，获得更多预算。", effects: { budget: 1500, fans: -5, player: -10 }, deliverMail: ['ffpSell', 'ffpPlayerSold'] }, // → 莱昂纳多邮件06 + 主力球员私信（消息6）
+            { text: "打包三位主力球员一起卖了，获得更多预算。", effects: { budget: 1500, fans: -5, player: -10 }, deliverMail: ['ffpSell', 'ffpPlayerSold'] }, // → 莱昂纳多邮件06 + 主力球员私信（消息6）
             { text: "拒绝认罚，赌欧足联不会真的禁赛两年。（概率结局）", effects: {}, endingChance: { endingId: 'hardClash', probability: 0.5 } }
         ]
     },

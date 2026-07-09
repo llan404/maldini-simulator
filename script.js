@@ -2399,7 +2399,8 @@ function selectRandomEvents() {
     if (gameStats.deliveredEmails && gameStats.deliveredEmails.betKingRespMark
         && gameStats.round >= gameStats.deliveredEmails.betKingRespMark.r + 2
         && !gameStats.deliveredEmails.gattusoResp) deliverEmail('gattusoResp');
-    // 私信29（AC米兰·再见面的那天）：第五赛季第38轮送达
+    // 私信29（AC米兰·再见面的那天）：第五赛季第38轮送达。真机由 enterSeasonEndState 送达（R38 收尾不走 selectRandomEvents）；
+    // 此处为幂等兜底（正常流程 selectRandomEvents 在 R38 不会被调用，不会重复送达）。
     if (gameStats.season === 5 && gameStats.round >= 38 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.milanFarewell)) deliverEmail('milanFarewell');
     // 私信50（科斯塔库塔·升任技术总监）已移至 startNewSeason，于第二赛季一开始(round 0)送达
     // 私信53（马萨拉·反对签老将）：第二赛季第16轮送达，且需「新教练」已选选项2（承诺冬窗按教练想法选人 → 已送达 pioliCoach2/消息52）
@@ -3575,6 +3576,9 @@ function enterSeasonEndState() {
     matchResultModal.classList.remove('weekly');
     randomEventModal.classList.add('hidden');
     eventOptions.classList.add('hidden');
+    // 私信29（AC米兰·再见面的那天）：第五赛季第38轮送达。R38 收尾流程（closeResultBtn 直接进赛季结算）
+    // 不经过 selectRandomEvents，故必须在此送达；否则真机永远收不到。
+    if (gameStats.season === 5 && gameStats.round >= 38 && !(gameStats.deliveredEmails && gameStats.deliveredEmails.milanFarewell)) deliverEmail('milanFarewell');
     eventBtns.forEach(btn => { btn.disabled = true; btn.style.backgroundColor = '#ccc'; });
     seasonEndPending = true;
     startMatchBtn.textContent = '结束赛季';
