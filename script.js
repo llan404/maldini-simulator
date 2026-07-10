@@ -1460,7 +1460,7 @@ const transferBuyPlayers = [
     },
     {
         id: 'striker_vet', name: '养老的前锋', tier: 2, tag: '高风险', tagColor: 'risk',
-        desc: '35岁，昔日的世界级射手，拿着高额薪水被俱乐部无情抛弃，他的脚法和经验都还在，关键球的处理仍然不失水准，但他对任何俱乐部的热情都已经远去，签下他意味着承担高额的薪资。',
+        desc: '35岁，昔日的世界级球星，拿着高额薪水被俱乐部无情抛弃，他的脚法和经验都还在，关键球的处理仍然不失水准，但他对任何俱乐部的热情都已经远去，签下他意味着承担高额的薪资。',
         effects: { player: 5, fans: 5, trust: -3 }, cost: 4500, signIntent: 38
     },
     {
@@ -1556,8 +1556,8 @@ const DM_SENDER_PLAYER = {
 };
 
 // ===== 球员成长值（1~10）=====
-// 老将（03吉鲁/06伊布/10铁腰/19克亚尔）初始 5，其余青年球员初始 1；每赛季自然 +1，上限 10
-const OLD_PLAYER_IDS = ['striker_fr', 'maestro', 'dm_cro', 'cb_den'];
+// 老将（03吉鲁/06伊布/10铁腰/16养老前锋/19克亚尔）初始 5，其余青年球员初始 1；每赛季自然 +1，上限 10
+const OLD_PLAYER_IDS = ['striker_fr', 'maestro', 'dm_cro', 'striker_vet', 'cb_den'];
 function initPlayerGrowth(id) {
     if (gameStats.playerGrowth[id] == null) gameStats.playerGrowth[id] = OLD_PLAYER_IDS.includes(id) ? 5 : 1;
 }
@@ -4440,13 +4440,14 @@ function renderTerminalPlayers() {
     }).join('') + '</div>';
 }
 
-// 球员原型名（详情页展示；无对应原型的球员显示原代号名）。丹尼尔·马尔蒂尼卡片本身即真名，无需映射
+// 球员原型名（详情页展示；无对应原型的球员显示原代号名）。丹尼尔·马尔蒂尼卡片本身即真名，无需映射。
+// 注：10 克罗地亚铁腰原型=布罗佐维奇，但按设定「详情页不显示原型」，故不入此表（原型仅记录在 SeasonEvent.md）
 const PLAYER_PROTO_NAME = {
     lb_winger: '特奥·埃尔南德斯', winger_pt: '拉斐尔·莱奥', striker_fr: '奥利维尔·吉鲁',
     cb_eng: '亚历山德罗·弗洛伦齐', gk_talent: '迈克·麦尼昂', maestro: '兹拉坦·伊布拉希莫维奇',
     cm_youth_it: '桑德罗·托纳利', belgian_star: '夏尔·德凯特拉雷', mid_bel: '布拉欣·迪亚斯',
     cb_den: '西蒙·克亚尔', cb_eng_loan: '菲卡约·托莫里', cb_fr_young: '皮埃尔·卡卢卢',
-    dm_cro: '卢卡·莫德里奇', winger_usa: '克里斯蒂安·普利希奇', cm_bel: '亚历克西斯·萨勒马克尔斯'
+    striker_vet: '卢卡·莫德里奇', winger_usa: '克里斯蒂安·普利希奇', cm_bel: '亚历克西斯·萨勒马克尔斯'
 };
 
 // 球员详情：终端内展示球员卡（放大易读版：原型名为主标题、代号作副标，介绍/数值/身价左对齐；身价=实际成交价快照）
