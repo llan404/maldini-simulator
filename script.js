@@ -3557,8 +3557,9 @@ function doSeasonEnd() {
         gameStats.playerGrowth[id] = Math.min(10, gameStats.playerGrowth[id] + 1);
     }
     if (gameStats.ranking === 1) gameStats.scudettoCount++; // 本赛季联赛夺冠，累计意甲冠军数
-    // 首个意甲冠军：当赛季第38轮送达庆祝私信（消息41–47；各按对应球员是否在队，卡拉布里亚常驻）
-    if (gameStats.ranking === 1 && gameStats.scudettoCount === 1) {
+    // 意甲冠军庆祝私信（消息41–47）：每次夺冠都对「在队且没发过」的球员补发 ——
+    // 即每名球员「入队后的第一个意甲冠军」触发一次（deliverEmail 幂等：首冠已发过的球员第二冠不重复；后入队的球员在其首冠时补上）
+    if (gameStats.ranking === 1) {
         const _has = id => gameStats.signedPlayers.includes(id);
         if (_has('maestro')) deliverEmail('firstScudettoIbra');           // 41 伊布
         if (_has('cm_youth_it')) deliverEmail('firstScudettoTonali');     // 42 托纳利
@@ -3566,19 +3567,20 @@ function doSeasonEnd() {
         if (_has('gk_talent')) deliverEmail('firstScudettoMaignan');      // 44 麦尼昂
         if (_has('striker_fr')) deliverEmail('firstScudettoGiroud');      // 45 吉鲁
         if (_has('daniel_maldini')) deliverEmail('firstScudettoDaniel');  // 46 丹尼尔
-        deliverEmail('firstScudettoCalabria');                           // 47 卡拉布里亚（常驻）
+        deliverEmail('firstScudettoCalabria');                           // 47 卡拉布里亚（常驻，仅首冠发一次）
     }
     if (gameStats.euroType === 'ucl' && gameStats.uclStage === 'champion') gameStats.uclTitleCount++; // 累计欧冠冠军数
-    // 首个欧冠冠军（1–4赛季）：当赛季第38轮送达庆祝私信（消息81–86；各按对应球员是否在队）
-    if (gameStats.euroType === 'ucl' && gameStats.uclStage === 'champion' && gameStats.uclTitleCount === 1 && gameStats.season <= 4) {
+    // 欧冠冠军庆祝私信（消息81–86，1–4赛季）：每次夺冠都对「在队且没发过」的球员补发 ——
+    // 即每名球员「入队后的第一个欧冠冠军」触发一次（deliverEmail 幂等，同意甲庆祝逻辑）
+    if (gameStats.euroType === 'ucl' && gameStats.uclStage === 'champion' && gameStats.season <= 4) {
         const _hu = id => gameStats.signedPlayers.includes(id);
-        deliverEmail('firstUclSinger');                          // 81 戈登·辛格
+        deliverEmail('firstUclSinger');                          // 81 戈登·辛格（常驻，仅首冠发一次）
         if (_hu('cm_youth_it')) deliverEmail('firstUclTonali');  // 82 托纳利
         if (_hu('maestro')) deliverEmail('firstUclIbra');        // 83 伊布
         if (_hu('cb_den')) deliverEmail('firstUclKjaer');        // 84 克亚尔（需19）
         if (_hu('lb_winger')) deliverEmail('firstUclTheo');      // 85 特奥
         if (_hu('winger_pt')) deliverEmail('firstUclLeao');      // 85 莱奥
-        deliverEmail('firstUclMassara');                         // 86 马萨拉
+        deliverEmail('firstUclMassara');                         // 86 马萨拉（常驻，仅首冠发一次）
     }
     if (gameStats.season === 4 && gameStats.euroType === 'ucl' && gameStats.uclStage === 'champion') gameStats.s4WonUcl = true; // 第四赛季欧冠夺冠快照，供邮件28/29二选一
     gameStats.lastSeasonWonUcl = (gameStats.euroType === 'ucl' && gameStats.uclStage === 'champion'); // 记「上赛季是否夺欧冠」，供下赛季签约谈判话术
