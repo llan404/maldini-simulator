@@ -3581,6 +3581,9 @@ function doSeasonEnd() {
         if (_hu('lb_winger')) deliverEmail('firstUclTheo');      // 85 特奥
         if (_hu('winger_pt')) deliverEmail('firstUclLeao');      // 85 莱奥
         deliverEmail('firstUclMassara');                         // 86 马萨拉（常驻，仅首冠发一次）
+        deliverEmail('firstUclAtalanta');                        // 87 亚特兰大（常驻，仅首冠发一次）
+        // 89 AC米兰（俱乐部之声）：魔力电话触发后的首个欧冠冠军（解锁前的夺冠不发；解锁后第一次夺冠即发，幂等仅一次）
+        if (gameStats.magicPhoneUnlocked) deliverEmail('firstUclMagic');
     }
     if (gameStats.season === 4 && gameStats.euroType === 'ucl' && gameStats.uclStage === 'champion') gameStats.s4WonUcl = true; // 第四赛季欧冠夺冠快照，供邮件28/29二选一
     gameStats.lastSeasonWonUcl = (gameStats.euroType === 'ucl' && gameStats.uclStage === 'champion'); // 记「上赛季是否夺欧冠」，供下赛季签约谈判话术
@@ -3972,6 +3975,8 @@ function playUclFinal(option) {
     if (won && opp.name === '利物浦' && gameStats.euroType === 'ucl') deliverEmail('uclFinalBeatLiverpool'); // 消息77 · 欧冠决赛击败利物浦
     if (opp.name === '皇家马德里' && gameStats.euroType === 'ucl' && (gameStats.season === 4 || gameStats.season === 5))
         deliverEmail(won ? 'uclBeatMadrid' : 'uclLoseMadrid'); // 消息78/80 · 决赛 胜/负 皇马（第4/5赛季）
+    if (won && opp.name === '皇家马德里' && gameStats.euroType === 'ucl') deliverEmail('uclFinalBeatMadrid'); // 消息88 · 决赛击败皇马夺冠（皇马俱乐部致意，任意赛季）
+    if (won && opp.name === '尤文图斯' && gameStats.euroType === 'ucl') deliverEmail('uclFinalBeatJuve'); // 消息90 · 决赛击败尤文夺冠（尤文俱乐部致意）
     if (won) {
         gameStats.uclStage = 'champion';
         const bonus = uclRewards.final.win.budget;
@@ -4586,6 +4591,9 @@ const CLUB_CRESTS = {
     'AC米兰': 'SVG/SA/ACM.svg',
     '国际米兰': 'SVG/SA/inter-milan-2021.svg',
     '皇家马德里': 'SVG/E/Real-Madrid-CF-v2002.svg',
+    '利物浦': 'SVG/E/Liverpool-Football-Club-v2024-minor.svg',
+    '亚特兰大': 'SVG/SA/Atalanta-BC-v1993.svg',
+    '尤文图斯': 'SVG/SA/juventus-4.svg',
 };
 function dmAvatar(from) {
     const src = CLUB_CRESTS[from];

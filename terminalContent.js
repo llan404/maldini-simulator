@@ -755,6 +755,33 @@ const TERMINAL_CONTENT = {
           replies: [
               { text: '哈哈。', answer: '下周我再回来上班。' },
               { text: '看来下个赛季的转会顺利很多。', answer: '那当然，我们在签约上会占尽优势的。' }
+          ] },
+        // 消息87 · 亚特兰大（首个欧冠冠军·当赛季第38轮送达，trigger:'firstUclAtalanta'）
+        { from: '亚特兰大', unread: true, trigger: 'firstUclAtalanta',
+          bubbles: ['恭喜AC米兰获得欧冠冠军~'],
+          replies: [
+              { text: '谢谢。', answer: '你们青训的那个右边锋有没有兴趣来亚特兰大？' }
+          ] },
+        // 消息88 · 皇家马德里（欧冠决赛击败皇马夺冠后送达，trigger:'uclFinalBeatMadrid'；并入皇家马德里会话）
+        { from: '皇家马德里', unread: true, trigger: 'uclFinalBeatMadrid',
+          bubbles: ['祝贺AC米兰获得本赛季欧冠冠军。', '在这项赛事中，我们两家俱乐部捧起过最多的奖杯。', '对你们，我从不吝啬给予敬意。', '恭喜你们重返属于米兰的位置。', '下个赛季见。'],
+          replies: [
+              { text: '我们同样对皇家马德里抱有尊重。', answer: '顺便说，你们前锋发挥不错......' },
+              { text: '谢谢。', answer: '米兰说她迟早会追上我的，期待你们未来的表现。' }
+          ] },
+        // 消息89 · AC米兰（魔力电话已解锁 + 首个欧冠冠军·当赛季第38轮送达，trigger:'firstUclMagic'；并入AC米兰会话）
+        { from: 'AC米兰', unread: true, trigger: 'firstUclMagic',
+          bubbles: ['祝贺你。'],
+          replies: [
+              { text: '谢谢。', answer: '我再次沉浸在欢乐中。' },
+              { text: '你感觉如何。', answer: '我已经忘记上一个你带给我的欧冠奖杯是什么滋味了。' }
+          ] },
+        // 消息90 · 尤文图斯（欧冠决赛击败尤文夺冠后送达，trigger:'uclFinalBeatJuve'）
+        { from: '尤文图斯', unread: true, trigger: 'uclFinalBeatJuve',
+          bubbles: ['二十年前在曼彻斯特，当时你还是队长。', '米兰击败我们时我感到不可思议。', '现在你换了一个身份，重新在我面前获得了欧冠冠军。', '恭喜米兰。', '我祝福她能一直拥有你。'],
+          replies: [
+              { text: '谢谢。', answer: '下次见。' },
+              { text: '尤文图斯是我们一直以来的同盟和对手。', answer: '下一个百年也是这样。' }
           ] }
     ],
     // 消息49 · 从终端球员列表出售球员后，按被出售球员姓名生成发件人（动态模板，非固定私信）

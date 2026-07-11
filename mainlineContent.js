@@ -85,7 +85,7 @@ Object.assign(randomEvents, {
     euroNight2: {
         title: "欧联之夜Ⅱ",
         mainline: true,
-        description: "上一次欧战给你们的打击还没有过去，联赛多轮不胜又来了，外界对于换帅的呼声越来越高。你看向这位米兰名宿，你和加图索曾是关系紧密的队友。你深知他的性格，已经做了能为米兰做的一切，你选择：",
+        description: "上一次欧战给你们的打击还没有过去，联赛风波又来了，外界对于换帅的呼声越来越高。你看向这位米兰名宿，你和加图索曾是关系紧密的队友。你深知他的性格，已经做了能为米兰做的一切，你选择：",
         options: [
             { text: "替他担保，认为他再干一个赛季会更好。", effects: { trust: -2 }, chain: { eventId: 'farewell', probability: 1.0, minRound: 38 } },
             { text: "体面换帅，向媒体直言他已经做到最好。", effects: { trust: 2, media: 2 }, deliverMail: 'coachChange', chain: { eventId: 'farewell', elseEventId: 'resignation', probability: 0.5, minRound: 38 } }, // → CEO邮件08 送达
