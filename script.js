@@ -128,6 +128,7 @@ let gameStats = {
     magicPhoneUnlocked: false,
     magicPhoneUses: 0,
     scudettoCount: 0,
+    scudettoSeasons: [], // 夺得意甲冠军的赛季号列表（1~5），供官方公告卡差分文案用
     uclTitleCount: 0,
     season4TitlesBefore: 0,
     uclReachedFinal: false,
@@ -1151,7 +1152,7 @@ function updateProgressBar(barId, value) {
 function initializeGame(difficulty) {
     // 初始化数值
     const initVal = difficulty === 'hard' ? 40 : 50;
-    gameStats = { trust: initVal, media: initVal, fans: initVal, player: initVal, budget: 1000, points: 0, ranking: 1, round: 0, lastScore: '', lastOpponentDisplay: '', consecutiveNonWins: 0, consecutiveLosses: 0, usedRandomEvents: [], southStandEventUsed: false, betKingEventUsed: false, rebateEventCount: 0, randomPity: 0, transferEventUsed: false, carCrashEventUsed: false, sinkOrSwimEventUsed: false, bigDataEventUsed: false, derbyLossEventPending: false, derbyWinEventPending: false, warningEventShown: false, gameEnded: false, season: 1, deliveredEmails: {}, architectureRound: 0, notifyPrefs: { email: true, dm: true, forum: true, players: true }, futureRandomEvents: [], usedMainlineEvents: [], newCoachDone: false, xmasDone: false, oldFriendDone: false, winterWindowDone: false, winterSlotBonus: 0, winterNoBudget: false, winterReturnCost: 0, winterReturnIntent: 0, signedPlayers: [], news01Pending: false, news01Done: false, ibraNewsPending: false, ibraNewsDone: false, effectiveDone: false, lockerBrawlPending: false, lockerBrawlDone: false, supportTaskActive: false, zlatanSupport: 0, wonScudetto1: false, hasUCL: false, uclBanNextSeason: false, uclFixtures: null, uclStage: null, uclQualified: false, uclGroupPos: 0, uclOutRound: 0, euroType: 'ucl', lastSeasonRanking: 0, uclTagShown: false, mug1Done: false, mug2Done: false, mugPactDone: false, mugPactPending: false, eslDone: false, esl2Pending: false, esl2Done: false, eslResolution: '', eslResolutionDone: false, sameNameDone: false, player07WinterCost: 0, player07Trust: 0, player07Removed: false, player01Trust: 0, emoOutburstDone: false, nextLeftBack3Done: false, transferRumorDone: false, donnaNegoDone: false, summerWarnShown: false, winterWarnShown: false, player21Discount: 0, force21Window: false, forceWindowPlayers: [], scout64Pending: null, scout64ActiveId: null, scout64Offered: [], scout64SeasonCount: 0, scoutOfferSeasonCount: 0, donnaLeftFreeRound: 0, calhaLeftRound: 0, s4WonUcl: false, lastSeasonWonUcl: false, transferIntel: [], starterPromise: [], playerGrowth: {}, forumPosts: [], dynamicDMs: [], purchasePrice: {}, scoutSellable: [], soldPlayers: [], buyoutTomoriDone: false, overtimeFineUsed: false, homeVisitUsed: false, leaoNewsPending: false, leaoNewsDone: false, betKing1Done: false, betKing2Done: false, betKing3Done: false, betKingSkip: false, betKingResolved: false, farCallDone: false, magicPhoneUnlocked: false, magicPhoneUses: 0, scudettoCount: 0, uclTitleCount: 0, season4TitlesBefore: 0, uclReachedFinal: false, uclFinalCount: 0, suspicion: 0, hesitantContract1Done: false, hesitantContract2Done: false, hesitantContract2Pending: false, omniscient1Done: false, omniscient2Done: false, pressOfficerDone: false, nextLeftBack4Done: false, leftBack4Resolved: false, southStandTalkDone: false, southStandPending: false, footballDisputeDone: false, deadEndDone: false, godByeDone: false, lastMatchLost: false, shownWarnings: { trustCrisis: false, trustCritical: false, mediaCrisis: false, mediaCritical: false, playerCrisis: false, playerCritical: false, fansCrisis: false, fansCritical: false }, difficulty };
+    gameStats = { trust: initVal, media: initVal, fans: initVal, player: initVal, budget: 1000, points: 0, ranking: 1, round: 0, lastScore: '', lastOpponentDisplay: '', consecutiveNonWins: 0, consecutiveLosses: 0, usedRandomEvents: [], southStandEventUsed: false, betKingEventUsed: false, rebateEventCount: 0, randomPity: 0, transferEventUsed: false, carCrashEventUsed: false, sinkOrSwimEventUsed: false, bigDataEventUsed: false, derbyLossEventPending: false, derbyWinEventPending: false, warningEventShown: false, gameEnded: false, season: 1, deliveredEmails: {}, architectureRound: 0, notifyPrefs: { email: true, dm: true, forum: true, players: true }, futureRandomEvents: [], usedMainlineEvents: [], newCoachDone: false, xmasDone: false, oldFriendDone: false, winterWindowDone: false, winterSlotBonus: 0, winterNoBudget: false, winterReturnCost: 0, winterReturnIntent: 0, signedPlayers: [], news01Pending: false, news01Done: false, ibraNewsPending: false, ibraNewsDone: false, effectiveDone: false, lockerBrawlPending: false, lockerBrawlDone: false, supportTaskActive: false, zlatanSupport: 0, wonScudetto1: false, hasUCL: false, uclBanNextSeason: false, uclFixtures: null, uclStage: null, uclQualified: false, uclGroupPos: 0, uclOutRound: 0, euroType: 'ucl', lastSeasonRanking: 0, uclTagShown: false, mug1Done: false, mug2Done: false, mugPactDone: false, mugPactPending: false, eslDone: false, esl2Pending: false, esl2Done: false, eslResolution: '', eslResolutionDone: false, sameNameDone: false, player07WinterCost: 0, player07Trust: 0, player07Removed: false, player01Trust: 0, emoOutburstDone: false, nextLeftBack3Done: false, transferRumorDone: false, donnaNegoDone: false, summerWarnShown: false, winterWarnShown: false, player21Discount: 0, force21Window: false, forceWindowPlayers: [], scout64Pending: null, scout64ActiveId: null, scout64Offered: [], scout64SeasonCount: 0, scoutOfferSeasonCount: 0, donnaLeftFreeRound: 0, calhaLeftRound: 0, s4WonUcl: false, lastSeasonWonUcl: false, transferIntel: [], starterPromise: [], playerGrowth: {}, forumPosts: [], dynamicDMs: [], purchasePrice: {}, scoutSellable: [], soldPlayers: [], buyoutTomoriDone: false, overtimeFineUsed: false, homeVisitUsed: false, leaoNewsPending: false, leaoNewsDone: false, betKing1Done: false, betKing2Done: false, betKing3Done: false, betKingSkip: false, betKingResolved: false, farCallDone: false, magicPhoneUnlocked: false, magicPhoneUses: 0, scudettoCount: 0, scudettoSeasons: [], uclTitleCount: 0, season4TitlesBefore: 0, uclReachedFinal: false, uclFinalCount: 0, suspicion: 0, hesitantContract1Done: false, hesitantContract2Done: false, hesitantContract2Pending: false, omniscient1Done: false, omniscient2Done: false, pressOfficerDone: false, nextLeftBack4Done: false, leftBack4Resolved: false, southStandTalkDone: false, southStandPending: false, footballDisputeDone: false, deadEndDone: false, godByeDone: false, lastMatchLost: false, shownWarnings: { trustCrisis: false, trustCritical: false, mediaCrisis: false, mediaCritical: false, playerCrisis: false, playerCritical: false, fansCrisis: false, fansCritical: false }, difficulty };
     pendingTransferSlots = 0;
     lastOpponentName = '';
     serieATeams = teams.map(t => ({ ...t }));
@@ -3556,7 +3557,7 @@ function doSeasonEnd() {
         initPlayerGrowth(id);
         gameStats.playerGrowth[id] = Math.min(10, gameStats.playerGrowth[id] + 1);
     }
-    if (gameStats.ranking === 1) gameStats.scudettoCount++; // 本赛季联赛夺冠，累计意甲冠军数
+    if (gameStats.ranking === 1) { gameStats.scudettoCount++; (gameStats.scudettoSeasons || (gameStats.scudettoSeasons = [])).push(gameStats.season); } // 本赛季联赛夺冠，累计意甲冠军数 + 记录夺冠赛季号（旧存档无此字段时兜底初始化）
     // 意甲冠军庆祝私信（消息41–47）：每次夺冠都对「在队且没发过」的球员补发 ——
     // 即每名球员「入队后的第一个意甲冠军」触发一次（deliverEmail 幂等：首冠已发过的球员第二冠不重复；后入队的球员在其首冠时补上）
     if (gameStats.ranking === 1) {
@@ -3714,12 +3715,32 @@ document.getElementById('restart-game').addEventListener('click', function() {
     eventModal.classList.remove('hidden'); // 重新开始跳过创作者声明，直接到马尔蒂尼上任
 });
 
+// 官方公告卡（结局卡片样式）：赛季号 → 显示用赛季年份（意甲冠军差分文案用）
+const SCUDETTO_SEASON_YEARS = { 1: '2018/2019', 2: '2019/2020', 3: '2020/2021', 4: '2021/2022', 5: '2022/2023' };
+// 第五赛季点击"结束赛季"后展示：正文按玩家任期内实际夺得意甲冠军的赛季生成差分文案
+function showAnnouncementCard() {
+    const years = (gameStats.scudettoSeasons || []).slice().sort((a, b) => a - b).map(s => SCUDETTO_SEASON_YEARS[s]).join('、');
+    const p2 = years
+        ? `我们感谢他在这个职位上多年以来的贡献，帮助AC米兰重返欧洲冠军联赛和赢得${years}赛季意甲联赛的冠军。`
+        : '我们感谢他在这个职位上多年以来的贡献，帮助AC米兰重返欧洲冠军联赛。';
+    document.getElementById('announcement-text').innerHTML =
+        `<p>AC米兰足球俱乐部宣布，保罗·马尔蒂尼于2023年6月5日起结束了他在俱乐部的任职。</p>
+        <p>${p2}</p>
+        <p>他的职责将分配给一个直接向首席执行官汇报的，与一线队主教练密切合作的综合工作组。</p>`;
+    document.getElementById('announcement-modal').classList.remove('hidden');
+}
+document.getElementById('announcement-view-ending').addEventListener('click', () => {
+    document.getElementById('announcement-modal').classList.add('hidden');
+    doSeasonEnd();
+});
+
 // 开始比赛
 startMatchBtn.addEventListener('click', function() {
     // 第 38 轮收尾：按钮已变"结束赛季"，点击进入赛季结算而非打比赛
     if (seasonEndPending) {
         seasonEndPending = false;
         startMatchBtn.textContent = '开始比赛';
+        if (gameStats.season === 5) { showAnnouncementCard(); return; } // 第五赛季：先展示官方公告卡，点「查看结局」再进入真正的赛季结算
         doSeasonEnd();
         return;
     }

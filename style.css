@@ -90,7 +90,7 @@ h1::after {
 .modal-content::-webkit-scrollbar-thumb { background: #c8b89c; border-radius: 4px; }
 .modal-content::-webkit-scrollbar-thumb:hover { background: #b0a080; }
 
-#ending-modal {
+#ending-modal, #announcement-modal {
     background-color: rgba(0, 0, 0, 0.88);
 }
 
@@ -433,7 +433,8 @@ button:hover {
     border: 1.5px solid #1c1916;
     border-radius: 10px;
     padding: 14px 16px;
-    margin: 10px 0;
+    width: 86%;
+    margin: 10px auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
