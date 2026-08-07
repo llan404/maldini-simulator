@@ -79,7 +79,7 @@ const endings = {
         id: 19,
         epilogue: true,
         title: "意 外？",
-        image: "EndAccident.jpg",
+        image: "Picture_Ending/EndAccident.jpg",
         imageW: 1668, imageH: 2388, // 预留宽高比，避免加载时回流闪动
         text: "有一点是确定的：我对米兰的爱永远是无条件的，作为<span class='en-name'>Cesare</span>的儿子，作为球队前队长，作为<span class='en-name'>Christian</span>和<span class='en-name'>Daniel</span>的父亲，他们都曾经效力过米兰，同时也作为一名总监：那是美妙的五年。"
     },
@@ -96,13 +96,18 @@ const endings = {
     sheCame: {
         id: 17,
         title: "‘她来了’",
+        imageSequence: [
+            { src: "Picture_Ending/Milan_OpenEyes.jpg", duration: 2000 },
+            { src: "Picture_Ending/Milan_CloseEyes.jpg", duration: 500 }
+        ],
+        imageW: 2307, imageH: 3150, // 两帧尺寸一致，切换时保持结局卡片稳定
         text: "米兰已经醒来，所有的球员和球迷都只为她而战。你使用了太多被封印的力量，现在，他们唯一相信的只有这个符号。"
     },
     tomorrow: {
         id: 18,
         title: "明天",
         hidden: true,
-        image: "Special_Ending.jpeg",
+        image: "Picture_Ending/Special_Ending.jpeg",
         imageW: 7692, imageH: 4302, // 预留宽高比，避免加载时回流闪动
         text: () => { const _ts = getTomorrowStats(); const _sc = _ts ? _ts.s : gameStats.scudettoCount; const _uc = _ts ? _ts.u : gameStats.uclTitleCount; return `尽管你对资方已经足够谨慎，在赛季结束时，你仍然被开除了。这次是什么原因？你知道没有一个总监能做的比你更好了，在任期中，米兰获得了${_sc}次联赛冠军，${_uc}次欧冠冠军，管理层最开始给你定下的目标已经被超额完成。
 红鸟资本所引入的经营球队的观念让你无法理解，你们谁也无法说服对方。爆发了数次摩擦后，管理层认为解决人比解决事更容易。

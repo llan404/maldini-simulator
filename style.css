@@ -1,6 +1,54 @@
+/* ===== 主界面字体（自托管子集，见 subset-fonts.py）=====
+   全部本地打包：中国大陆访问不到 Google Fonts，字体必须随站点走。
+   拉丁两个字重、中文只有 400（中文子集单个约 500KB，粗体不值得再背一份，
+   主界面原本用粗体的几处中文已统一改回 400）。 */
+@font-face {
+    font-family: "Cormorant Garamond";
+    src: url("assets/fonts/CormorantGaramond-400.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Cormorant Garamond";
+    src: url("assets/fonts/CormorantGaramond-700.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Noto Serif SC";
+    src: url("assets/fonts/NotoSerifSC-400.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
 /* 全局样式 */
+/* 开场各屏（创作者声明 / 马尔蒂尼上任 / 难度选择）保持原来的纯米白底 */
+html, body {
+    background-color: #F2ECE0;
+}
+
+/* 方格纸底：底色取自示意图（#F0EBE1），格线偏冷灰蓝。
+   **仅在「新界面 + 已进入主界面」时启用**（body 同时带 in-main 且不带 ui-old）——
+   in-main 由 JS 在显示 #main-interface 时挂上、重新开始时摘掉。
+   背景铺在 body 上并 fixed，滚动时四周始终是同一张方格纸、不跟着内容跑。 */
+body.in-main:not(.ui-old) {
+    background-color: #F0EBE1;
+    background-image:
+        repeating-linear-gradient(0deg,  rgba(138,152,172,0.16) 0 1px, transparent 1px 22px),
+        repeating-linear-gradient(90deg, rgba(138,152,172,0.16) 0 1px, transparent 1px 22px);
+    background-attachment: fixed;
+}
+
+/* 大标题：开场三屏（声明/上任/难度选择）两种模式都照常显示——那几屏是新旧共用的，
+   与原版保持一致；**只有进入新界面的主界面后**才隐藏，免得压住拼贴版面 */
+body.in-main:not(.ui-old) #page-title { display: none; }
+
 html {
-    background-color: #F2ECE0; /* 米白色——双指缩小时页面外围也铺满此色，不再露出白底 */
     min-height: 100%;
 }
 
@@ -8,7 +56,6 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #F2ECE0;
     color: #8B0000;
     display: flex;
     justify-content: center;
@@ -555,7 +602,7 @@ button:hover {
 .suspicion-card.hidden { display: none; }
 .suspicion-label {
     font-size: 0.86rem;
-    font-weight: 700;
+    font-weight: 400; /* 同上：中文子集只有 400 */
     color: #1c1916;
     letter-spacing: 0.04em;
 }
@@ -739,7 +786,7 @@ button:hover {
 .panel-label {
     font-size: 1rem;
     color: #b3a896;
-    font-weight: 700;
+    font-weight: 400; /* 中文子集只有 400，用 700 会触发难看的伪粗体 */
     text-align: center;
     width: 100%;
 }
@@ -774,9 +821,9 @@ button:hover {
     white-space: nowrap;
     position: relative;
 }
-/* 英文(主队 AC Milan)用 Playfair Display，中文(客队)用默认字体；各自微调垂直位置，使两者中心都落在比分横中线上 */
+/* 主队 AC Milan(英文)与客队(中文)由 #main-interface 的字体栈自动分流；
+   各自微调垂直位置，使两者中心都落在比分横中线上 */
 #last-score-home {
-    font-family: 'Playfair Display', serif;
     font-weight: 600;
     top: 1px;
 }
@@ -789,7 +836,7 @@ button:hover {
     font-size: 1.9rem;
     font-weight: 600;
     line-height: 1;
-    font-family: 'Oswald', sans-serif;
+    font-variant-numeric: tabular-nums lining-nums;
 }
 
 .score-colon {
@@ -825,7 +872,8 @@ button:hover {
 }
 
 .variable span {
-    font-weight: 700;
+    font-weight: 700; /* 数字命中 Cormorant 700；「万欧元」等中文经 font-synthesis:none 回落到 400 */
+    font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* 保证右侧数值不出现较大间距，轮次显示为紧凑的右侧元素 */
@@ -1484,6 +1532,37 @@ button:hover {
     color: #3a1f55;
 }
 
+/* ===== 魔力电话「您已为…」回执卡上一闪而过的立绘（Milan_CloseEyes）=====
+   由 renderMagicCard(…, cgSrc) 注入一个 .magic-cg，动画结束自行移除。
+   ⚠ 三条硬要求：不改卡片尺寸、不挡文字、不吃点击 —— 所以做成
+     absolute inset:0 的兄弟层 + pointer-events:none，且压在正文之下（z-index 0/1）。
+   图上再盖一层卡片底色的半透明蒙版，把立绘压成淡水印，正文对比度完全不受影响。 */
+#random-event-modal.magic .modal-content { position: relative; overflow: hidden; }
+#random-event-modal.magic .modal-content > *:not(.magic-cg) { position: relative; z-index: 1; }
+.magic-cg {
+    position: absolute; inset: 0; z-index: 0;
+    pointer-events: none;
+    /* 图片路径由 JS 写进 --magic-cg */
+    background-image: linear-gradient(rgba(246, 242, 251, 0.72), rgba(246, 242, 251, 0.76)), var(--magic-cg);
+    /* 取景：竖构图立绘塞进横向卡片，直接 cover 会只剩一条腰。
+       按 360×212 的卡片算，14% 让闭眼的脸落在卡片中上部、正文右侧的空白处。 */
+    background-size: cover, cover;
+    background-position: center, center 14%;
+    background-repeat: no-repeat, no-repeat;
+    opacity: 0;
+    animation: magic-cg-glimpse 0.7s forwards;
+}
+/* 一闪而过：0.11s 冲上来 → 只停 0.14s → 0.45s 退掉。
+   两段都用 ease-out（关键帧内的 timing-function 管的是「从本帧到下一帧」那段）：
+   起落都是先快后慢，亮的部分很快就没了，不会有停在画面上的滞留感。
+   各段秒数 = 百分比 × 上面的总时长。 */
+@keyframes magic-cg-glimpse {
+    0%   { opacity: 0; animation-timing-function: ease-out; }
+    16%  { opacity: 1; animation-timing-function: linear; }
+    36%  { opacity: 1; animation-timing-function: ease-out; }
+    100% { opacity: 0; }
+}
+
 /* 赛季结算弹窗 */
 #season-result-modal {
     background-color: rgba(0, 0, 0, 0.88);
@@ -1826,12 +1905,25 @@ button:hover {
     margin-bottom: 7px;
 }
 
-.test-notice-list {
-    font-size: 0.82rem;
-    line-height: 1.8;      /* 原 1.9，略缩 */
-    color: #5a4334;
-    padding-left: 1.4em;
-    margin: 4px 0 9px;
+/* AI 使用声明：沿用页眉/标题横线那套金色，做成淡金衬底的小注块。
+   不加粗、不改字色深浅，靠左侧金线和衬底把整行拎出来。
+   ⚠ 两页是 grid 叠在同一单元、弹窗高度取较高的第一页，故这里只加约 10px，别再往上堆。 */
+.tn-ai-note {
+    background: linear-gradient(90deg, rgba(200, 162, 74, 0.17), rgba(200, 162, 74, 0.05));
+    border-left: 2px solid #c8a24a;
+    border-radius: 0 3px 3px 0;
+    padding: 5px 9px;
+    margin: 8px 0;
+    color: #4a3520;
+}
+
+/* 特别感谢页的分隔线：把「提供建议」与「绘制CG／文案来源」两块分开。
+   与 h2::after 同一条淡金渐变，两端淡出。
+   ⚠ 上边距 0.35em 会与上一条致谢的 0.95em 下边距合并（取大者），所以这条线基本不额外增高第二页 */
+.tn-thanks-rule {
+    height: 1.5px;
+    margin: 0.35em 0 1.3em;
+    background: linear-gradient(90deg, transparent, #d8c48a 18%, #d8c48a 82%, transparent);
 }
 
 .test-notice-contact {
@@ -2382,6 +2474,59 @@ body.terminal-modal-open { overflow: hidden; }
 .dm-reply-act { display: block; }
 .dm-reply-cost { display: block; margin-top: 3px; font-size: 0.68rem; color: #9a9384; }
 .dm-reply-cost b { color: #b3352b; font-weight: 700; }
+
+/* ===== 私信对话串 CG 背景（消息29「你怎么知道？」→「你心属于我」后解锁）=====
+   图片路径由 JS 写进 --dm-cg（见 terminal-system.js 的 applyDmThreadBg）。
+   立绘是暗底，故整条对话串一并切到暗色配色，否则原来的深色文字全糊在图上看不清。
+   ⚠ 底图铺在 ::before 上（而非 background 直接铺 .terminal-screen）：这样才能单独淡入，
+     且不受两个滚动容器影响；两个直接子元素需要抬 z-index 才能压在图上。 */
+.terminal-screen.dm-thread-view.dm-cg { position: relative; }
+.terminal-screen.dm-thread-view.dm-cg::before {
+    content: ''; position: absolute; inset: 0; z-index: 0;
+    pointer-events: none;
+    /* 底色也放在 ::before 上（不放屏幕本身）：这样它跟着一起淡入，
+       否则整块会先「啪」地变黑再等图片淡进来 */
+    background-color: #090c0a;
+    /* 上层压一道暗色蒙版，保证气泡边缘和分隔线始终有对比 */
+    background-image: linear-gradient(rgba(6, 9, 7, 0.52), rgba(6, 9, 7, 0.62)), var(--dm-cg);
+    /* 取景：立绘是竖构图，直接 cover 会让脸落在右上角、还被顶栏和气泡压住。
+       放大到屏幕高的 175%、水平 74%，把脸推到画面正中偏上（约 51% 高），
+       正好落在气泡区下方。改图或改手机比例后需重新对一次取景。 */
+    background-size: cover, auto 175%;
+    background-position: center, 74% top;
+    background-repeat: no-repeat, no-repeat;
+}
+.terminal-screen.dm-thread-view.dm-cg > * { position: relative; z-index: 1; }
+/* 一次性淡入：只在解锁那一刻加 .dm-cg-enter（JS 在 2s 后摘掉），重开对话不重放 */
+.terminal-screen.dm-thread-view.dm-cg.dm-cg-enter::before { animation: dm-cg-fade 1.8s ease both; }
+@keyframes dm-cg-fade { from { opacity: 0; } to { opacity: 1; } }
+/* 暗色皮与底图同步渐变 —— 否则文字/气泡瞬间变暗、图还没淡进来，中间会闪一下。
+   只在 .dm-cg-enter 期间挂，2s 后摘掉，免得按钮 hover 也拖成 1.8s。 */
+.dm-cg-enter .dm-thread-top,
+.dm-cg-enter .dm-chat-name,
+.dm-cg-enter .mail-back,
+.dm-cg-enter .dm-msg-sep,
+.dm-cg-enter .dm-bubble,
+.dm-cg-enter .dm-reply-btn,
+.dm-cg-enter .dm-reply-cost,
+.dm-cg-enter .dm-typing span,
+.dm-cg-enter .dm-avatar-club {
+    transition: background-color 1.8s ease, border-color 1.8s ease, color 1.8s ease, text-shadow 1.8s ease;
+}
+
+.dm-cg .dm-thread-top { border-bottom-color: rgba(240, 232, 220, 0.26); }
+.dm-cg .dm-chat-name { color: #f4ece1; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7); }
+.dm-cg .mail-back { background: rgba(18, 16, 14, 0.6); border-color: rgba(240, 232, 220, 0.34); color: #ece4d8; }
+.dm-cg .mail-back:hover { background: rgba(46, 41, 36, 0.72); }
+.dm-cg .dm-msg-sep { border-top-color: rgba(240, 232, 220, 0.2); }
+.dm-cg .dm-bubble { background: rgba(14, 13, 12, 0.76); border-color: rgba(240, 232, 220, 0.16); color: #f2ebe0; }
+.dm-cg .dm-bubble.dm-out { background: rgba(139, 0, 0, 0.85); border-color: rgba(255, 214, 205, 0.28); color: #fff; }
+.dm-cg .dm-typing span { background: #cfc7bb; }
+.dm-cg .dm-reply-btn { background: rgba(14, 13, 12, 0.62); border-color: rgba(240, 232, 220, 0.5); color: #f2ebe0; }
+.dm-cg .dm-reply-btn:hover { background: rgba(46, 41, 36, 0.78); }
+.dm-cg .dm-reply-btn:active { background: rgba(60, 54, 48, 0.85); }
+.dm-cg .dm-reply-cost { color: #c6bdaf; }
+.dm-cg .dm-avatar-club { background: rgba(255, 255, 255, 0.92); }
 
 /* 球员档案 */
 .tm-player-list { display: flex; flex-direction: column; gap: 8px; }
@@ -3162,3 +3307,688 @@ body.terminal-modal-open { overflow: hidden; }
     transition: background 0.15s;
 }
 .neg-confirm:hover { background: #a30000; }
+
+/* ========== 主界面：体育总监名片（四项核心数值） ==========
+   注意：这里**不要**再写 `.stats-box { ... }` 之类的中和规则。
+   名片是新界面专用组件，新界面 markup 里根本没有 .stats-box；
+   而 .stats-box 是**旧界面**（<template id="ui-old-main"> 里的原版四张数值卡）
+   赖以成立的 2×2 网格外框，写在这里只会把旧界面压垮（曾导致旧界面四项数值
+   失去外框、挤成一列）。旧界面的样式一律由文件前半段的原版规则负责。 */
+.director-card {
+    --director-red: #D21F19;
+    --director-red-deep: #8E1310; /* 进度条专用的暗红，比名片主红更沉 */
+    --director-black: #242424;
+    --director-paper: #F2EBCF;
+    position: relative;
+    isolation: isolate;
+    container-type: inline-size;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 29% minmax(0, 1fr);
+    overflow: hidden;
+    padding: clamp(15px, 5.2vw, 23px);
+    background:
+        radial-gradient(circle at 16% 22%, rgba(255,255,255,0.025), transparent 34%),
+        linear-gradient(104deg, #202020 0%, var(--director-black) 56%, #212121 100%);
+    color: var(--director-paper);
+    box-shadow: 0 10px 0 rgba(28, 28, 28, 0.12), 0 14px 24px rgba(28, 28, 28, 0.22);
+    /* 字体继承 #main-interface（Cormorant Garamond + Noto Serif SC），不要在此覆盖 */
+}
+
+.director-card::before {
+    content: "";
+    position: absolute;
+    z-index: 3;
+    inset: clamp(7px, 2.4vw, 11px);
+    border: 1.5px solid var(--director-red);
+    box-shadow: inset 0 0 0 1px rgba(210, 31, 25, 0.16);
+    pointer-events: none;
+}
+
+.director-card-brand {
+    position: relative;
+    min-width: 0;
+    display: grid;
+    place-items: center;
+}
+
+.director-card-name {
+    position: absolute;
+    left: calc(50% - 1cqw);
+    top: 50%;
+    width: max-content;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    transform: translate(-50%, -50%) rotate(-90deg);
+    transform-origin: center;
+    color: var(--director-red);
+    font-size: clamp(2.35rem, 12.3cqw, 3.15rem);
+    font-weight: 400;
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+    white-space: nowrap;
+}
+
+.director-card-name span {
+    display: block;
+}
+
+/* 首字母 P / M 放大：M 的顶沿一直长到贴住上一行 PAOLO 的下沿。
+   注意 line-height 的换算——首字母放大后它自己的行盒也会跟着变高，
+   会把 PAOLO / MALDINI 两行推开、反而够不着；这里用 0.92÷倍数 把行盒
+   压回原来的 0.92，字形照常放大溢出，两行间距保持不变。
+   想调大小只改 --initial-scale 这一个值即可。 */
+.director-card-name {
+    --initial-scale: 1.75;
+}
+
+.director-card-name span::first-letter {
+    font-size: calc(1em * var(--initial-scale));
+    line-height: calc(0.92 / var(--initial-scale));
+}
+
+.director-card-details {
+    min-width: 0;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    align-content: stretch;
+    margin-right: -1.5cqw;
+    padding: clamp(2px, 0.5cqw, 3px) 0 clamp(2px, 0.8cqw, 4px) 1.5cqw;
+}
+
+.director-card-header {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: clamp(7px, 2.2cqw, 11px);
+    /* 队徽与职务行放大后头部本就变高，这里收窄下边距把空间还给下方四行数值
+       （名片是固定 16:9，头部长高会直接压缩数值区）*/
+    padding-bottom: 1.6cqw;
+    color: var(--director-red);
+    text-align: left;
+}
+
+.director-card-crest {
+    width: clamp(27px, 9.2cqw, 38px);
+    height: clamp(44px, 14.9cqw, 61px);
+    object-fit: contain;
+    flex: 0 0 auto;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.55));
+}
+
+.director-card-heading {
+    min-width: 0;
+    margin-left: 6cqw;
+    transform: translateY(-0.8cqw);
+}
+
+.director-card-role {
+    font-size: clamp(0.95rem, 4.3vw, 1.3rem);
+    line-height: 1.25;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+}
+
+/* 中文职务下方的意大利文小标 */
+.director-card-subtitle {
+    margin-top: clamp(1px, 0.4vw, 2px);
+    font-size: clamp(0.48rem, 2.1vw, 0.62rem);
+    line-height: 1.2;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.82;
+    white-space: nowrap;
+}
+
+.director-card-season {
+    margin-top: clamp(2px, 0.8vw, 4px);
+    display: flex;
+    align-items: center;
+    gap: 7.3cqw;
+    transform: translateY(1.1cqw); /* 较原来上移，贴近上方职务行 */
+    font-variant-numeric: lining-nums;
+    font-size: clamp(0.56rem, 2.35vw, 0.7rem);
+    letter-spacing: 0.12em;
+    white-space: nowrap;
+}
+
+.director-card-divider {
+    height: clamp(8px, 2.8vw, 13px);
+    display: flex;
+    align-items: center;
+    padding: 0 9.2cqw 0 11.3cqw;
+}
+
+.director-card-divider::before,
+.director-card-divider::after {
+    content: "";
+    height: 1px;
+    flex: 1;
+    background: repeating-linear-gradient(90deg, rgba(242,235,207,0.72) 0 3px, transparent 3px 5px);
+}
+
+.director-card-divider span {
+    width: clamp(5px, 1.6vw, 7px);
+    height: clamp(7px, 2.2vw, 10px);
+    margin: 0 clamp(14px, 4.5vw, 20px);
+    border-radius: 50%;
+    background: #111;
+    box-shadow: clamp(-15px, -3.8vw, -11px) 0 0 -1px var(--director-red),
+                clamp(11px, 3.8vw, 15px) 0 0 -1px var(--director-red);
+}
+
+.director-card-stats {
+    min-height: 0;
+    display: grid;
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+    gap: clamp(4px, 1.3vw, 7px);
+}
+
+.director-stat {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(66px, 0.9fr) minmax(0, 1.65fr) minmax(22px, 0.35fr);
+    align-items: center;
+    gap: clamp(4px, 1.4vw, 7px);
+}
+
+.director-stat .stat-card-head {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: clamp(9px, 3.4cqw, 16px); /* 数值名称与其后「?」说明按钮（连同圆圈）之间的间距，加大即把「?」整体右推 */
+}
+
+.director-stat .stat-card-title {
+    min-width: 0;
+    color: var(--director-paper);
+    font-size: clamp(0.56rem, 2.25vw, 0.68rem);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.015em;
+    white-space: nowrap;
+}
+
+.director-stat .stat-help {
+    position: static;
+    width: clamp(12px, 3.4vw, 15px);
+    height: clamp(12px, 3.4vw, 15px);
+    flex: 0 0 auto;
+    padding: 0;
+    border-color: rgba(242, 235, 207, 0.48);
+    color: rgba(242, 235, 207, 0.62);
+    font-size: clamp(0.48rem, 1.7vw, 0.58rem);
+}
+
+.director-stat .stat-help:hover {
+    border-color: var(--director-red);
+    background: var(--director-red);
+    color: var(--director-paper);
+}
+
+.director-stat .stat-card-progress {
+    min-width: 0;
+    margin: 0 -0.5cqw 0 0;
+}
+
+.director-stat .progress-track {
+    width: 100%;
+    height: clamp(7px, 2.35vw, 10px);
+    overflow: hidden;
+    border: 1px solid rgba(242, 235, 207, 0.72);
+    border-radius: 0;
+    box-sizing: border-box;
+    background: var(--director-paper);
+}
+
+.director-card .progress-bar,
+.director-card .progress-bar.low,
+.director-card .progress-bar.medium,
+.director-card .progress-bar.high {
+    height: 100%;
+    border-radius: 0;
+    /* 红黑相间条纹：条纹宽度固定，条数随数值增长，读数更有刻度感 */
+    background: repeating-linear-gradient(
+        90deg,
+        var(--director-red-deep) 0,
+        var(--director-red-deep) clamp(4px, 1.5cqw, 7px),
+        var(--director-black) clamp(4px, 1.5cqw, 7px),
+        var(--director-black) clamp(7px, 2.6cqw, 12px)
+    );
+    transition: width 0.4s ease;
+}
+
+.director-stat .stat-card-value {
+    color: var(--director-paper);
+    font-variant-numeric: tabular-nums lining-nums; /* Garamond 系默认可能是不等高数字，四行数值需要对齐 */
+    font-size: clamp(0.6rem, 2.45vw, 0.76rem);
+    font-weight: 400;
+    line-height: 1;
+    text-align: right;
+    transform: translateX(-4.05cqw);
+}
+
+.director-stat .stat-card-status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* 数值变动的浮字：名片是深色底，用亮红加描边+光晕才够醒目 */
+.director-card .stat-change {
+    z-index: 4;
+    right: clamp(20px, 6.4vw, 30px);
+    top: 50%;
+    padding: 0 clamp(3px, 1cqw, 5px);
+    color: #FF3B30;
+    font-size: clamp(1.05rem, 4.2vw, 1.4rem);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums lining-nums;
+    text-shadow:
+        0 0 1px var(--director-black),
+        0 1px 2px var(--director-black),
+        0 0 10px rgba(255, 59, 48, 0.75);
+    transform: translateY(-50%) scale(0.75);
+    transition: transform 0.9s cubic-bezier(0.2, 1.4, 0.4, 1), opacity 0.9s ease;
+}
+
+.director-card .stat-change.visible {
+    opacity: 1;
+    transform: translateY(-185%) scale(1);
+}
+
+
+@media (max-width: 360px) {
+    .director-card {
+        padding: 13px;
+    }
+    .director-card::before { inset: 6px; }
+    .director-card-name {
+        font-size: clamp(2.25rem, 12.3cqw, 2.75rem);
+    }
+    .director-card-details { padding-right: 5px; }
+    .director-stat {
+        /* 首列略加宽：标题与「?」之间的间距变大后，64px 会挤不下「董事会信任度 ?」 */
+        grid-template-columns: 72px minmax(0, 1fr) 17px;
+        gap: 3px;
+    }
+    .director-stat .stat-card-title { font-size: 0.52rem; }
+    .director-stat .stat-help {
+        width: 11px;
+        height: 11px;
+        font-size: 0.46rem;
+    }
+    .director-stat .stat-card-value {
+        padding-right: 1px;
+        font-size: 0.56rem;
+    }
+}
+
+/* ==========================================================================
+   主界面 · 拼贴桌面版式  v3.1（坐标源自 Figma 导出 Picture_Main/iPhone 17 - 1.svg）
+   ---------------------------------------------------------------------------
+   ■ 坐标系：`.desk` 用 aspect-ratio: 100/278 锁高（高度＝宽度×2.78）。
+       - 水平 left/width：% ＝ 设计px ÷ 402 × 100（与 Figma 数值一一对应）
+       - 垂直 top/height：先按上式算出，再 ÷2.78（% 的参照是画布高）
+     Figma 画板 402×874 只覆盖到竖向 78% 处；报纸以下是尚未定稿的续排区。
+   ■ SVG 里的矩形对应**原始 PNG（含透明留白）**，线上用的是 assets/ui/ 裁边版，
+     下面每个数值都做过「alpha 包围盒 + 缩放比」修正——不能直接抄 SVG 里的数字，
+     换素材或重导 SVG 后必须重新换算。
+   ■ 两条教训（v3 翻车原因，勿回退）：
+     ① 容器单位对元素**自身**不生效：曾给 .desk 写 height:278cqw，cqw 落到
+        视口宽度解析，桌面端画布被拉到 5000px+ → 现改 aspect-ratio 锁高，
+        子元素定位全部改用 %（水平参照宽、垂直参照高，兼容性也更好）。
+     ② 别写 `.desk-deco img { width:100% }` 这类兜底宽度：特异性 (0,1,1) 会压过
+        各图层自己的宽度 (0,1,0)，回形针/门票全被放大成整幅宽——巨型回形针即此因。
+   ■ 名片（.director-card）沿用现有组件（其内部自带 container-type，cqw 不受影响）。
+   ========================================================================== */
+
+/* 进入新界面主界面后才铺满容器（开场三屏保持原留白） */
+body.in-main:not(.ui-old) #game-container {
+    max-width: 460px;
+    padding: 0;
+}
+
+/* ---------- 画布 ---------- */
+.desk {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 100 / 278;       /* 高度锁定为宽度的 2.78 倍，页面照常滚动 */
+    box-sizing: border-box;
+    padding: 0;
+    border: none;
+    background: none;              /* 底板用 <img> 图层精确定位，不当背景铺 */
+    /* 字体只作用于新界面：Cormorant Garamond 不含汉字，拉丁/数字命中它、
+       汉字自动落到 Noto Serif SC。⚠ 挂 .desk 而非 #main-interface——
+       旧界面换进来的原版 markup 用的也是那个 id。 */
+    font-family: "Cormorant Garamond", "Noto Serif SC", Georgia, "Songti SC", serif;
+    font-synthesis: none;          /* 中文子集只有 400，禁用伪粗体 */
+}
+
+.desk > * { position: absolute; text-align: left; }
+
+/* ---------- 装饰层 ---------- */
+.desk-deco,
+.desk-deco-front {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+.desk-deco       { z-index: 0; }
+.desk-deco-front { z-index: 4; }   /* 「回形針 3」压在报纸之上 */
+.desk-deco > *, .desk-deco-front > * { position: absolute; }
+/* 每张装饰图的宽度在各自规则里定（见下）——千万别在此补 width:100%（教训②） */
+.desk-deco img, .desk-deco-front img { display: block; height: auto; }
+
+/* 文件夹底板（设计 -11.52 / 28.26 → top÷2.78） */
+.deco-folder { left: -11.52%; top: 10.17%; width: 118.89%; }
+
+/* 左侧夹扣（-9.18 / 75.07） */
+.deco-clasp  { left: -9.18%; top: 27.00%; width: 22.79%; }
+
+/* 相框 + 相片（-1.74 / 32.09）。相框中央是透明窗，照片垫在下层透出来 */
+.deco-photo  { left: -1.74%; top: 11.54%; width: 49.04%; }
+.deco-photo-img {
+    position: absolute;
+    left: 4.93%;      /* 透明窗在裁边后相框中的位置（脚本量出） */
+    top: 3.59%;
+    width: 87.56%;
+    height: 81.86%;
+    object-fit: cover;
+    filter: saturate(0.92) contrast(1.02);
+}
+.deco-photo-frame { position: relative; z-index: 1; width: 100%; }
+
+/* 两枚回形针：SVG 里绕原矩形左上角旋转。origin 换算成相对自身盒的百分比：
+   x = -17.27/5.65，y = -15.77/(5.65×116/34)（设计值/元素尺寸，均为画布宽的%） */
+.deco-clip { width: 5.65%; }
+.deco-clip-2 {
+    left: 2.09%;  top: 13.50%;
+    transform-origin: -305.7% -81.8%;
+    transform: rotate(-30deg);
+}
+.deco-clip-3 {
+    left: 97.50%; top: 30.26%;
+    transform-origin: -305.7% -81.8%;
+    transform: rotate(-130deg);
+}
+
+/* 门票：Figma 稿未含，沿用此前位置作右下角点缀（196 → 70.50） */
+.deco-ticket {
+    left: 52%;
+    top: 70.50%;
+    width: 48%;
+    transform: rotate(-70deg);
+    transform-origin: center;
+    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.28));
+}
+
+/* ---------- ① 名片（组件保留，仅套用 SVG 的位置/宽度：100,151,279 → %）---------- */
+.desk > .director-card { left: 24.88%; top: 13.51%; width: 69.40%; z-index: 2; }
+
+/* 红鸟的不满（Figma 稿未含，置于名片正上方空白带） */
+.desk > .suspicion-card {
+    left: 24.88%; top: 10.25%; width: 69.40%;
+    margin: 0; padding: 0.6% 2.5%;
+    z-index: 3;
+    background: rgba(242, 235, 207, 0.94);
+    border: 1.5px solid #1d1b19;
+    border-radius: 2px;
+}
+.desk > .suspicion-card.hidden { display: none; }
+.desk .suspicion-label { font-size: clamp(0.6rem, 2.5vw, 0.78rem); font-weight: 400; }
+.desk .suspicion-dots  { gap: 6px; }
+
+/* ---------- ② 报纸（整块贴素材：-0.5 / 83.06 / 106.04 宽，高按素材比例）---------- */
+.desk > .newspaper {
+    left: -0.50%; top: 29.88%; width: 106.04%;
+    height: 13.87%;                   /* ＝设计高 38.56（宽×280/770）÷2.78 */
+    display: flex; flex-direction: column; justify-content: center;
+    gap: clamp(1px, 0.5vw, 3px);
+    box-sizing: border-box;
+    padding: 3.5% 12% 3.5% 8%;
+    z-index: 2;
+    color: #2b2723;
+    background: url("assets/ui/newspaper.png") center / 100% 100% no-repeat;
+}
+
+.np-masthead { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.np-title    { font-size: clamp(0.74rem, 3.3vw, 0.96rem); letter-spacing: 0.06em; color: #1d1b19; }
+.np-edition  { font-size: clamp(0.5rem, 2.2vw, 0.64rem); color: #6d6357; white-space: nowrap; }
+.np-rule     { height: 1px; background: #46403a; opacity: 0.7; }
+
+.newspaper .last-score-panel {
+    flex: 1 1 auto;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 0; width: 100%; margin: 0; padding: 0;
+    background: none; border: none; border-radius: 0; box-shadow: none;
+}
+.newspaper .panel-label { font-size: clamp(0.62rem, 2.7vw, 0.8rem); font-weight: 400; color: #9a9086; }
+.newspaper .last-score-value { gap: 2%; }
+.score-team-wrap { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.newspaper .score-team  { font-size: clamp(0.72rem, 3.2vw, 0.95rem); font-weight: 400; color: #1d1b19; }
+.score-venue            { font-size: clamp(0.44rem, 1.9vw, 0.56rem); letter-spacing: 0.08em; color: #8d8377; }
+.newspaper .score-num   { font-size: clamp(0.98rem, 4.4vw, 1.35rem); color: #1d1b19; }
+.newspaper .score-colon { padding: 0 3px; color: #8d8377; }
+.newspaper .score-crest { width: clamp(13px, 4.6vw, 20px); height: clamp(13px, 4.6vw, 20px); }
+
+.newspaper .summary-grid {
+    flex: none;
+    display: flex; align-items: baseline; justify-content: center;
+    gap: clamp(10px, 4.5vw, 24px);
+    width: 100%;
+}
+.newspaper .variable {
+    display: flex; align-items: baseline; gap: 3px;
+    padding: 0; background: none; border: none; border-radius: 0; overflow: visible;
+    font-size: clamp(0.52rem, 2.3vw, 0.68rem); letter-spacing: 0.05em; color: #6d6357;
+}
+.newspaper .variable span {
+    font-weight: 400; color: #1d1b19;
+    font-size: clamp(0.74rem, 3.2vw, 0.94rem);
+}
+
+/* ---------- ③ 八个决策事件（对角阶梯，比例沿用主要示意图；Figma 未定稿的续排区）---------- */
+.desk > .events-list {
+    left: 8.7%; top: 46.04%; width: 82.8%; height: 15.83%;
+    display: block; gap: 0; margin: 0; z-index: 2;
+}
+.desk .event-btn {
+    position: absolute;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 2%;
+    border: none; border-radius: 2px;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+    color: #F2EBCF;
+    font-size: clamp(0.6rem, 2.7vw, 0.82rem);
+    font-weight: 400; line-height: 1.18; letter-spacing: 0.03em; text-align: center;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+.desk .event-btn:nth-child(1) { left:  0.1%; top:  0%;    width: 38.4%; height: 19.4%; }
+.desk .event-btn:nth-child(2) { left: 41.7%; top:  0%;    width: 58.2%; height: 19.4%; }
+.desk .event-btn:nth-child(3) { left:  0.1%; top: 26.9%;  width: 46.4%; height: 18.3%; }
+.desk .event-btn:nth-child(4) { left: 51.1%; top: 26.9%;  width: 49.0%; height: 18.3%; }
+.desk .event-btn:nth-child(5) { left:  0%;   top: 54.3%;  width: 54.7%; height: 18.3%; }
+.desk .event-btn:nth-child(6) { left: 59.2%; top: 54.3%;  width: 40.8%; height: 18.3%; }
+.desk .event-btn:nth-child(7) { left:  0%;   top: 76.6%;  width: 64.0%; height: 20.6%; }
+.desk .event-btn:nth-child(8) { left: 67.4%; top: 76.6%;  width: 32.6%; height: 20.6%; }
+
+.desk .event-btn:nth-child(4n + 1),
+.desk .event-btn:nth-child(4n)     { background-color: #C0201B; }
+.desk .event-btn:nth-child(4n + 2),
+.desk .event-btn:nth-child(4n + 3) { background-color: #35322F; }
+
+.desk .event-btn:hover:not(:disabled)  { filter: brightness(1.14); transform: translateY(-1px); }
+.desk .event-btn:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 1px 0 rgba(0,0,0,0.3); }
+/* 用过的事件 JS 会内联写 background-color:#ccc 覆盖上面的底色，这里只保证文字可读 */
+.desk .event-btn:disabled { color: #7d7973; box-shadow: none; transform: none; }
+
+/* ---------- ④ 决策点 + 开始比赛 ---------- */
+.desk > .match-bar {
+    left: 8.7%; top: 63.67%; width: 82.8%; height: 4.32%;
+    display: flex; align-items: center; justify-content: space-between; gap: 3%;
+    margin: 0; padding: 0; border: none; z-index: 3;
+}
+.desk .decision-points {
+    display: flex; align-items: baseline; gap: 3px;
+    font-size: clamp(0.7rem, 3.1vw, 0.92rem);
+    letter-spacing: 0.05em; color: #35322F; white-space: nowrap;
+}
+.desk #decision-points { font-size: 1.2em; font-weight: 400; color: #C0201B; }
+
+.desk #start-match {
+    flex: 0 0 auto; width: 52%; height: 78%;
+    padding: 0;
+    background-color: #C0201B;
+    border: none; border-radius: 2px;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+    color: #F2EBCF;
+    font-size: clamp(0.76rem, 3.4vw, 1rem);
+    letter-spacing: 0.12em;
+    transition: filter 0.12s ease, transform 0.12s ease;
+}
+.desk #start-match:hover:not(:disabled)  { background-color: #C0201B; filter: brightness(1.14); transform: translateY(-1px); }
+.desk #start-match:active:not(:disabled) { transform: translateY(1px); }
+.desk #start-match:disabled { background-color: #b0aaa1; color: #efece5; box-shadow: none; }
+
+/* ---------- ⑤ 手机（四个信息类入口）----------
+   图标画在 assets/ui/phone.png 里，透明按钮盖在图标上；
+   下列百分比由脚本量出，**换手机图必须重新测量**。 */
+.desk > .phone {
+    left: 4%; top: 69.06%; width: 42%;
+    margin: 0; z-index: 3;
+    filter: drop-shadow(0 5px 11px rgba(0,0,0,0.26));
+}
+.phone-img { display: block; width: 100%; height: auto; }
+
+.phone-hot {
+    position: absolute;
+    width: 20.5%; height: 20.2%;
+    padding: 0; background: none; border: none; border-radius: 14%;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.phone-hot:hover  { transform: scale(1.07); box-shadow: 0 0 0 2px rgba(242,235,207,0.8); }
+.phone-hot:active { transform: scale(0.95); }
+.phone-hot-dm    { left: 15.1%; top: 31.9%; }
+.phone-hot-task  { left: 39.7%; top: 31.9%; }
+.phone-hot-rank  { left: 65.1%; top: 31.9%; }
+.phone-hot-sched { left: 15.1%; top: 57.8%; }
+.phone-hot .tn-dot { top: -3px; right: -3px; }
+
+.hot-label {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
+/* ---------- ⑥ 底部系统功能条 ---------- */
+.desk > .bottom-bar {
+    left: 2%; top: 89.21%; width: 96%; height: 7.91%;
+    display: flex; align-items: center; gap: 2.4%;
+    margin: 0; padding: 0 2.6%;
+    box-sizing: border-box;
+    z-index: 3;
+    background: #35322F;
+    border-radius: 2px;
+}
+.bottom-bar button {
+    flex: 1 1 0; min-width: 0; height: 47%;
+    padding: 0;
+    background: #F2EBCF;
+    border: none; border-radius: 1px;
+    cursor: pointer;
+    color: #1d1b19;
+    font-size: clamp(0.52rem, 2.3vw, 0.7rem);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    text-align: center;
+    transition: background 0.12s ease, transform 0.12s ease;
+}
+.bottom-bar button:hover  { background: #FFFAEC; transform: translateY(-1px); }
+.bottom-bar button:active { transform: translateY(1px); }
+.bottom-bar button.hidden { display: none; }
+
+/* ---------- 事件展开区：定位画布，故做成盖在按钮区上的浮层 ---------- */
+.desk > #event-options {
+    left: 6%; top: 45.32%; width: 88%;
+    max-height: 34.53%; overflow-y: auto;
+    margin: 0; padding: 3% 4%;
+    box-sizing: border-box;
+    z-index: 6;
+    background: rgba(249, 246, 238, 0.97);
+    border: 1.5px solid #1d1b19;
+    border-radius: 2px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.28);
+    text-align: center;
+}
+.desk > #event-options.hidden { display: none; }
+.desk #event-description { margin-bottom: 3%; font-weight: 400; color: #2b2723; font-size: clamp(0.68rem, 3vw, 0.88rem); }
+
+/* ==========================================================================
+   界面版本切换（难度选择页的「新界面 / 旧界面」）
+   ---------------------------------------------------------------------------
+   实现方式：**同一套 DOM，两套皮肤**。JS 只在 <body> 上加/去 .ui-old，
+   其余全由下面的 CSS 决定。好处是不复制markup、不刷新页面、随时可切；
+   代价是「旧界面」是按原版式还原的外观，而非逐字节回滚旧 DOM。
+   ========================================================================== */
+
+/* 滑动式分段选择器：一块会滑动的实心「滑块」在两个选项间移动。
+   （旧版是给选中按钮直接填底色，方形底色被容器的圆角裁掉，两端会露出三角形缺口） */
+.ui-switch {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    width: max-content;
+    margin: 0 auto 16px;
+    padding: 3px;
+    border: 1.5px solid #8B0000;
+    border-radius: 999px;
+    background: rgba(139, 0, 0, 0.05);
+}
+
+.ui-switch-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: calc(50% - 3px);
+    height: calc(100% - 6px);
+    border-radius: 999px;
+    background: #8B0000;
+    pointer-events: none;
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 选中「旧界面」时滑块右移一格（100% ＝ 滑块自身宽度 ＝ 一格宽） */
+.ui-switch[data-active="old"] .ui-switch-thumb { transform: translateX(100%); }
+
+.ui-switch-btn {
+    position: relative;
+    z-index: 1;
+    padding: 7px 22px;
+    background: none;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    color: #8B0000;
+    font-family: inherit;
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    transition: color 0.22s ease;
+}
+
+.ui-switch-btn.is-active { color: #F2ECE0; }

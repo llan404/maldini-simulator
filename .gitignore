@@ -12,3 +12,8 @@ CODEMAP.md
 # Node 依赖 / 构建产物（源码仓库不收；dist 是混淆后的部署产物）
 node_modules/
 dist/
+
+# 字体源文件（未裁剪的原版，Noto Serif SC 单个就 25MB）。
+# 仓库只收 subset-fonts.py 产出的 assets/fonts/*.woff2 子集；
+# 需要重跑子集化时按 subset-fonts.py 顶部说明重新下载到此目录。
+fonts-src/

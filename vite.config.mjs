@@ -9,5 +9,17 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
+    watch: {
+      // Windows 上图片被看图/编辑软件或杀毒占用时，chokidar 监听会抛 EBUSY 并直接崩掉整个 dev server
+      // （曾被 Picture_Main/扣子.png 触发）。这些目录都是静态素材，改了也不需要 HMR，直接不监听。
+      ignored: [
+        '**/Picture_Main/**',
+        '**/Picture_Ending/**',
+        '**/SVG/**',
+        '**/assets/fonts/**',
+        '**/fonts-src/**',
+        '**/dist/**',
+      ],
+    },
   },
 });

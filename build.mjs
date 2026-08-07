@@ -1,5 +1,5 @@
 // ============================================================
-//  构建脚本：把 6 个源码 JS 按加载顺序拼接 → 混淆 → 产出 dist/
+//  构建脚本：把内容与运行时源码按加载顺序拼接 → 混淆 → 产出 dist/
 //  用法：npm run build   （本地开发永远跑未混淆源码，此脚本不改动任何源文件）
 // ============================================================
 import { readFileSync, writeFileSync, rmSync, mkdirSync, cpSync, readdirSync } from 'node:fs';
@@ -18,13 +18,21 @@ const SOURCES = [
   'mainlineContent.js',
   'endingContent.js',
   'negotiationContent.js',
-  'script.js',
+  'src/game-core.js',
+  'src/transfer-system.js',
+  'src/event-flow.js',
+  'src/europe-system.js',
+  'src/management-views.js',
+  'src/terminal-system.js',
+  'src/persistence-system.js',
 ];
 
 // 拷贝 dist 时要排除的东西（开发/源码/文档等，不进产物）
 const EXCLUDE = new Set([
-  '.git', '.claude', '.vscode', 'sim', '__pycache__', 'node_modules', 'dist',
+  '.git', '.claude', '.vscode', 'sim', 'src', '__pycache__', 'node_modules', 'dist',
   'package.json', 'package-lock.json', 'vite.config.mjs', 'build.mjs',
+  'subset-fonts.py', 'fonts-src',   // 字体子集化脚本与源字体（产物 assets/fonts/ 照常拷贝）
+  'trim-ui-assets.py', 'Picture_Main', // 主界面素材源图与设计稿（线上用的是 assets/ui/ 里的裁边版）
   '.gitignore', 'CODEMAP.md', 'SeasonEvent.md', 'ACM模拟器.docx', '球队消息.docx',
   'index.html',            // 单独处理（重写 <script>）
   'style.css',             // 单独处理（esbuild 压缩、去掉全部注释）
@@ -86,15 +94,15 @@ const { code: cssMin } = await transform(cssSrc, { loader: 'css', minify: true }
 writeFileSync(join(DIST, 'style.css'), cssMin, 'utf8');
 console.log(`[build] CSS 压缩完成 → dist/style.css（${(cssSrc.length / 1024).toFixed(0)} KB → ${(cssMin.length / 1024).toFixed(0)} KB）`);
 
-// 5) 重写 index.html：把 6 个 <script> 换成单个混淆后的 app.min.js
+// 5) 重写 index.html：把源码 <script> 块换成单个混淆后的 app.min.js
 let html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const SCRIPT_BLOCK_RE =
-  /[ \t]*<script src="terminalContent\.js\?[^"]*"><\/script>[\s\S]*?<script src="script\.js\?[^"]*"><\/script>/;
+  /[ \t]*<!-- app-sources:start[^>]*-->[\s\S]*?<!-- app-sources:end -->/;
 if (!SCRIPT_BLOCK_RE.test(html)) {
   throw new Error('[build] 未能在 index.html 中定位到 <script> 块，构建中止（源码结构变了？请检查 SCRIPT_BLOCK_RE）');
 }
 html = html.replace(SCRIPT_BLOCK_RE, `    <script src="app.min.js?v=${version}"></script>`);
 writeFileSync(join(DIST, 'index.html'), html, 'utf8');
-console.log('[build] 已重写 dist/index.html（6 脚本 → app.min.js）');
+console.log('[build] 已重写 dist/index.html（源码脚本块 → app.min.js）');
 
 console.log('\n[build] ✅ 完成。产物在 dist/，部署时只推 dist/ 里的内容。\n');

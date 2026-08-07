@@ -376,7 +376,8 @@ const TERMINAL_CONTENT = {
           replies: [
               { text: '不会了。', answer: '说不准呢。' },
               { text: '也许吧。', answer: '那一天不会太远的。' },
-              { text: '你怎么知道？', answer: '你心属于我。' }
+              // dmBg：选这条并等米兰把话说完 → 整条「AC米兰」对话串换成 CG 背景（写入 gameStats.dmThreadBg，随存档持久）
+              { text: '你怎么知道？', answer: '你心属于我。', dmBg: 'Picture_Ending/Milan_OpenEyes.jpg' }
           ] },
         // 消息30 · 里昂总监（卡卢卢在队满一个赛季后随机送达，trigger:'kaluluLyon'）
         { from: '里昂总监', unread: true, trigger: 'kaluluLyon',

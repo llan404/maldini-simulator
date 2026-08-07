@@ -6,9 +6,9 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>ACM球队总监模拟器2.1</title>
+    <title>ACM球队总监模拟器2.2</title>
     <link rel="icon" type="image/svg+xml" href="SVG/SA/ACM.svg">
-    <link rel="stylesheet" href="style.css?v=2.1">
+    <link rel="stylesheet" href="style.css?v=2.2">
     <!-- 比分数字 Oswald / 英文队名 Playfair Display -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,8 +17,9 @@
 </head>
 <body>
     <div id="game-container">
-        <h1>ACM球队总监模拟器2.1</h1>
-        
+        <!-- 页面大标题：旧界面保留原样，新界面由 CSS 隐藏（拼贴版面不留标题） -->
+        <h1 id="page-title">ACM球队总监模拟器2.2</h1>
+
         <!-- 创作者声明（开场第一屏） -->
         <div id="test-notice-modal" class="modal">
             <div class="modal-content test-notice-content">
@@ -27,19 +28,11 @@
                     <!-- 第一页：声明与建议 -->
                     <div class="test-notice-page" id="test-notice-page-1">
                         <h2>创作者声明</h2>
-                        <p class="test-notice-intro">当前版本为：2.1，修复了部分已知问题。</p>
+                        <p class="test-notice-intro">当前版本为：2.2，增加了结局‘她来了’的CG。</p>
                         <p class="test-notice-intro">此游戏为同人作品。</p>
-                        <p class="test-notice-intro">您在游玩中遇到的 bug 可以通过 <strong>wb@加酸黄瓜三明治/Lanviofs@Gmail.com</strong> 反馈！</strong>。</p>
+                        <p class="test-notice-intro">您在游玩中遇到的 bug 可以通过 <strong>wb@加酸黄瓜三明治/Lanviofs@Gmail.com</strong> 反馈！。</p>
                         <p class="test-notice-intro">从模拟数据来看，困难模式的综合通关率仅有 1/3，如您选择困难模式，请善用存档功能。</p>
-                        <p class="test-notice-intro">AI使用声明：游戏所有文本部分未使用AI生成的内容。部分欧足联声明使用了AI翻译。</p>
-                        <p class="test-notice-intro">您可以从以下方面提出建议：</p>
-                        <ol class="test-notice-list">
-                            <li>UI设计问题/页面风格问题</li>
-                            <li>剧情不符合预期/随机事件触发问题</li>
-                            <li>可玩性不够/应该加入某些事件</li>
-                            <li>部分机制的说明不够清晰</li>
-                            <li>我有其他建议</li>
-                        </ol>
+                        <p class="test-notice-intro tn-ai-note">AI使用声明：游戏所有文本部分未使用AI生成的内容。部分欧足联声明使用了AI翻译。</p>
                     </div>
                     <!-- 第二页：特别感谢 -->
                     <div class="test-notice-page tn-hidden" id="test-notice-page-2">
@@ -51,6 +44,8 @@
                             <p><strong>@Jasmine</strong> 提供了大量测试建议。</p>
                             <p><strong>@log</strong> 提供了大量测试建议。</p>
                             <p><strong>@黒直</strong> 提供了大量有关赛程、随机事件的建议。</p>
+                            <div class="tn-thanks-rule" aria-hidden="true"></div>
+                            <p><strong>@投石</strong> 绘制了结局‘她来了’的CG，重新设计了主界面ui（还在更新中）。</p>
                             <p><strong>@黒直</strong> 绘制了结局‘意外？’的CG。</p>
                             <p><strong>@NAKEDREAM（米画师）</strong>绘制了结局‘？？？’的CG。</p>
                             <p>结局‘意外？’的文案来自<strong>@Bentornato</strong> 翻译发布的《马尔蒂尼共和报专访完整版》。（已授权）</p>
@@ -336,6 +331,16 @@
         <!-- 难度选择 -->
         <div id="difficulty-selection" class="hidden">
             <h2>选择难度</h2>
+            <!-- 界面版本切换：只换外观，不影响任何游戏逻辑。默认新界面，选择记在 localStorage
+                 【临时·已停用】新界面暂不对玩家开放，按钮整段注释掉；
+                 同时页面末尾那段内联脚本被改成「无条件走旧界面」。
+                 恢复时：解开下面这段注释 + 还原那段内联脚本的判断（两处都有同名标记）。
+            <div class="ui-switch" id="ui-switch" data-active="new" role="group" aria-label="界面版本">
+                <span class="ui-switch-thumb" aria-hidden="true"></span>
+                <button type="button" class="ui-switch-btn is-active" data-ui="new">新界面</button>
+                <button type="button" class="ui-switch-btn" data-ui="old">旧界面</button>
+            </div>
+            -->
             <div class="difficulty-option">
                 <h3>小试马刀</h3>
                 <p>您将体验<span class="highlight-red">一个赛季</span>的任期。<span class="difficulty-rate">（胜率较高）</span></p>
@@ -353,7 +358,193 @@
             </div>
         </div>
         
-        <!-- 主界面 -->
+        <!-- ===== 主界面（拼贴桌面风格；版式见 Picture_Main/主要示意图.JPG）=====
+             ⚠ 本区块内所有 id / class 都是 src/*.js 的 DOM 钩子，改结构时不可删改：
+                名片四项数值 #trust|media|fans|player-card / -bar / -value / -status、
+                #director-season/-round、#suspicion-card+.suspicion-dot、
+                .last-score-panel>.panel-label+.last-score-value、#points/#ranking/#budget（各须裹在 .variable 内）、
+                #round（updateScoreboard 无空值保护，必须存在）、.event-btn[data-event]、
+                #event-options/#event-description/#option-buttons、#decision-points/#start-match、
+                #show-tasks|schedule|standings|team-news|history|archive|gallery-btn、#magic-phone-btn -->
+        <div id="main-interface" class="hidden">
+            <div class="desk">
+
+                <!-- 装饰层（底）：图层顺序与坐标全部照 Figma 导出的 iPhone 17-1.svg 还原，
+                     纯美术、不接收点击。各元素位置见 style.css，单位 cqw＝相对 .desk 宽度。 -->
+                <div class="desk-deco" aria-hidden="true">
+                    <img class="deco-folder" src="assets/ui/folder.png" alt="">
+                    <img class="deco-clasp" src="assets/ui/clasp.png" alt="">
+                    <div class="deco-photo">
+                        <img class="deco-photo-img" src="assets/ui/photo-brahim.jpg" alt="">
+                        <img class="deco-photo-frame" src="assets/ui/photoframe.png" alt="">
+                    </div>
+                    <img class="deco-clip deco-clip-2" src="assets/ui/paperclip.png" alt="">
+                    <img class="deco-ticket" src="assets/ui/ticket.png" alt="">
+                </div>
+
+                <!-- ① 体育总监名片（四项核心数值） -->
+                <section class="director-card" aria-label="保罗·马尔蒂尼体育总监名片与球队状态">
+                    <div class="director-card-brand" aria-hidden="true">
+                        <div class="director-card-name">
+                            <span>PAOLO</span>
+                            <span>MALDINI</span>
+                        </div>
+                    </div>
+                    <div class="director-card-details">
+                        <header class="director-card-header">
+                            <img class="director-card-crest" src="SVG/SA/ACM.svg" alt="AC Milan">
+                            <div class="director-card-heading">
+                                <div class="director-card-role">米兰 · 体育总监</div>
+                                <div class="director-card-subtitle">Direttore Sportivo</div>
+                                <div class="director-card-season">
+                                    <span>第 <span id="director-season">1</span> 赛季</span>
+                                    <span>第 <span id="director-round">0</span> 轮</span>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="director-card-divider" aria-hidden="true"><span></span></div>
+                        <div class="director-card-stats">
+                            <div class="director-stat" id="trust-card">
+                                <div class="stat-card-head"><div class="stat-card-title">董事会信任度</div></div>
+                                <div class="stat-card-progress"><div class="progress-track"><div class="progress-bar" id="trust-bar" data-value="50"></div></div></div>
+                                <div class="stat-card-value"><span id="trust-value">50</span></div>
+                                <div class="stat-card-status" id="trust-status">稳定</div>
+                            </div>
+                            <div class="director-stat" id="media-card">
+                                <div class="stat-card-head"><div class="stat-card-title">媒体声望</div></div>
+                                <div class="stat-card-progress"><div class="progress-track"><div class="progress-bar" id="media-bar" data-value="50"></div></div></div>
+                                <div class="stat-card-value"><span id="media-value">50</span></div>
+                                <div class="stat-card-status" id="media-status">稳定</div>
+                            </div>
+                            <div class="director-stat" id="fans-card">
+                                <div class="stat-card-head"><div class="stat-card-title">球迷满意度</div></div>
+                                <div class="stat-card-progress"><div class="progress-track"><div class="progress-bar" id="fans-bar" data-value="50"></div></div></div>
+                                <div class="stat-card-value"><span id="fans-value">50</span></div>
+                                <div class="stat-card-status" id="fans-status">稳定</div>
+                            </div>
+                            <div class="director-stat" id="player-card">
+                                <div class="stat-card-head"><div class="stat-card-title">球员状态</div></div>
+                                <div class="stat-card-progress"><div class="progress-track"><div class="progress-bar" id="player-bar" data-value="50"></div></div></div>
+                                <div class="stat-card-value"><span id="player-value">50</span></div>
+                                <div class="stat-card-status" id="player-status">稳定</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 红鸟的不满（仅第五赛季显示） -->
+                <div class="suspicion-card hidden" id="suspicion-card">
+                    <div class="suspicion-label">红鸟的不满</div>
+                    <div class="suspicion-dots">
+                        <span class="suspicion-dot"></span>
+                        <span class="suspicion-dot"></span>
+                        <span class="suspicion-dot"></span>
+                        <span class="suspicion-dot"></span>
+                        <span class="suspicion-dot"></span>
+                    </div>
+                </div>
+
+                <!-- ② 报纸：上一轮战报 + 积分/排名/预算 -->
+                <div class="newspaper">
+                    <div class="np-masthead">
+                        <span class="np-title">米兰体育报</span>
+                        <span class="np-edition">上一轮战报 · 第 <span id="round">0</span> 轮</span>
+                    </div>
+                    <div class="np-rule"></div>
+                    <div class="last-score-panel">
+                        <div class="panel-label">本赛季尚未开赛</div>
+                        <div class="last-score-value">
+                            <span class="score-side score-side-home">
+                                <span class="score-team-wrap">
+                                    <span id="last-score-home" class="score-team">AC Milan</span>
+                                    <span class="score-venue">主场</span>
+                                </span>
+                                <img id="last-score-home-crest" class="score-crest" alt="">
+                                <span id="score-home-goals" class="score-num"></span>
+                            </span>
+                            <span class="score-colon score-num">:</span>
+                            <span class="score-side score-side-away">
+                                <span id="score-away-goals" class="score-num"></span>
+                                <img id="last-score-away-crest" class="score-crest" alt="">
+                                <span class="score-team-wrap">
+                                    <span id="last-score-away" class="score-team"></span>
+                                    <span class="score-venue">客场</span>
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="np-rule"></div>
+                    <div class="summary-grid">
+                        <div class="variable">积分<span id="points">0</span></div>
+                        <div class="variable">排名<span id="ranking">1</span></div>
+                        <div class="variable">预算<span id="budget">1000万欧元</span></div>
+                    </div>
+                </div>
+
+                <!-- ③ 八个决策事件（红黑相间） -->
+                <div class="events-list">
+                    <button class="event-btn" data-event="1">周例会<br>汇报</button>
+                    <button class="event-btn" data-event="2">申请<br>预算</button>
+                    <button class="event-btn" data-event="3">新闻<br>发布会</button>
+                    <button class="event-btn" data-event="4">深度<br>采访</button>
+                    <button class="event-btn" data-event="5">赛前<br>鼓励</button>
+                    <button class="event-btn" data-event="6">内部<br>总结</button>
+                    <button class="event-btn" data-event="7">阵容<br>意见</button>
+                    <button class="event-btn" data-event="8">合同<br>谈判</button>
+                </div>
+
+                <div id="event-options" class="hidden">
+                    <p id="event-description"></p>
+                    <div id="option-buttons"></div>
+                </div>
+
+                <!-- ④ 决策点 + 开始比赛 -->
+                <div class="match-bar">
+                    <div class="decision-points">决策点<span id="decision-points">0</span>/2</div>
+                    <button id="start-match" disabled>开始比赛</button>
+                </div>
+
+                <!-- ⑤ 手机：四个信息类入口（点击区叠在手机图上画好的图标位置） -->
+                <div class="phone">
+                    <img class="phone-img" src="assets/ui/phone.png" alt="">
+                    <button id="show-team-news-btn" class="phone-hot phone-hot-dm" title="球队消息">
+                        <span class="hot-label">球队消息</span><span class="tn-dot hidden"></span>
+                    </button>
+                    <button id="show-tasks-btn" class="phone-hot phone-hot-task" title="赛季任务">
+                        <span class="hot-label">赛季任务</span>
+                    </button>
+                    <button id="show-standings-btn" class="phone-hot phone-hot-rank" title="排名">
+                        <span class="hot-label">排名</span>
+                    </button>
+                    <button id="show-schedule-btn" class="phone-hot phone-hot-sched" title="赛程">
+                        <span class="hot-label">赛程</span>
+                    </button>
+                </div>
+
+                <!-- 装饰层（顶）：SVG 里「回形針 3」压在报纸之上，
+                     而 .desk-deco 有 z-index 会形成层叠上下文、子元素爬不上来，故单开一层 -->
+                <div class="desk-deco-front" aria-hidden="true">
+                    <img class="deco-clip deco-clip-3" src="assets/ui/paperclip.png" alt="">
+                </div>
+
+                <!-- ⑥ 底部系统功能条 -->
+                <div class="bottom-bar">
+                    <button id="show-history-btn">决策记录</button>
+                    <button id="show-archive-btn">游戏存档</button>
+                    <button id="show-gallery-btn">结局图鉴</button>
+                    <button id="magic-phone-btn" class="magic-phone-btn hidden">魔力电话</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 旧界面（改版前的原始主界面，逐字保留自 commit eab10c9）=====
+         玩家在难度页选「旧界面」时，由下面那段内联脚本在**应用脚本执行之前**
+         把 #main-interface 整个换成这份 markup —— 必须早于 game-core.js，
+         因为它会在加载时缓存 .event-btn 等节点引用，换晚了引用会失效。
+         ⚠ 这是一份冻结副本：新界面加了内容时，如果也想在旧界面出现，需同步改这里。 -->
+    <template id="ui-old-main">
         <div id="main-interface" class="hidden">
             <!-- 方框一：数值 -->
             <div class="stats-box">
@@ -493,14 +684,39 @@
                 </div>
             </div>
         </div>
-    </div>
+    </template>
 
-    <script src="terminalContent.js?v=2.1"></script>
-    <!-- 事件/结局/谈判文案（须先于 script.js；mainlineContent 用 Object.assign 追加，须在 eventContent 之后）-->
-    <script src="eventContent.js?v=2.1"></script>
-    <script src="mainlineContent.js?v=2.1"></script>
-    <script src="endingContent.js?v=2.1"></script>
-    <script src="negotiationContent.js?v=2.1"></script>
-    <script src="script.js?v=2.1"></script>
+    <script>
+    // 界面版本：默认新界面；选了旧界面则在此刻替换 DOM（早于所有应用脚本）
+    (function () {
+        try {
+            // 【临时·已停用】新界面暂不对玩家开放 → 无条件替换成旧界面，
+            // 并忽略 localStorage 里可能存着的 'new'（保留不动，恢复按钮后即刻生效）。
+            // 恢复时：删掉本段注释、放开下面这行原判断，并解开难度页 .ui-switch 那段注释。
+            // if (localStorage.getItem('acm_ui_mode_v1') !== 'old') return;
+            document.body.classList.add('ui-old');
+            var tpl = document.getElementById('ui-old-main');
+            var cur = document.getElementById('main-interface');
+            if (tpl && cur) cur.replaceWith(tpl.content.cloneNode(true));
+        } catch (e) { /* localStorage 不可用时静默保持新界面 */ }
+    })();
+    </script>
+
+    <!-- app-sources:start（加载顺序不可调整；构建时整体替换为 app.min.js） -->
+    <script src="terminalContent.js?v=2.2"></script>
+    <!-- 事件/结局/谈判内容：mainlineContent 须在 eventContent 之后 -->
+    <script src="eventContent.js?v=2.2"></script>
+    <script src="mainlineContent.js?v=2.2"></script>
+    <script src="endingContent.js?v=2.2"></script>
+    <script src="negotiationContent.js?v=2.2"></script>
+    <!-- 运行时系统：按依赖顺序加载 -->
+    <script src="src/game-core.js?v=2.2"></script>
+    <script src="src/transfer-system.js?v=2.2"></script>
+    <script src="src/event-flow.js?v=2.2"></script>
+    <script src="src/europe-system.js?v=2.2"></script>
+    <script src="src/management-views.js?v=2.2"></script>
+    <script src="src/terminal-system.js?v=2.2"></script>
+    <script src="src/persistence-system.js?v=2.2"></script>
+    <!-- app-sources:end -->
 </body>
 </html>

@@ -1,7 +1,7 @@
 {
   "name": "maldini-simulator",
   "private": true,
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "ACM球队总监模拟器 —— 本地跑干净源码，构建时混淆",
   "scripts": {
     "dev": "vite",
